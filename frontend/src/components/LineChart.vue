@@ -15,7 +15,7 @@ const props = defineProps({
 </script>
 
 <template>
-  <div class="h-[300px]">
+  <div class="h-75">
     <Line :data="chartData" :options="chartOptions" />
   </div>
 </template>

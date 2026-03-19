@@ -1,10 +1,9 @@
 <script setup>
-import DashboardAdminComponent from './components/DashboardAdminComponent.vue';
-
+import DefaultLayout from './layouts/DefaultLayout.vue';
 </script>
 
 <template>
-    <DashboardAdminComponent/>
+  <DefaultLayout />
 </template>
 
 <style scoped></style>
