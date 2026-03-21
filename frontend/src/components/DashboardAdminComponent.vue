@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import StardCard from './StardCard.vue'
-import { Users, Activity, Percent, Target, TrendingUp, TrendingDown, Beef } from 'lucide-vue-next'
+import { Users, Activity, Percent, Target, TrendingUp, TrendingDown, Beef, PawPrint } from 'lucide-vue-next'
 
 // Importations Chart.js
 import { Pie, Line } from 'vue-chartjs'

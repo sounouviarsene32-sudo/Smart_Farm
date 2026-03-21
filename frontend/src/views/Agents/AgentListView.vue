@@ -99,7 +99,7 @@ const getPerfClass = (perf) => {
 }
 </script>
 <template>
-  <main class="flex-1 lg:ml-64 p-4 lg:p-8 transition-all duration-300 w-full">
+  <main class="flex-1 lg:ml-64 p-4 lg:p-8 transition-all duration-300 w-full p-8 bg-[#F8F9FA] min-h-screen space-y-8">
     <div class="flex justify-between items-start mb-8">
       <div>
         <h1 class="text-2xl font-bold text-slate-900">Agents</h1>
