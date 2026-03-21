@@ -35,7 +35,7 @@ const departments = ref([
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#F8F9FA] p-8">
+  <main class="flex-1 lg:ml-64 p-4 lg:p-8 transition-all duration-300 w-full p-8 bg-[#F8F9FA] min-h-screen space-y-8">
     <header class="flex justify-between items-start mb-10">
       <div>
         <h1 class="text-3xl font-extrabold text-slate-900">Départements</h1>
@@ -61,5 +61,5 @@ const departments = ref([
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
       <DepartmentsCard v-for="dept in departments" :key="dept.id" :dept="dept" />
     </div>
-  </div>
+  </main>
 </template>

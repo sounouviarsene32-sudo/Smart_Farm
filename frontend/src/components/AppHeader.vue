@@ -1,12 +1,50 @@
 <script setup>
+import { ref, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+const router = useRouter()
+import { useLoginStore } from '@/stores/login.store'
+const loginStore = useLoginStore()
+const currentUser = ref(loginStore.getDecodedToken)
+console.log('Current User:', currentUser ?? 'No user data available')
+import {
+  UserCircle,
+  LogOut,
+} from 'lucide-vue-next'
 
+const handleLogout = () => {
+  loginStore.logout()
+  router.push('/login')
+}
 
 </script>
 
 
 <template>
 
+<div class="flex-1 lg:ml-64 p-3 lg:p-8 transition-all duration-300 w-full p-8 bg-[#F8F9FA] space-y-8" >
+    
+    <div class="flex items-center gap-10 absolute top-2 right-10 flex">
+          <div class="flex items-center gap-3 mb-3 px-2">
+            <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+              <UserCircle class="w-6 h-6 text-green-600" />
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-gray-900 truncate">
+                {{ currentUser.userName }}
+              </p>
+              <p class="text-xs text-gray-500">Administrateur</p>
+            </div>
+          </div>
 
+          <button
+            @click="handleLogout"
+            class="flex items-center text-red-500 justify-center gap-2 rounded-md text-sm hover:text-red-700"
+          >
+            <LogOut class="w-4 h-4 " />
+            Déconnexion
+          </button>
+        </div>
+</div>
 
 </template>
 
