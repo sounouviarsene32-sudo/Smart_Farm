@@ -18,9 +18,9 @@ import {
   Target,
   Utensils,
   FileText,
-  LogOut,
   Menu,
   X,
+  Beef,
 } from 'lucide-vue-next'
 
 // router
@@ -30,56 +30,54 @@ const router = useRouter()
 // state
 const sidebarOpen = ref(false)
 const userName = "Nom d'utilisateur"
-// currentUser.role = "admin" // Simuler un utilisateur connecté avec le rôle 
+// currentUser.role = 'agent' // Simuler un utilisateur connecté avec le rôle
 
 // navigation
-let navigationItems = [
-  { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
-  { name: 'Finance', href: '/admin/finance', icon: DollarSign },
-  { name: 'Stock', href: '/admin/stock', icon: Package },
-  { name: 'Vente', href: '/admin/vente', icon: ShoppingCart },
-  { name: 'Santé', href: '/admin/sante', icon: Heart },
-  { name: 'Campagne', href: '/admin/campagne', icon: Target },
-  { name: 'Département', href: '/admin/departement', icon: Building2 },
-  { name: 'Alimentation', href: '/admin/alimentation', icon: Utensils },
-  { name: 'Agents', href: '/admin/agents', icon: UserCircle },
-  { name: 'Chef Département', href: '/admin/chefs', icon: Users },
-  { name: 'Utilisateurs', href: '/admin/users', icon: Users },
-  { name: 'Rapport & Analyse', href: '/admin/rapports', icon: FileText },
-]
+let navigationItems = []
 
 if (currentUser && currentUser.role === 'chef') {
   navigationItems = [
-    { name: 'Dashboard', href: '/chef', icon: LayoutDashboard },
-    { name: 'Agents', href: '/chef/agents', icon: UserCircle },
-    { name: 'Département', href: '/admin/departement', icon: Building2 },
-    { name: 'Campagne', href: '/admin/campagne', icon: Target },
-    { name: 'Stock', href: '/admin/stock', icon: Package },
-    { name: 'Vente', href: '/admin/vente', icon: ShoppingCart },
-    { name: 'Alimentation', href: '/admin/alimentation', icon: Utensils },
-    { name: 'Santé', href: '/admin/sante', icon: Heart },
-    { name: 'Rapports', href: '/chef/rapports', icon: FileText },
+    { name: 'Dashboard', href: '/dashboard', pathName: 'dashboard-chef', icon: LayoutDashboard },
+    { name: 'Agents', href: '/agents', pathName: 'agents-chef', icon: UserCircle },
+    { name: 'Campagne', href: '/campaigns', pathName: 'campaigns-chef', icon: Target },
+    { name: 'Finances', href: '/finances', pathName: 'finances-chef', icon: DollarSign },
+    { name: 'Stock', href: '/stock', pathName: 'stock-chef', icon: Package },
+    { name: 'Vente', href: '/sales', pathName: 'sales-chef', icon: ShoppingCart },
+    { name: 'Alimentation', href: '/foods', pathName: 'foods-chef', icon: Utensils },
+    { name: 'Santé', href: '/health', pathName: 'health-chef', icon: Heart },
+    { name: 'Animaux', href: '/animals', pathName: 'animals-chef', icon: Beef },
+    { name: 'Rapports', href: '/rapports', pathName: 'rapports-chef', icon: FileText },
   ]
 }
 if (currentUser && currentUser.role === 'agent') {
   navigationItems = [
-    { name: 'Dashboard', href: '/agent', icon: LayoutDashboard },
-    { name: 'Département', href: '/admin/departement', icon: Building2 },
-    { name: 'Campagne', href: '/admin/campagne', icon: Target },
-    { name: 'Santé', href: '/admin/sante', icon: Heart },
-    { name: 'Alimentation', href: '/admin/alimentation', icon: Utensils },
-    { name: 'Rapports', href: '/agent/rapports', icon: FileText },
+    { name: 'Dashboard', href: '/dashboard', pathName: 'dashboard-agent', icon: LayoutDashboard },
+    { name: 'Campagnes', href: '/campaigns', pathName: 'campaigns-agent', icon: Target },
+    { name: 'Animaux', href: '/animals', pathName: 'animals-agent', icon: Beef },
+    { name: 'Santé', href: '/health', pathName: 'health-agent', icon: Heart },
+    { name: 'Alimentation', href: '/foods', pathName: 'foods-agent', icon: Utensils },
+    { name: 'Rapports', href: '/rapports', pathName: 'rapports-agent', icon: FileText },
   ]
 }
 
+navigationItems = [
+  { name: 'Dashboard', href: '/dashboard', pathName: 'dashboard-admin', icon: LayoutDashboard },
+  { name: 'Agents', href: '/agents', pathName: 'agents', icon: UserCircle },
+  { name: 'Chefs', href: '/chefs', pathName: 'chefs', icon: UserCircle },
+  { name: 'Utilisateurs', href: '/users', pathName: 'users', icon: Users },
+  { name: 'Départements', href: '/departments', pathName: 'departments-admin', icon: Building2 },
+  { name: 'Campagnes', href: '/campaigns', pathName: 'campaigns-admin', icon: Target },
+  { name: 'Stock', href: '/stock', pathName: 'stock-admin', icon: Package },
+  { name: 'Ventes', href: '/sales', pathName: 'sales-admin', icon: ShoppingCart },
+  { name: 'Finances', href: '/finances', pathName: 'finances-admin', icon: DollarSign },
+  { name: 'Santé', href: '/health', pathName: 'health-admin', icon: Heart },
+  { name: 'Alimentation', href: '/foods', pathName: 'foods-admin', icon: Package },
+  { name: 'Animaux', href: '/animals', pathName: 'animals-admin', icon: Beef },
+  { name: 'Rapports', href: '/rapports', pathName: 'rapports-admin', icon: FileText },
+]
+
 // active route
 const isActive = (path) => route.path === path
-
-// logout
-const handleLogout = () => {
-  localStorage.removeItem('userRole')
-  localStorage.removeItem('userName')
-}
 </script>
 
 <template>
@@ -106,50 +104,52 @@ const handleLogout = () => {
       <div class="flex flex-col h-full">
         <!-- Logo -->
         <div class="h-16 flex items-center px-6 border-b border-gray-200">
-          <h1 class="text-xl font-semibold text-green-600">SmartFarm Manager</h1>
+          <h1 class="text-xl flex justify-center gap-5 font-semibold text-red-600">
+            <svg
+              width="30"
+              height="30"
+              viewBox="0 0 100 100"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <rect x="0" y="0" width="100" height="100" rx="20" fill="#EF4444" />
+
+              <text
+                x="50"
+                y="62"
+                font-family="Inter, system-ui, Arial, sans-serif"
+                font-size="40"
+                font-weight="900"
+                fill="white"
+                text-anchor="middle"
+                letter-spacing="-1"
+              >
+                SF
+              </text>
+            </svg>
+            <span>SmartFarm</span>
+          </h1>
         </div>
 
         <!-- Navigation -->
         <div class="flex-1 px-3 py-4 overflow-y-auto">
           <nav class="space-y-1">
-            <div
+            <router-link
+              :to="{ name: `${item.pathName}` }"
               v-for="item in navigationItems"
               :key="item.name"
               @click="sidebarOpen = false"
               class="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors"
               :class="
-                isActive(item.href)
-                  ? 'bg-green-100 text-green-700'
-                  : 'text-gray-700 hover:bg-gray-100'
+                isActive(`/${currentUser.role}${item.href}`)
+                  ? 'bg-red-100 text-red-800'
+                  : 'text-gray-700 hover:bg-red-50'
               "
             >
               <component :is="item.icon" class="w-5 h-5" />
               <span>{{ item.name }}</span>
-            </div>
+            </router-link>
           </nav>
-        </div>
-
-        <!-- User Info -->
-        <div class="p-4 border-t border-gray-200">
-          <div class="flex items-center gap-3 mb-3 px-2">
-            <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-              <UserCircle class="w-6 h-6 text-green-600" />
-            </div>
-            <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium text-gray-900 truncate">
-                {{ userName }}
-              </p>
-              <p class="text-xs text-gray-500">Administrateur</p>
-            </div>
-          </div>
-
-          <button
-            @click="handleLogout"
-            class="w-full flex items-center justify-center gap-2 border border-gray-300 rounded-md py-2 text-sm hover:bg-gray-50"
-          >
-            <LogOut class="w-4 h-4" />
-            Déconnexion
-          </button>
         </div>
       </div>
     </aside>
