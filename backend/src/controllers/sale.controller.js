@@ -1,7 +1,7 @@
-import ServiceVente from '../services/SaleService.js';
+import ServiceVente from '../services/Sale.service.js';
 import Sale from '../models/Sale.js';
 
-const controleurVente = {
+const saleController = {
     // Action de vendre un lot d'animaux
     effectuerUneVente: async (req, res) => {
         try {
@@ -37,4 +37,4 @@ const controleurVente = {
     }
 };
 
-export default controleurVente;
+export default saleController;

@@ -1,0 +1,42 @@
+import Animal from '../models/Animal.js';
+import Campaign from '../models/Campaign.js';
+import Sale from '../models/Sale.js';
+import Transaction from '../models/Transaction.js';
+
+const DashboardService = {
+    async getStats() {
+        try {
+            const totalAnimals = await Animal.countDocuments();
+            const totalCampaigns = await Campaign.countDocuments();
+            const activeCampaigns = await Campaign.countDocuments({ status: 'actif' });
+            const totalSales = await Sale.countDocuments();
+            
+            return {
+                totalAnimals,
+                totalCampaigns,
+                activeCampaigns,
+                totalSales
+            };
+        } catch (error) {
+            throw new Error(`Erreur lors de la récupération des statistiques: ${error.message}`);
+        }
+    },
+
+    async getOverview() {
+        try {
+            const campaigns = await Campaign.find().limit(5);
+            const recentSales = await Sale.find().limit(5).sort({ createdAt: -1 });
+            const animals = await Animal.find().limit(5);
+            
+            return {
+                campaigns,
+                recentSales,
+                animals
+            };
+        } catch (error) {
+            throw new Error(`Erreur lors de la récupération de l'aperçu: ${error.message}`);
+        }
+    }
+};
+
+export default DashboardService;
