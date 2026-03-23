@@ -1,6 +1,12 @@
 <script setup>
 import { Utensils, TrendingUp, Box, Award } from 'lucide-vue-next'
-
+import { useLoginStore } from '@/stores/login.store'
+const loginStore = useLoginStore()
+// const currentUser = loginStore.getDecodedToken
+const currentUser = { name: 'Théodore', role: 'agent' }
+// Plus tard pour simuler l'agent :
+// currentUser.role = 'chef'
+// console.log('Current User:', currentUser ?? 'No user data available')
 import { AlertTriangle } from 'lucide-vue-next'
 
 const inventory = [
@@ -51,24 +57,25 @@ const stats = [
   },
 ]
 
-const rations = [
-  { dept: 'Volaille', type: 'Starter/Grower/Finisher', parAnimal: '120 g', total: '54 kg' },
-  { dept: 'Bovins', type: 'Concentré + Fourrage', parAnimal: '8 g', total: '2560 kg' },
-  { dept: 'Caprins', type: 'Granulés + Fourrage', parAnimal: '1.5 g', total: '420 kg' },
-  { dept: 'Ovins', type: 'Granulés + Fourrage', parAnimal: '1.2 g', total: '240 kg' },
+const rationsCampagne = [
+  { dept: 'Volaille Mars', type: 'Starter/Grower/Finisher', parAnimal: '120 g', total: '54 kg' },
+  { dept: 'Bovins Décembre', type: 'Concentré + Fourrage', parAnimal: '8 g', total: '2560 kg' },
+  { dept: 'Poussins Avril', type: 'Granulés + Fourrage', parAnimal: '1.5 g', total: '420 kg' },
+  { dept: 'Brebis Mai', type: 'Granulés + Fourrage', parAnimal: '1.2 g', total: '240 kg' },
 ]
 </script>
 
 <template>
   <main
-    class="flex-1 lg:ml-64 p-4 lg:p-8 transition-all duration-300 w-full p-8 bg-[#F8F9FA] min-h-screen space-y-8"
+    class="flex-1 lg:ml-64 lg:p-8 transition-all duration-300 w-full p-8 bg-red-50 min-h-screen space-y-8"
   >
+    <header>
+      <div>
+        <h1 class="text-3xl font-black text-slate-900">Gestionnaire alimentaire</h1>
+      </div>
+    </header>
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-      <div
-        v-for="stat in stats"
-        :key="stat.label"
-        class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm"
-      >
+      <div v-for="stat in stats" :key="stat.label" class="bg-white p-6 rounded-xl shadow-sm">
         <div class="flex justify-between items-start mb-4">
           <span class="text-sm font-medium text-slate-500">{{ stat.label }}</span>
           <div :class="['p-2 rounded-xl', stat.bg, stat.color]">
@@ -79,11 +86,11 @@ const rations = [
       </div>
     </div>
 
-    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm mb-8">
-      <h2 class="text-lg font-bold text-slate-900 mb-6">Rations par Département</h2>
+    <div  v-if="currentUser.role === 'chef'" class="bg-white p-6 shadow-sm mb-8">
+      <h2 class="text-lg font-bold text-slate-900 mb-6">Rations par campagnes</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div
-          v-for="item in rations"
+          v-for="item in rationsCampagne"
           :key="item.dept"
           class="p-5 rounded-2xl border border-slate-50 bg-slate-50/30"
         >
@@ -109,7 +116,7 @@ const rations = [
       </div>
     </div>
 
-    <div class="space-y-6">
+    <div v-if="currentUser.role === 'chef'" class="space-y-6">
       <div class="bg-orange-50 border border-orange-100 p-4 rounded-2xl flex items-center gap-4">
         <div class="p-2 bg-orange-100 text-orange-600 rounded-xl">
           <AlertTriangle class="w-5 h-5" />
@@ -125,7 +132,7 @@ const rations = [
         </button>
       </div>
 
-      <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+      <div class="bg-white shadow-sm overflow-hidden">
         <table class="w-full text-left text-sm">
           <thead class="bg-slate-50 text-slate-500 font-medium border-b border-slate-100">
             <tr>

@@ -18,13 +18,36 @@ const handleLogin = () => {
       class="w-full max-w-md bg-white border border-slate-100 shadow-xl shadow-slate-200/50 p-10"
     >
       <div class="text-center mb-10">
-        <div
-          class="inline-flex items-center justify-center w-16 h-16 bg-red-950 rounded-2xl mb-6 shadow-lg shadow-slate-200"
-        >
-          <LayoutGrid class="text-gray-300 w-8 h-8" />
+        <div class="inline-flex items-center justify-center mb-6 shadow-lg shadow-slate-200">
+          <!-- <LayoutGrid class="text-gray-300 w-8 h-8" /> -->
+
+          <svg
+            width="70"
+            height="70"
+            viewBox="0 0 100 100"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <rect x="0" y="0" width="100" height="100" rx="20" fill="#750505" />
+
+            <text
+              x="50"
+              y="62"
+              font-family="Inter, system-ui, Arial, sans-serif"
+              font-size="40"
+              font-weight="900"
+              class="fill-gray-100"
+              text-anchor="middle"
+              letter-spacing="-1"
+            >
+              SF
+            </text>
+          </svg>
         </div>
         <h1 class="text-3xl font-extrabold text-red-900 tracking-tight">Bienvenue</h1>
-        <p class="text-slate-400 text-sm mt-2 font-medium">Connectez-vous pour accéder à SmartFarm</p>
+        <p class="text-slate-400 text-sm mt-2 font-medium">
+          Connectez-vous pour accéder à SmartFarm
+        </p>
       </div>
 
       <form @submit.prevent="handleLogin" class="space-y-6">
@@ -61,7 +84,7 @@ const handleLogin = () => {
               v-model="password"
               :type="showPassword ? 'text' : 'password'"
               placeholder="••••••••"
-              class="w-full pl-12 pr-12 py-4 bg-slate-50 border border-slate-100 rounded-xl text-sm outline-none focus:ring-2 focus:ring-slate-950/5 focus:bg-white focus:border-slate-950 transition-all"
+              class="w-full pl-12 pr-12 py-4 bg-slate-50 border border-slate-100 rounded-lg text-sm outline-none focus:ring-2 focus:ring-slate-950/5 focus:bg-white focus:border-slate-950 transition-all"
               required
             />
             <button
@@ -76,7 +99,7 @@ const handleLogin = () => {
 
         <button
           type="submit"
-          class="cursor-pointer w-full bg-red-950 text-white py-4 rounded-xl font-bold text-sm shadow-lg shadow-red-200 hover:bg-red-900 transition-all active:scale-[0.98] mt-4 flex items-center justify-center gap-2"
+          class="cursor-pointer w-full bg-red-900 text-white py-4 rounded-lg font-bold text-sm shadow-lg shadow-red-200 hover:bg-red-950 transition-all active:scale-[0.98] mt-4 flex items-center justify-center gap-2"
         >
           Se connecter
           <ArrowRight class="w-4 h-4" />
@@ -86,7 +109,9 @@ const handleLogin = () => {
       <div class="mt-10 text-center">
         <p class="text-xs text-slate-400 font-medium">
           Vous n'avez pas de compte ?
-          <span href="#" class="text-slate-950 font-bold hover:underline">Contactez l'admin</span>
+          <span href="#" class="text-slate-950 font-bold cursor-pointer hover:underline"
+            >Contactez l'admin</span
+          >
         </p>
       </div>
     </div>

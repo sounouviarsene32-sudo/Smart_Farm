@@ -7,7 +7,7 @@ defineProps({
 </script>
 
 <template>
-  <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 flex flex-col transition-all hover:shadow-md">
+  <div class="bg-white rounded-xl border border-slate-100 shadow-sm p-6 flex flex-col transition-all hover:shadow-md">
     <div class="flex justify-between items-start mb-6">
       <div class="p-3 bg-blue-50 text-blue-600 rounded-2xl">
         <Building2 class="w-7 h-7" />
@@ -18,8 +18,8 @@ defineProps({
     </div>
 
     <div class="mb-6">
-      <h3 class="text-2xl font-bold text-slate-900">{{ dept.name }}</h3>
-      <span class="text-xs font-semibold text-slate-400 uppercase tracking-widest bg-slate-50 px-2 py-1 rounded">
+      <h3 class="text-2xl font-bold text-slate-900 inline ">{{ dept.name }}</h3>
+      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wides px-2 py-1 rounded">
         Département
       </span>
     </div>
@@ -44,7 +44,7 @@ defineProps({
       </div>
     </div>
 
-    <div class="grid grid-cols-3 gap-2 mb-8 text-center border-t border-slate-50 pt-6">
+    <div class="grid grid-cols-2 gap-2 mb-8 text-center border-t border-slate-50 pt-6">
       <div>
         <p class="text-[10px] font-medium text-slate-400 uppercase">Agents</p>
         <p class="text-xl font-bold text-slate-900">{{ dept.stats.agents }}</p>
@@ -53,18 +53,14 @@ defineProps({
         <p class="text-[10px] font-medium text-slate-400 uppercase">Animaux</p>
         <p class="text-xl font-bold text-slate-900">{{ dept.stats.animals }}</p>
       </div>
-      <div>
-        <p class="text-[10px] font-medium text-slate-400 uppercase">Perf.</p>
-        <p class="text-xl font-bold text-slate-900">{{ dept.stats.perf }}%</p>
-      </div>
     </div>
 
     <div class="grid grid-cols-2 gap-3 mt-auto">
       <button class="py-3 px-4 bg-white border border-slate-200 text-slate-700 text-xs font-bold rounded-xl hover:bg-slate-50 transition-colors flex items-center justify-center gap-2">
         Voir Détails
       </button>
-      <button class="py-3 px-4 bg-slate-950 text-white text-xs font-bold rounded-xl hover:bg-slate-800 transition-colors flex items-center justify-center gap-2">
-        Gérer
+      <button class="py-3 px-4 bg-red-500 text-white text-xs font-bold rounded-xl hover:bg-red-600 transition-colors flex items-center justify-center gap-2">
+        Supprimer
       </button>
     </div>
   </div>

@@ -21,16 +21,16 @@ const handleLogout = () => {
 
 <template>
 
-<div class="flex-1 lg:ml-64 p-3 lg:p-8 transition-all duration-300 w-full p-8 bg-[#F8F9FA] space-y-8" >
+<div class="flex-1 lg:ml-64 p-4 lg:p-8 transition-all duration-300 w-full bg-red-100 space-y-8" >
     
-    <div class="flex items-center gap-10 absolute top-2 right-10 flex">
+    <div class="flex items-center gap-10 absolute top-2 right-10">
           <div class="flex items-center gap-3 mb-3 px-2">
             <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
               <UserCircle class="w-6 h-6 text-green-600" />
             </div>
             <div class="flex-1 min-w-0">
               <p class="text-sm font-medium text-gray-900 truncate">
-                {{ currentUser.userName }}
+                {{ currentUser?.userName }}
               </p>
               <p class="text-xs text-gray-500">Administrateur</p>
             </div>
@@ -38,7 +38,7 @@ const handleLogout = () => {
 
           <button
             @click="handleLogout"
-            class="flex items-center text-red-500 justify-center gap-2 rounded-md text-sm hover:text-red-700"
+            class="cursor-pointer flex items-center text-red-500 justify-center gap-2 rounded-md text-sm hover:text-red-700"
           >
             <LogOut class="w-4 h-4 " />
             Déconnexion

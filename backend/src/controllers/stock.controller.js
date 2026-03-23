@@ -1,4 +1,4 @@
-import StockService from '../services/StockService.js';
+import StockService from '../services/Stock.service.js';
 import StockItem from '../models/StockItem.js';
 
 const stockController = {
