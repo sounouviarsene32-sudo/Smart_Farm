@@ -141,19 +141,12 @@ const predefinedReports = [
 
 <template>
   <main
-    class="flex-1 lg:ml-64 p-4 lg:p-8 transition-all duration-300 w-full p-8 bg-[#F8F9FA] min-h-screen space-y-8"
+    class="flex-1 lg:ml-64 p-4 lg:p-8 transition-all duration-300 w-full bg-red-50 min-h-screen space-y-8"
   >
-    <header class="flex justify-between items-start">
+    <header>
       <div>
         <h1 class="text-3xl font-bold text-slate-900">Rapports & Activités</h1>
         <p class="text-slate-500 text-sm">Suivi des performances et validations</p>
-      </div>
-      <div class="flex gap-3">
-        <button
-          class="bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 hover:bg-slate-50"
-        >
-          <FileBarChart class="w-4 h-4" /> Générer Rapport
-        </button>
       </div>
     </header>
 
@@ -227,7 +220,7 @@ const predefinedReports = [
       </div>
 
       <div class="space-y-6">
-        <div class="bg-slate-900 rounded-3xl p-6 text-white shadow-xl shadow-slate-200">
+        <div class="bg-slate-900 rounded-lg p-6 text-white shadow-xl shadow-slate-200">
           <h2
             class="font-bold mb-6 flex items-center gap-2 text-sm uppercase tracking-wider opacity-90"
           >
@@ -300,7 +293,7 @@ const predefinedReports = [
       </div>
     </section>
 
-    <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden mt-8">
+    <div class="bg-white shadow-sm overflow-hidden mt-8">
       <div
         class="p-6 border-b border-slate-50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
       >

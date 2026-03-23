@@ -24,9 +24,9 @@ import RapportsAgentView from '@/views/Rapports/RapportsAgentView.vue'
 import RapportsChefView from '@/views/Rapports/RapportsChefView.vue'
 import SalesAdminView from '@/views/Sales/SalesAdminView.vue'
 import SalesDepartement from '@/views/Sales/SalesDepartement.vue'
-import StockAdminView from '@/views/Stock/StockAdminView.vue'
-import StockDepartement from '@/views/Stock/StockDepartement.vue'
+import StockView from '@/views/Stock/StockView.vue'
 import UserView from '@/views/Users/UserView.vue'
+import HealthDepartment from '@/views/Health/HealthDepartment.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 
 const routes = [
@@ -88,7 +88,7 @@ const routes = [
       {
         path: 'stock',
         name: 'stock-admin',
-        component: StockAdminView,
+        component: StockView,
       },
       {
         path: 'sales',
@@ -157,7 +157,7 @@ const routes = [
       {
         path: 'stock',
         name: 'stock-chef',
-        component: StockDepartement,
+        component: StockView,
       },
       {
         path: 'sales',
@@ -167,7 +167,7 @@ const routes = [
       {
         path: 'health',
         name: 'health-chef',
-        component: VaccineSchedule,
+        component: HealthDepartment,
       },
       {
         path: 'rapports',
@@ -206,7 +206,7 @@ const routes = [
       {
         path: 'health',
         name: 'health-agent',
-        component: VaccineSchedule,
+        component: HealthDepartment,
       },
       {
         path: 'rapports',
@@ -228,30 +228,30 @@ const router = createRouter({
   routes,
 })
 
-router.beforeEach((to, from, next) => {
-  const loginStore = useLoginStore()
-  const logged = loginStore.token
- const currentUser = loginStore.getDecodedToken
+// router.beforeEach((to, from, next) => {
+//   const loginStore = useLoginStore()
+//   const logged = loginStore.token
+//  const currentUser = loginStore.getDecodedToken
 
-  if (to.meta.requiresAuth && !logged) {
-    next({ name: 'login' })
-  } 
-  else if (to.name === 'login' && logged) {
-    if (currentUser.role === 'admin') {
-      next({ name: 'dashboard-admin' })
-    }
-    if (currentUser.role === 'agent') {
-      next({ name: 'dashboard-agent' })
-    }
-    if (currentUser.role === 'chef') {
-      next({ name: 'dashboard-chef' })
-    }
-  } 
-  // if (to.meta.role && to.meta.role !== currentUser.role) {
-  //   return next({ name: 'unauthorized' })
-  // }
- else {
-   next()
- }
-})
+//   if (to.meta.requiresAuth && !logged) {
+//     next({ name: 'login' })
+//   } 
+//   else if (to.name === 'login' && logged) {
+//     if (currentUser.role === 'admin') {
+//       next({ name: 'dashboard-admin' })
+//     }
+//     if (currentUser.role === 'agent') {
+//       next({ name: 'dashboard-agent' })
+//     }
+//     if (currentUser.role === 'chef') {
+//       next({ name: 'dashboard-chef' })
+//     }
+//   } 
+//   // if (to.meta.role && to.meta.role !== currentUser.role) {
+//   //   return next({ name: 'unauthorized' })
+//   // }
+//  else {
+//    next()
+//  }
+// })
 export default router

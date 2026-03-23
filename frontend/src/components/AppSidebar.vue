@@ -3,8 +3,11 @@ import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useLoginStore } from '@/stores/login.store'
 const loginStore = useLoginStore()
-const currentUser = loginStore.getDecodedToken
-console.log('Current User:', currentUser ?? 'No user data available')
+// const currentUser = loginStore.getDecodedToken
+const currentUser = { name: 'Théodore', role: 'admin' }
+// Plus tard pour simuler l'agent :
+currentUser.role = 'admin'
+// console.log('Current User:', currentUser ?? 'No user data available')
 
 import {
   LayoutDashboard,
@@ -29,8 +32,6 @@ const router = useRouter()
 
 // state
 const sidebarOpen = ref(false)
-const userName = "Nom d'utilisateur"
-// currentUser.role = 'agent' // Simuler un utilisateur connecté avec le rôle
 
 // navigation
 let navigationItems = []
@@ -60,7 +61,8 @@ if (currentUser && currentUser.role === 'agent') {
   ]
 }
 
-navigationItems = [
+if (currentUser && currentUser.role == 'admin') {
+  navigationItems = [
   { name: 'Dashboard', href: '/dashboard', pathName: 'dashboard-admin', icon: LayoutDashboard },
   { name: 'Agents', href: '/agents', pathName: 'agents', icon: UserCircle },
   { name: 'Chefs', href: '/chefs', pathName: 'chefs', icon: UserCircle },
@@ -75,6 +77,7 @@ navigationItems = [
   { name: 'Animaux', href: '/animals', pathName: 'animals-admin', icon: Beef },
   { name: 'Rapports', href: '/rapports', pathName: 'rapports-admin', icon: FileText },
 ]
+}
 
 // active route
 const isActive = (path) => route.path === path

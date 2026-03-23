@@ -6,61 +6,38 @@ import {
   Wallet,
   Percent,
   TrendingUp,
-  TrendingDown,
   ArrowUpRight,
   ArrowDownLeft,
+  Building2,
+  LayoutDashboard,
 } from 'lucide-vue-next'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
 
 ChartJS.register(ArcElement, Tooltip, Legend)
 
+// Stats Globales
 const financialStats = [
-  {
-    title: 'Revenus Totaux',
-    value: '12 500 000 FCFA',
-    icon: DollarSign,
-    iconColor: 'text-emerald-500',
-    trend: '+12.5%',
-    trendColor: 'text-emerald-500',
-    trendIcon: TrendingUp,
-  },
-  {
-    title: 'Dépenses Totales',
-    value: '8 750 000 FCFA',
-    icon: CreditCard,
-    iconColor: 'text-orange-500',
-    trend: '+8.3%',
-    trendColor: 'text-orange-500',
-    trendIcon: TrendingUp,
-  },
-  {
-    title: 'Bénéfice Net',
-    value: '3 750 000 FCFA',
-    icon: Wallet,
-    iconColor: 'text-blue-500',
-    trend: '+18.2%',
-    trendColor: 'text-blue-500',
-    trendIcon: TrendingUp,
-  },
-  {
-    title: 'Marge Bénéficiaire',
-    value: '30%',
-    icon: Percent,
-    iconColor: 'text-purple-500',
-    trend: '+2.1%',
-    trendColor: 'text-purple-500',
-    trendIcon: TrendingUp,
-  },
+  { title: 'Revenus Totaux', value: '12 500 000', icon: DollarSign, color: 'emerald' },
+  { title: 'Dépenses Totales', value: '8 750 000', icon: CreditCard, color: 'orange' },
+  { title: 'Bénéfice Net', value: '3 750 000', icon: Wallet, color: 'blue' },
+  { title: 'Marge', value: '30%', icon: Percent, color: 'purple' },
 ]
 
-const amounts = ['3 500 000', '1 750 000', '2 100 000', '875 000', '525 000']
+// Données par Département (Nouvelle Section)
+const departmentsData = [
+  { name: 'Volaille', revenus: 5500000, depenses: 2100000, color: 'bg-emerald-500' },
+  { name: 'Bovins', revenus: 4200000, depenses: 3500000, color: 'bg-blue-500' },
+  { name: 'Ovins', revenus: 2800000, depenses: 3150000, color: 'bg-orange-500' },
+]
+
 const pieData = {
-  labels: ['Alimentation', 'Santé & Soins', 'Personnel', 'Infrastructure', 'Autres'],
+  labels: ['Alimentation', 'Santé', 'Personnel', 'Infrastructure', 'Autres'],
   datasets: [
     {
       data: [40, 20, 24, 10, 6],
       backgroundColor: ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6'],
       borderWidth: 0,
+      hoverOffset: 20,
     },
   ],
 }
@@ -68,6 +45,7 @@ const pieData = {
 const pieOptions = {
   plugins: { legend: { display: false } },
   maintainAspectRatio: false,
+  cutout: '70%', // Transforme le Pie en Doughnut pour un look plus moderne
 }
 
 const transactions = [
@@ -90,24 +68,6 @@ const transactions = [
     status: 'Complété',
   },
   {
-    id: 3,
-    title: 'Vente 5 bovins',
-    date: '17/03/2026',
-    category: 'Vente',
-    amount: '1 200 000',
-    type: 'vente',
-    status: 'Complété',
-  },
-  {
-    id: 4,
-    title: 'Vaccins volaille',
-    date: '17/03/2026',
-    category: 'Santé',
-    amount: '85 000',
-    type: 'depense',
-    status: 'Complété',
-  },
-  {
     id: 5,
     title: 'Salaires agents',
     date: '16/03/2026',
@@ -116,82 +76,135 @@ const transactions = [
     type: 'depense',
     status: 'En attente',
   },
-  {
-    id: 6,
-    title: 'Vente œufs',
-    date: '16/03/2026',
-    category: 'Vente',
-    amount: '45 000',
-    type: 'vente',
-    status: 'Complété',
-  },
 ]
+
+// Helper pour formater les prix
+const formatPrice = (val) => new Intl.NumberFormat('fr-FR').format(val) + ' FCFA'
+const getProgress = (dep, rev) => Math.min((dep / rev) * 100, 100)
 </script>
 
 <template>
-  <main class="flex-1 lg:ml-64 p-4 lg:p-8 transition-all duration-300 w-full p-8 bg-[#F8F9FA] min-h-screen space-y-8">
+  <main class="flex-1 lg:ml-64 p-6 lg:p-10 bg-red-50 min-h-screen space-y-10">
     <header>
-      <h1 class="text-3xl font-bold text-slate-900">Finance</h1>
-      <p class="text-slate-500 text-sm">Vue d'ensemble des revenus et dépenses</p>
+      <div>
+        <h1 class="text-3xl font-black text-slate-900 tracking-tight">Finances</h1>
+      </div>
     </header>
 
-    <div class="grid grid-cols-1 my-10 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <div
         v-for="stat in financialStats"
         :key="stat.title"
-        class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm"
+        class="group bg-white p-6 rounded-lg border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
       >
-        <div class="flex justify-between items-start mb-4">
-          <span class="text-sm font-medium text-slate-500">{{ stat.title }}</span>
-          <component :is="stat.icon" :class="['w-6 h-6', stat.iconColor]" />
+        <div class="flex justify-between items-center mb-4">
+          <div
+            class="p-3 rounded-2xl transition-transform"
+            :class="[`bg-${stat.color}-50`, `text-${stat.color}-600`]"
+          > <component :is="stat.icon"  class="w-5 h-5" /> </div>
+          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{
+            stat.title
+          }}</span>
         </div>
-        <div class="text-xl font-bold text-slate-900 mb-2">{{ stat.value }}</div>
-        <div :class="['text-xs font-bold flex items-center gap-1', stat.trendColor]">
-          <component :is="stat.trendIcon" class="w-3 h-3" />
-          {{ stat.trend }}
+        <div class="text-2xl font-black text-slate-900">
+          {{ stat.value }} <span class="text-xs font-medium text-slate-400">FCFA</span>
         </div>
       </div>
     </div>
 
-    <div class="grid grid-cols-1 mt-20 lg:grid-cols-2 gap-8">
-      <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col">
-        <h3 class="font-bold text-slate-800 mb-8 text-lg">Dépenses par Catégorie</h3>
+    <section class="space-y-6">
+      <div class="flex items-center justify-between">
+        <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+          <Building2 class="w-5 h-5 text-slate-400" /> Analyse par Département
+        </h2>
+      </div>
 
-        <div class="flex flex-col md:flex-row items-center gap-8">
-          <div class="w-48 h-48">
-            <Pie :data="pieData" :options="pieOptions" />
-          </div>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div
+          v-for="dept in departmentsData"
+          :key="dept.name"
+          class="bg-white p-6 rounded-xl border border-slate-100 shadow-sm"
+        >
+          <h4 class="font-bold text-slate-900 mb-6">{{ dept.name }}</h4>
 
-          <div class="flex-1 space-y-3 w-full">
-            <div
-              v-for="(val, index) in pieData.datasets[0].data"
-              :key="index"
-              class="flex justify-between items-center text-sm"
-            >
-              <div class="flex items-center gap-2">
-                <span
-                  class="w-3 h-3 rounded-full"
-                  :style="{ backgroundColor: pieData.datasets[0].backgroundColor[index] }"
-                ></span>
-                <span class="text-slate-600 font-medium">{{ pieData.labels[index] }}</span>
+          <div class="space-y-6">
+            <div>
+              <div class="flex justify-between text-[11px] font-bold uppercase mb-2">
+                <span class="text-slate-400 tracking-tighter">Revenus</span>
+                <span class="text-emerald-500">{{ formatPrice(dept.revenus) }}</span>
               </div>
-              <span class="font-bold text-slate-800">{{ amounts[index] }} FCFA</span>
+              <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                <div class="h-full bg-emerald-500 rounded-full" style="width: 100%"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-[11px] font-bold uppercase mb-2">
+                <span class="text-slate-400 tracking-tighter">Dépenses</span>
+                <span class="text-orange-500">{{ formatPrice(dept.depenses) }}</span>
+              </div>
+              <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                <div
+                  class="h-full bg-orange-500 rounded-full"
+                  :style="{ width: getProgress(dept.depenses, dept.revenus) + '%' }"
+                ></div>
+              </div>
+              <p class="text-[9px] text-slate-400 mt-2 italic">
+                Absorbe {{ Math.round(getProgress(dept.depenses, dept.revenus)) }}% des revenus du
+                dept.
+              </p>
             </div>
           </div>
         </div>
       </div>
+    </section>
 
-      <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-        <h3 class="font-bold text-slate-800 mb-6 text-lg">Transactions Récentes</h3>
-        <div class="space-y-6">
-          <div v-for="tx in transactions" :key="tx.id" class="flex items-center justify-between">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div class="bg-slate-900 p-8 shadow-2xl text-white relative overflow-hidden">
+        <div class="relative z-10">
+          <h3 class="font-bold mb-8 text-lg opacity-80 uppercase tracking-widest">
+            Répartition des Dépenses
+          </h3>
+          <div class="flex flex-col md:flex-row items-center gap-10">
+            <div class="w-44 h-44">
+              <Pie :data="pieData" :options="pieOptions" />
+            </div>
+            <div class="flex-1 space-y-4 w-full">
+              <div
+                v-for="(label, index) in pieData.labels"
+                :key="label"
+                class="flex justify-between items-center"
+              >
+                <div class="flex items-center gap-3">
+                  <span
+                    class="w-2 h-2 rounded-full"
+                    :style="{ backgroundColor: pieData.datasets[0].backgroundColor[index] }"
+                  ></span>
+                  <span class="text-xs font-medium text-white/60">{{ label }}</span>
+                </div>
+                <span class="text-xs font-bold">{{ pieData.datasets[0].data[index] }}%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-white/5 rounded-full blur-3xl"></div>
+      </div>
+
+      <div class="bg-white p-8 border border-slate-100 shadow-sm">
+        <h3 class="font-bold text-slate-800 mb-8 text-lg">Transactions</h3>
+        <div class="space-y-5">
+          <div
+            v-for="tx in transactions"
+            :key="tx.id"
+            class="group flex items-center justify-between p-3 rounded-2xl hover:bg-slate-50 transition-colors"
+          >
             <div class="flex items-center gap-4">
               <div
                 :class="[
                   tx.type === 'vente'
-                    ? 'bg-emerald-50 text-emerald-500'
-                    : 'bg-orange-50 text-orange-500',
-                  'p-3 rounded-xl',
+                    ? 'bg-emerald-50 text-emerald-600'
+                    : 'bg-orange-50 text-orange-600',
+                  'p-3 rounded-2xl transition-transform group-hover:rotate-12',
                 ]"
               >
                 <component
@@ -201,24 +214,27 @@ const transactions = [
               </div>
               <div>
                 <div class="font-bold text-slate-900 text-sm">{{ tx.title }}</div>
-                <div class="text-[11px] text-slate-400 font-medium uppercase tracking-tight">
-                  {{ tx.date }} • {{ tx.category }}
+                <div class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                  {{ tx.category }} • {{ tx.date }}
                 </div>
               </div>
             </div>
             <div class="text-right">
               <div
                 :class="[
-                  tx.type === 'vente' ? 'text-emerald-500' : 'text-orange-500',
-                  'font-bold text-sm',
+                  tx.type === 'vente' ? 'text-emerald-600' : 'text-orange-600',
+                  'font-black text-sm',
                 ]"
               >
-                {{ tx.type === 'vente' ? '+' : '-' }}{{ tx.amount }} FCFA
+                {{ tx.type === 'vente' ? '+' : '-' }}{{ tx.amount }}
+                <span class="text-[10px]">CFA</span>
               </div>
               <span
                 :class="[
-                  tx.status === 'Complété' ? 'bg-black text-white' : 'bg-slate-100 text-slate-600',
-                  'text-[10px] font-bold px-2 py-0.5 rounded uppercase',
+                  tx.status === 'Complété'
+                    ? 'bg-slate-900 text-white'
+                    : 'bg-slate-100 text-slate-500',
+                  'text-[9px] font-black px-2 py-0.5 rounded-lg uppercase tracking-tighter',
                 ]"
               >
                 {{ tx.status }}
@@ -228,7 +244,21 @@ const transactions = [
         </div>
       </div>
     </div>
-</main>
+  </main>
 </template>
 
-<style scoped></style>
+<style scoped>
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>

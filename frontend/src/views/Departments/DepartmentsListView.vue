@@ -35,19 +35,19 @@ const departments = ref([
 </script>
 
 <template>
-  <main class="flex-1 lg:ml-64 p-4 lg:p-8 transition-all duration-300 w-full p-8 bg-[#F8F9FA] min-h-screen space-y-8">
+  <main class="flex-1 lg:ml-64 p-4 lg:p-8 transition-all duration-300 w-full bg-red-50 min-h-screen space-y-8">
     <header class="flex justify-between items-start mb-10">
       <div>
         <h1 class="text-3xl font-extrabold text-slate-900">Départements</h1>
         <p class="text-slate-500 mt-1">Vue organisationnelle de l'élevage</p>
       </div>
-      <button class="bg-slate-950 text-white px-5 py-3 rounded-xl flex items-center gap-2.5 text-sm font-bold shadow-sm transition-hover hover:scale-105 active:scale-95">
+      <button class="bg-gray-800 text-white px-5 py-3 rounded-xl flex items-center gap-2.5 text-sm font-bold shadow-sm transition-hover hover:scale-105 active:scale-95">
         <Plus class="w-5 h-5" /> Nouveau Département
       </button>
     </header>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-      <div v-for="stat in globalStats" :key="stat.label" class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center justify-between">
+      <div v-for="stat in globalStats" :key="stat.label" class="bg-white p-6 rounded-lg border border-slate-100 shadow-sm flex items-center justify-between">
         <div class="space-y-1">
           <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">{{ stat.label }}</p>
           <p class="text-3xl font-extrabold text-slate-900">{{ stat.value }}</p>

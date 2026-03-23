@@ -20,7 +20,7 @@ const campaigns = ref([
 </script>
 
 <template>
-  <main class="flex-1 lg:ml-64 p-4 lg:p-8 transition-all duration-300 w-full p-8 bg-[#F8F9FA] min-h-screen space-y-8">
+  <main class="flex-1 lg:ml-64 p-4 lg:p-8 transition-all duration-300 w-full bg-red-50 min-h-screen space-y-8">
     
     <header class="flex justify-between items-start mb-8">
       <div>
@@ -33,7 +33,7 @@ const campaigns = ref([
     </header>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-      <div v-for="stat in stats" :key="stat.title" class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
+      <div v-for="stat in stats" :key="stat.title" class="bg-white p-6 rounded-lg border border-slate-100 shadow-sm flex flex-col justify-between">
         <div class="flex justify-between items-start">
           <span class="text-sm font-medium text-slate-500">{{ stat.title }}</span>
           <div :class="['p-2.5 rounded-xl', stat.bg, stat.color]">
