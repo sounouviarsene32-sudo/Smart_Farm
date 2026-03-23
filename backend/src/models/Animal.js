@@ -1,67 +1,18 @@
 import mongoose from "mongoose";
 
-const animalSchema = new mongoose.Schema(
-  {
-    name: { type: String, required: true },
-    campagne: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Campagne",
-      required: true,
-    },
-    code: {
-      type: String, // QR Code ou identifiant unique
-      unique: true,
-    },
+const animalSchema = new mongoose.Schema({
+    identificationNumber: { type: String, required: true, unique: true },
+    species: { type: String, required: true },
+    breed: { type: String, required: true },
+    birthDate: { type: Date, required: true },
+    gender: { type: String, enum: ['male', 'female'], required: true },
+    status: { type: String, enum: ['actif', 'vendu', 'décédé'], default: 'actif' },
+    weight: { type: Number },
+    healthStatus: { type: String, enum: ['sain', 'malade', 'traitement'], default: 'sain' },
+    campaignId: { type: mongoose.Schema.Types.ObjectId, ref: 'Campaign', required: true },
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now }
+});
 
-    dateNaissance: Date,
-
-    sexe: {
-      type: String,
-      enum: ["MALE", "FEMELLE"],
-    },
-
-    poidsActuel: Number,
-
-    historiquePoids: [
-      {
-        date: { type: Date, default: Date.now },
-        poids: Number,
-      },
-    ],
-
-    etatSante: {
-      type: String,
-      enum: ["BON", "Moyen", "Mauvais"],
-      default: "BON",
-    },
-
-    estVivant: {
-      type: Boolean,
-      default: true,
-    },
-
-    dateMort: Date,
-    vaccins: [
-      {
-        nom: String,
-        date: Date,
-        note: String,
-      },
-    ],
-
-     evenements: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "HealthEvent"
-    }
-  ],
-  },
-  {
-    timestamps: {
-      createdAt: "creeLe",
-      updatedAt: "modifieLe",
-    },
-  },
-);
-
-export default mongoose.model("Animal", animalSchema);
+const Animal = mongoose.model('Animal', animalSchema);
+export default Animal;

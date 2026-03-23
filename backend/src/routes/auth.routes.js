@@ -1,18 +1,9 @@
-import {Router} from "express";
+import express from 'express';
+import authController from '../controllers/auth.controller.js';
 
-import authController from "../controllers/auth.controller.js";
-import { requiresAuth } from "../middlewares/auth.js";
+const router = express.Router();
 
-const router = Router();
-
-// 🔐 Auth
-// inscription et connexion
-router.post("/register", authController.registerUser);
-router.post("/login", authController.loginUser);
-
-// Utilisateur connecté
-router.get("/me", requiresAuth, authController.getCurrentUser);
-// mettre a jour le profil de l'utilisateur connecté
-router.put("/me", requiresAuth, authController.updateProfile);
+router.post('/inscription', authController.creerCompteUtilisateur);
+router.post('/connexion', authController.tentativeConnexion);
 
 export default router;
