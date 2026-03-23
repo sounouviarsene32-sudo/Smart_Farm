@@ -1,4 +1,4 @@
-import ServiceFinance from '../services/FinanceService.js';
+import ServiceFinance from '../services/Finance.service.js';
 import Transaction from '../models/Transaction.js';
 
 const controleurFinance = {

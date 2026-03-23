@@ -1,4 +1,4 @@
-import HealthService from '../services/HealthService.js';
+import HealthService from '../services/Health.service.js';
 import VaccineSchedule from '../models/VaccineSchedule.js';
 
 const healthController = {
