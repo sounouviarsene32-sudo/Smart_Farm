@@ -1,5 +1,5 @@
 import express from "express";
-import { AnimalController } from "../controllers/animal.controller.js";
+import AnimalController from "../controllers/animal.controller.js";
 
 const router = express.Router();
 

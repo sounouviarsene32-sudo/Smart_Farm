@@ -1,53 +1,62 @@
-import CampagneService from "../services/Campaign.service.js";
+import Campaign from '../models/Campaign.js';
 
-const CampagneController = {
-
-  async create(req, res) {
-    try {
-      const campagne = await CampagneService.createCampagne(req.body);
-      res.status(201).json(campagne);
-    } catch (err) {
-      res.status(400).json({ error: err.message });
+export class CampaignController {
+    static async getCampaigns(req, res) {
+        try {
+            const campaigns = await Campaign.find();
+            res.json(campaigns);
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
     }
-  },
 
-  async getAll(req, res) {
-    try {
-      const campagnes = await CampagneService.getAllCampagnes();
-      res.json(campagnes);
-    } catch (err) {
-      res.status(500).json({ error: err.message });
+    static async createCampaign(req, res) {
+        try {
+            const campaign = new Campaign(req.body);
+            await campaign.save();
+            res.status(201).json(campaign);
+        } catch (error) {
+            res.status(400).json({ error: error.message });
+        }
     }
-  },
 
-  async getById(req, res) {
-    try {
-      const campagne = await CampagneService.getCampagneById(req.params.id);
-      if (!campagne) return res.status(404).json({ error: "Campagne introuvable" });
-      res.json(campagne);
-    } catch (err) {
-      res.status(500).json({ error: err.message });
+    static async getCampaignById(req, res) {
+        try {
+            const campaign = await Campaign.findById(req.params.id);
+            if (!campaign) {
+                return res.status(404).json({ error: 'Campaign not found' });
+            }
+            res.json(campaign);
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
     }
-  },
 
-  async update(req, res) {
-    try {
-      const campagne = await CampagneService.updateCampagne(req.params.id, req.body);
-      res.json(campagne);
-    } catch (err) {
-      res.status(400).json({ error: err.message });
+    static async updateCampaign(req, res) {
+        try {
+            const campaign = await Campaign.findByIdAndUpdate(
+                req.params.id,
+                req.body,
+                { new: true }
+            );
+            if (!campaign) {
+                return res.status(404).json({ error: 'Campaign not found' });
+            }
+            res.json(campaign);
+        } catch (error) {
+            res.status(400).json({ error: error.message });
+        }
     }
-  },
 
-  async delete(req, res) {
-    try {
-      const campagne = await CampagneService.deleteCampagne(req.params.id);
-      res.json({ message: "Campagne supprimée", campagne });
-    } catch (err) {
-      res.status(500).json({ error: err.message });
+    static async deleteCampaign(req, res) {
+        try {
+            const campaign = await Campaign.findByIdAndDelete(req.params.id);
+            if (!campaign) {
+                return res.status(404).json({ error: 'Campaign not found' });
+            }
+            res.json({ message: 'Campaign deleted successfully' });
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
     }
-  }
-
-};
-
-export default CampagneController;
+}

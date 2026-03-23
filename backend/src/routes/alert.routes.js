@@ -2,19 +2,21 @@ import express from "express";
 import AlertController from "../controllers/Alert.controller.js";
 
 const router = express.Router();
+router.post("/", AlertController.create);
 
+// 📥 GET ALL
 router.get("/", AlertController.getAll);
+
+// 📥 GET ACTIVE
 router.get("/active", AlertController.getActive);
+
+// 📥 GET BY ID
 router.get("/:id", AlertController.getById);
 
-router.patch("/:id/resolve", AlertController.resolve);
+// 🔄 RESOLVE
+router.put("/:id/resolve", AlertController.resolve);
+
+// ❌ DELETE
 router.delete("/:id", AlertController.delete);
 
 export default router;
-
-
-// GET    /api/alerts
-// GET    /api/alerts/active
-// GET    /api/alerts/:id
-// PATCH  /api/alerts/:id/resolve
-// DELETE /api/alerts/:id

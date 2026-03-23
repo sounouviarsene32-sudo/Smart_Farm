@@ -2,7 +2,20 @@ import AnimalService from "../services/Animal.service.js";
 
 const AnimalController = {
 
-  async create(req, res) {
+  async getAnimals(req, res) {
+    try {
+      if (req.query.campaignId) {
+        const animals = await AnimalService.getAnimalsByCampagne(req.query.campaignId);
+        return res.json(animals);
+      }
+      const animals = await AnimalService.getAllAnimals();
+      res.json(animals);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  },
+
+  async createAnimal(req, res) {
     try {
       const animal = await AnimalService.createAnimal(req.body);
       res.status(201).json(animal);
@@ -20,7 +33,7 @@ const AnimalController = {
     }
   },
 
-  async getById(req, res) {
+  async getAnimalById(req, res) {
     try {
       const animal = await AnimalService.getAnimalById(req.params.id);
       if (!animal) return res.status(404).json({ error: "Animal introuvable" });
@@ -30,26 +43,16 @@ const AnimalController = {
     }
   },
 
-  async updatePoids(req, res) {
+  async updateAnimal(req, res) {
     try {
-      const animal = await AnimalService.updatePoids(req.params.id, req.body.poids);
+      const animal = await AnimalService.updateAnimal(req.params.id, req.body);
       res.json(animal);
     } catch (err) {
       res.status(400).json({ error: err.message });
     }
   },
 
-  async updateHealth(req, res) {
-    try {
-      const { etatSante, estVivant } = req.body;
-      const animal = await AnimalService.updateHealth(req.params.id, etatSante, estVivant);
-      res.json(animal);
-    } catch (err) {
-      res.status(400).json({ error: err.message });
-    }
-  },
-
-  async delete(req, res) {
+  async deleteAnimal(req, res) {
     try {
       const animal = await AnimalService.deleteAnimal(req.params.id);
       res.json({ message: "Animal supprimé", animal });
