@@ -1,7 +1,7 @@
-import ServiceFinance from '../services/FinanceService.js';
+import ServiceFinance from '../services/Finance.service.js';
 import Transaction from '../models/Transaction.js';
 
-const controleurFinance = {
+const financeController = {
     // Affiche le rapport financier pour le frontend
     obtenirRapportCampagne: async (req, res) => {
         try {
@@ -35,4 +35,4 @@ const controleurFinance = {
     }
 };
 
-export default controleurFinance;
+export default financeController;

@@ -1,6 +1,6 @@
 import Sale from '../models/Sale.js';
 import Animal from '../models/Animal.js';
-import ServiceFinance from './FinanceService.js';
+import ServiceFinance from './Finance.service.js';
 
 class ServiceVente {
     async creerVenteComplete(donnees) {

@@ -1,22 +1,37 @@
-import jwt from 'jsonwebtoken';
+import jwt from "jsonwebtoken";
 
-const verifierAuthentification = (req, res, next) => {
-    // Récupération du token dans l'en-tête "Authorization"
-    const enteteAuth = req.headers.authorization;
-    const jeton = enteteAuth && enteteAuth.split(' ')[1]; // Format: "Bearer TOKEN"
+const secret = process.env.JWT_SECRET ?? "farm_123";
 
-    if (!jeton) {
-        return res.status(401).json({ message: "Accès refusé. Aucun jeton fourni." });
-    }
+export function requiresAuth(req, res, next) {
+  const header = req.headers.authorization;
 
-    try {
-        // Vérification de la validité du jeton
-        const donneesDecodees = jwt.verify(jeton, process.env.JWT_SECRET);
-        req.utilisateur = donneesDecodees; // On ajoute les infos de l'utilisateur à la requête
-        next(); // On passe à la fonction suivante (le contrôleur)
-    } catch (erreur) {
-        res.status(403).json({ message: "Jeton invalide ou expiré." });
-    }
-};
+  if (!header) {
+    return res.status(401).json({
+      error: { message: "Vous n'avez pas l'autorisation" }
+    });
+  }
 
-export default verifierAuthentification;
+  const [type, token] = header.split(" ");
+
+  if (type !== "Bearer" || !token) {
+    return res.status(401).json({
+      error: { message: "Format Authorization invalide" }
+    });
+  }
+
+  try {
+    const payload = jwt.verify(token, secret);
+
+    req.user = {
+      id: payload.sub,
+      role: payload.role,
+      email: payload.email,
+    };
+
+    next();
+  } catch (error) {
+    return res.status(401).json({
+      error: { message: "Token invalide ou expiré" }
+    });
+  }
+}
