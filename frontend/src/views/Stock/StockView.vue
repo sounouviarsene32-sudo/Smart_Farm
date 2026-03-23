@@ -30,7 +30,7 @@ const inventory = [
 </script>
 
 <template>
-  <main class="flex-1 lg:ml-64 p-4 lg:p-8 transition-all duration-300 w-full p-8 bg-[#F8F9FA] min-h-screen space-y-8">
+  <main class="flex-1 lg:ml-64 p-4 lg:p-8 transition-all duration-300 w-full bg-red-50 min-h-screen space-y-8">
     <header class="flex justify-between items-start">
       <div>
         <h1 class="text-2xl font-bold text-slate-900">Gestion du Stock</h1>
@@ -42,7 +42,7 @@ const inventory = [
     </header>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <div v-for="stat in stockStats" :key="stat.label" class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex justify-between items-center">
+      <div v-for="stat in stockStats" :key="stat.label" class="bg-white p-6 rounded-lg  shadow-sm flex justify-between items-center">
         <div>
           <p class="text-xs font-medium text-slate-400 mb-1">{{ stat.label }}</p>
           <p class="text-2xl font-bold text-slate-900">{{ stat.value }}</p>
@@ -70,7 +70,7 @@ const inventory = [
       </div>
     </div>
 
-    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+    <div class="bg-white shadow-sm overflow-hidden">
       <div class="p-6 border-b border-slate-50 flex justify-between items-center">
         <h2 class="font-bold text-slate-800">Inventaire</h2>
         <div class="relative">
