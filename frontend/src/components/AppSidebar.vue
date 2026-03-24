@@ -3,10 +3,8 @@ import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useLoginStore } from '@/stores/login.store'
 const loginStore = useLoginStore()
-// const currentUser = loginStore.getDecodedToken
-const currentUser = { name: 'Théodore', role: 'admin' }
+const currentUser = loginStore.getDecodedToken
 // Plus tard pour simuler l'agent :
-currentUser.role = 'admin'
 // console.log('Current User:', currentUser ?? 'No user data available')
 
 import {

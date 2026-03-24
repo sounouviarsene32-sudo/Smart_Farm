@@ -5,7 +5,6 @@ const router = useRouter()
 import { useLoginStore } from '@/stores/login.store'
 const loginStore = useLoginStore()
 const currentUser = ref(loginStore.getDecodedToken)
-console.log('Current User:', currentUser ?? 'No user data available')
 import {
   UserCircle,
   LogOut,
@@ -29,10 +28,10 @@ const handleLogout = () => {
               <UserCircle class="w-6 h-6 text-green-600" />
             </div>
             <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium text-gray-900 truncate">
+              <p class="text-sm font-medium text-gray-900  truncate">
                 {{ currentUser?.userName }}
               </p>
-              <p class="text-xs text-gray-500">Administrateur</p>
+              <p class="text-xs text-gray-500">{{ currentUser?.role }}</p>
             </div>
           </div>
 
