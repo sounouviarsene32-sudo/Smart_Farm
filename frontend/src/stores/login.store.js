@@ -9,8 +9,8 @@ export const useLoginStore = defineStore('login', {
   persist: true,
 
   actions: {
-    login(newuser) {
-        this.token = newuser.token
+    login(token) {
+        this.token = token
       },
       logout() {
         this.token = null
