@@ -228,30 +228,30 @@ const router = createRouter({
   routes,
 })
 
-// router.beforeEach((to, from, next) => {
-//   const loginStore = useLoginStore()
-//   const logged = loginStore.token
-//  const currentUser = loginStore.getDecodedToken
+router.beforeEach((to, from, next) => {
+  const loginStore = useLoginStore()
+  const logged = loginStore.token
+ const currentUser = loginStore.getDecodedToken
 
-//   if (to.meta.requiresAuth && !logged) {
-//     next({ name: 'login' })
-//   } 
-//   else if (to.name === 'login' && logged) {
-//     if (currentUser.role === 'admin') {
-//       next({ name: 'dashboard-admin' })
-//     }
-//     if (currentUser.role === 'agent') {
-//       next({ name: 'dashboard-agent' })
-//     }
-//     if (currentUser.role === 'chef') {
-//       next({ name: 'dashboard-chef' })
-//     }
-//   } 
-//   // if (to.meta.role && to.meta.role !== currentUser.role) {
-//   //   return next({ name: 'unauthorized' })
-//   // }
-//  else {
-//    next()
-//  }
-// })
+  if (to.meta.requiresAuth && !logged) {
+    next({ name: 'login' })
+  } 
+  else if (to.name === 'login' && logged) {
+    if (currentUser.role === 'admin') {
+      next({ name: 'dashboard-admin' })
+    }
+    if (currentUser.role === 'agent') {
+      next({ name: 'dashboard-agent' })
+    }
+    if (currentUser.role === 'chef') {
+      next({ name: 'dashboard-chef' })
+    }
+  } 
+  // if (to.meta.role && to.meta.role !== currentUser.role) {
+  //   return next({ name: 'unauthorized' })
+  // }
+ else {
+   next()
+ }
+})
 export default router
