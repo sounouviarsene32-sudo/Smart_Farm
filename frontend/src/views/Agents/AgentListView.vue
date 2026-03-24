@@ -1,5 +1,6 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, reactive } from 'vue'
+import agentService from '@/services/agent.js'
 import {
   Users,
   CheckCircle2,
@@ -13,83 +14,112 @@ import {
   Trash2,
 } from 'lucide-vue-next'
 
+// Données des agents
+const isModalOpen = ref(false)
+const agents = ref([])
+
+const search = ref('')
 // Statistiques du haut
-const stats = [
-  { title: 'Total Agents', value: '8', icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
-  {
-    title: 'Agents Actifs',
-    value: '8',
-    icon: CheckCircle2,
-    color: 'text-emerald-500',
-    bg: 'bg-emerald-50',
-  },
-  {
-    title: 'Tâches Complétées',
+const stats = ref()
+async function allAgent() {
+  try {
+   // Si role === 'Tous les rôles', on envoie une chaîne vide
+    
+    const res = await agentService.getAllAgents({ 
+      page: 1, 
+      limit: 10, 
+      search: search.value, 
+    })
+    agents.value = res.data.items
+    console.log(agents.value)
+    console.log(res.data.items)
+    stats.value = [
+      { title: 'Total Agents', value: res.data.total, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
+      {
+        title: 'Agents Actifs',
+        value: res.data.items.filter(agent => agent.statut).length,
+        icon: CheckCircle2,
+        color: 'text-emerald-500',
+        bg: 'bg-emerald-50',
+      },
+      {
+        title: 'Tâches Complétées',
     value: '1100',
     icon: Medal,
     color: 'text-orange-500',
     bg: 'bg-orange-50',
-  },
-  {
-    title: 'Performance Moy.',
+      },
+      { title: 'Performance Moy.',
     value: '86.4%',
     icon: TrendingUp,
     color: 'text-purple-500',
-    bg: 'bg-purple-50',
-  },
-]
+    bg: 'bg-purple-50',},
+    ]
+  } catch (error) {
+    console.error(error)
+  }
+}
 
-// Données des agents
-const agents = ref([
-  {
-    id: 1,
-    nom: 'Paul Lefebvre',
-    date: 'mai 2022',
-    email: 'paul.lefebvre@elevage.com',
-    tel: '+221 76 111 22 33',
-    dept: 'Volaille',
-    role: 'Agent terrain',
-    taches: 145,
-    perf: 'Très Bon',
-    statut: 'Actif',
-  },
-  {
-    id: 2,
-    nom: 'Claire Moreau',
-    date: 'mars 2022',
-    email: 'claire.moreau@elevage.com',
-    tel: '+221 76 222 33 44',
-    dept: 'Volaille',
-    role: 'Agent santé',
-    taches: 132,
-    perf: 'Excellent',
-    statut: 'Actif',
-  },
-  {
-    id: 3,
-    nom: 'Luc Petit',
-    date: 'déc. 2021',
-    email: 'luc.petit@elevage.com',
-    tel: '+221 76 333 44 55',
-    dept: 'Bovins',
-    role: 'Agent terrain',
-    taches: 189,
-    perf: 'Très Bon',
-    statut: 'Actif',
-  },
-  {
-    id: 4,
-    nom: 'Emma Rousseau',
-    date: 'juil. 2022',
-    email: 'emma.rousseau@elevage.com',
-    tel: '+221 76 444 55 66',
-    dept: 'Bovins',
-    role: 'Agent nutrition',
-    taches: 98,
-    perf: 'Très Bon',
-    statut: 'Actif',
-  },
-])
+const toUpdate = ref(null)
+const newUser = reactive({
+  name: '',
+  email: '',
+  role: 'agent',
+  dept: '',
+  num: '',
+  haveCount : '',
+})
+
+const départements = ['-', 'Volaille', 'Bovins', 'Caprins', 'Ovins']
+
+const resetForm = () => {
+  newUser.name = ''
+  newUser.email = ''
+  newUser.role = 'agent'
+  newUser.dept = ''
+  newUser.num = ''
+  newUser.haveCount = ''
+  isModalOpen.value = false
+}
+
+// Logique d'ajout
+function handleCreateUser() {
+  userService
+    .register(newUser)
+    .then((response) => {
+      allUsers()
+    })
+    .catch((error) => {
+      console.error("Erreur lors de la création de l'utilisateur:", error)
+    })
+  resetForm()
+}
+
+// modifier
+function editing(user) {
+  newUser.name = user.name
+  newUser.email = user.email
+  newUser.role = user.role
+  newUser.dept = user.dept
+  newUser.num = user.num
+  newUser.haveCount = user.haveCount
+  isModalOpen.value = true
+  toUpdate.value = user
+}
+const handleEdit = async (user) => {
+  // Logique de modification
+  userService
+    .updateUserProfile(user._id, newUser)
+    .then((response) => {
+      allUsers()
+      isModalOpen.value = false
+    })
+    .catch((error) => {
+      console.error("Erreur lors de la modification de l'utilisateur:", error)
+    })
+}
+
+
 
 // Helper pour les couleurs de performance
 const getPerfClass = (perf) => {
@@ -97,6 +127,7 @@ const getPerfClass = (perf) => {
   if (perf === 'Très Bon') return 'bg-blue-500 text-white'
   return 'bg-slate-500 text-white'
 }
+onMounted(allAgent)
 </script>
 <template>
   <main class="flex-1 lg:ml-64 p-4 lg:p-8 transition-all duration-300 w-full bg-red-50 min-h-screen space-y-8">
@@ -105,12 +136,111 @@ const getPerfClass = (perf) => {
         <h1 class="text-3xl font-bold text-slate-900">Agents</h1>
         <p class="text-slate-500 text-sm">Gestion de tous les agents terrain</p>
       </div>
-      <button
+      <button @click="isModalOpen = true"
         class="bg-slate-950 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium"
       >
         <Plus class="w-4 h-4" /> Ajouter un Agent
       </button>
     </div>
+
+    <Transition name="fade">
+      <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" @click="resetForm"></div>
+
+        <div
+          class="relative bg-white w-full max-w-lg rounded-lg shadow-2xl border border-slate-100 overflow-hidden animate-in fade-in zoom-in duration-200"
+        >
+          <div class="p-8 border-b border-slate-50 flex justify-between items-center">
+            <div>
+              <h2 class="text-xl font-black text-slate-900">Nouvel Utilisateur</h2>
+              <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">
+                SmartFarm Access
+              </p>
+            </div>
+            <button @click="resetForm" class="p-2 hover:bg-slate-50 rounded-full transition-colors">
+              <X class="w-5 h-5 text-slate-400" />
+            </button>
+          </div>
+
+          <form @submit.prevent="handleSubmit" class="p-8 space-y-6">
+            <div class="space-y-2">
+              <label class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1"
+                >Nom Complet</label
+              >
+              <input
+                v-model="newUser.name"
+                type="text"
+                placeholder="Ex: Amadou Diallo"
+                class="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm outline-none focus:ring-4 focus:ring-slate-950/5 focus:bg-white focus:border-slate-950 transition-all"
+                required
+              />
+            </div>
+
+            <div class="space-y-2">
+              <label class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1"
+                >Adresse Email Professionnelle</label
+              >
+              <div class="relative">
+                <Mail class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                <input
+                  v-model="newUser.email"
+                  type="email"
+                  placeholder="nom@smartfarm.com"
+                  class="w-full pl-12 pr-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm outline-none focus:ring-4 focus:ring-slate-950/5 focus:bg-white focus:border-slate-950 transition-all"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4">
+
+              <div class="space-y-2">
+                <label class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1"
+                  >Département</label
+                >
+                <select
+                  v-model="newUser.dept"
+                  class="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm outline-none appearance-none focus:bg-white focus:border-slate-950 transition-all cursor-pointer"
+                >
+                  <option ></option>
+                </select>
+              </div>
+              <div class="space-y-2">
+                <label class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1"
+                  >Campagnes</label
+                >
+                <select
+                  v-model="newUser.dept"
+                  class="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm outline-none appearance-none focus:bg-white focus:border-slate-950 transition-all cursor-pointer"
+                >
+                  <option></option>
+                </select>
+              </div>
+              <input v-model="newUser.haveCount" type="checkbox" class="inline" name="campagne" id="campagne">
+              <label for="campagne" class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1"
+                >Créer directement un compte</label
+              >
+            </div>
+
+            <div class="flex gap-3 pt-4">
+              <button
+                type="button"
+                @click="resetForm"
+                class="flex-1 py-4 text-sm font-bold text-slate-500 hover:bg-slate-50 rounded-2xl transition-all"
+              >
+                Annuler
+              </button>
+              <button
+                type="submit"
+                class="flex-1 py-4 bg-slate-950 text-white text-sm font-bold rounded-2xl hover:bg-slate-800 transition-all shadow-lg shadow-slate-100 active:scale-95"
+              >
+                Confirmer l'ajout
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </Transition>
 
     <div class="grid grid-cols-4 gap-6 mb-8">
       <div
@@ -177,7 +307,7 @@ const getPerfClass = (perf) => {
                 <Mail class="w-3.5 h-3.5 text-slate-300" /> {{ agent.email }}
               </div>
               <div class="flex items-center gap-2 text-xs text-slate-500">
-                <Phone class="w-3.5 h-3.5 text-slate-300" /> {{ agent.tel }}
+                <Phone class="w-3.5 h-3.5 text-slate-300" /> {{ agent.num }}
               </div>
             </td>
             <td class="px-6 py-4">
@@ -187,7 +317,7 @@ const getPerfClass = (perf) => {
                 {{ agent.dept }}
               </span>
             </td>
-            <td class="px-6 py-4 text-sm text-slate-500">{{ agent.role }}</td>
+            <td class="px-6 py-4 text-sm text-slate-500">{{ agent.poste }}</td>
             <td class="px-6 py-4 text-center font-bold text-slate-700">{{ agent.taches }}</td>
             <td class="px-6 py-4 text-center">
               <span

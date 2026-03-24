@@ -1,5 +1,6 @@
 <script setup>
-import { ref } from 'vue'
+import userService from '@/services/users.js'
+import { ref, reactive, onMounted, watch } from 'vue'
 import {
   Users,
   ShieldCheck,
@@ -11,74 +12,129 @@ import {
   Lock,
   Trash2,
   Mail,
+  X,
 } from 'lucide-vue-next'
 
+const users = ref()
+const allRoles = ref()
+const role = ref('')
+const search = ref('')
 // Statistiques du haut
-const stats = [
-  { title: 'Total Utilisateurs', value: '7', icon: Users, color: 'text-blue-600' },
-  { title: 'Administrateurs', value: '1', icon: ShieldCheck, color: 'text-purple-600' },
-  { title: 'Chefs Département', value: '3', icon: UserCircle, color: 'text-blue-500' },
-  { title: 'Agents', value: '3', icon: UserCog, color: 'text-emerald-500' },
-]
+const stats = ref()
+async function allUsers() {
+  try {
+   // Si role === 'Tous les rôles', on envoie une chaîne vide
+    const selectedRole = role.value === 'Tous les rôles' ? '' : role.value
+    
+    const res = await userService.getAllUsers({ 
+      page: 1, 
+      limit: 10, 
+      search: search.value, 
+      role: selectedRole 
+    })
+    users.value = res.data.items
+    allRoles.value = res.data.allRoles
+    const admin = users.value.filter((u) => u.role === 'admin').length
+    const chef = users.value.filter((u) => u.role === 'chef').length
+    const agent = users.value.filter((u) => u.role === 'agent').length
+    stats.value = [
+      {
+        title: 'Total Utilisateurs',
+        value: res.data.total,
+        icon: Users,
+        color: 'text-blue-600',
+      },
+      { title: 'Administrateurs', value: admin, icon: ShieldCheck, color: 'text-purple-600' },
+      { title: 'Chefs Département', value: chef, icon: UserCircle, color: 'text-blue-500' },
+      { title: 'Agents', value: agent, icon: UserCog, color: 'text-emerald-500' },
+    ]
+  } catch (error) {
+    console.error(error)
+  }
+}
+const isModalOpen = ref(false)
+const toUpdate = ref(null)
+const newUser = reactive({
+  name: '',
+  email: '',
+  role: 'agent',
+  dept: '',
+  num: '',
+  password: '',
+})
 
-// Données de la liste des utilisateurs
-const users = ref([
-  {
-    id: 1,
-    nom: 'Administrateur Système',
-    username: '@admin',
-    email: 'admin@elevage.com',
-    role: 'Admin',
-    dept: '-',
-    lastLogin: '19/03/2026',
-    statut: 'Actif',
-  },
-  {
-    id: 2,
-    nom: 'Jean Dupont',
-    username: '@chef1',
-    email: 'jean.dupont@elevage.com',
-    role: 'Chef',
-    dept: 'Volaille',
-    lastLogin: '18/03/2026',
-    statut: 'Actif',
-  },
-  {
-    id: 3,
-    nom: 'Marie Martin',
-    username: '@chef2',
-    email: 'marie.martin@elevage.com',
-    role: 'Chef',
-    dept: 'Bovins',
-    lastLogin: '18/03/2026',
-    statut: 'Actif',
-  },
-  {
-    id: 4,
-    nom: 'Pierre Durand',
-    username: '@chef3',
-    email: 'pierre.durand@elevage.com',
-    role: 'Chef',
-    dept: 'Caprins',
-    lastLogin: '17/03/2026',
-    statut: 'Actif',
-  },
-  {
-    id: 5,
-    nom: 'Paul Lefebvre',
-    username: '@agent1',
-    email: 'paul.lefebvre@elevage.com',
-    role: 'Agent',
-    dept: 'Volaille',
-    lastLogin: '19/03/2026',
-    statut: 'Actif',
-  },
-])
+const roles = ['admin', 'chef', 'agent']
+const départements = ['-', 'Volaille', 'Bovins', 'Caprins', 'Ovins']
+
+const resetForm = () => {
+  newUser.name = ''
+  newUser.email = ''
+  newUser.role = 'agent'
+  newUser.dept = ''
+  newUser.num = ''
+  newUser.password = ''
+  isModalOpen.value = false
+}
+
+// Logique d'ajout
+function handleCreateUser() {
+  userService
+    .register(newUser)
+    .then((response) => {
+      allUsers()
+    })
+    .catch((error) => {
+      console.error("Erreur lors de la création de l'utilisateur:", error)
+    })
+  resetForm()
+}
+
+// modifier
+function editing(user) {
+  newUser.name = user.name
+  newUser.email = user.email
+  newUser.role = user.role
+  newUser.dept = user.dept
+  newUser.num = user.num
+  isModalOpen.value = true
+  toUpdate.value = user
+}
+const handleEdit = async (user) => {
+  // Logique de modification
+  userService
+    .updateUserProfile(user._id, newUser)
+    .then((response) => {
+      allUsers()
+      isModalOpen.value = false
+    })
+    .catch((error) => {
+      console.error("Erreur lors de la modification de l'utilisateur:", error)
+    })
+}
+
+const handleSubmit = async () => {
+  if (toUpdate.value) {
+    await handleEdit(toUpdate.value)
+    toUpdate.value = null
+  } else {
+    handleCreateUser()
+  }
+}
+
+// delete user
+const handleDelete = async (userId) => {
+  try {
+    await userService.deleteUser(userId)
+    allUsers()
+  } catch (error) {
+    console.error("Erreur lors de la suppression de l'utilisateur:", error)
+  }
+}
 
 // Helpers pour les styles de badges
 const getRoleClass = (role) => {
-  if (role === 'Admin') return 'bg-purple-600 text-white'
-  if (role === 'Chef') return 'bg-blue-600 text-white'
+  if (role === 'admin') return 'bg-purple-600 text-white'
+  if (role === 'chef') return 'bg-blue-600 text-white'
   return 'bg-emerald-500 text-white'
 }
 
@@ -87,21 +143,146 @@ const getRoleIcon = (role) => {
   if (role === 'Chef') return UserCircle
   return UserCog
 }
+
+watch([search, role], () => {
+  allUsers()
+})
+
+onMounted(allUsers)
 </script>
 
 <template>
-  <main  class="flex-1 lg:ml-64 p-4 lg:p-8 transition-all duration-300 w-full bg-red-50 min-h-screen space-y-8">
+  <main
+    class="flex-1 lg:ml-64 p-4 lg:p-8 transition-all duration-300 w-full bg-red-50 min-h-screen space-y-8"
+  >
     <div class="flex justify-between items-start mb-8">
       <div>
         <h1 class="text-2xl font-bold text-slate-900">Utilisateurs</h1>
-        <p class="text-slate-500 text-sm">Gestion des comptes et permissions</p>
+        <p class="text-slate-500 text-sm">Gestion des comptes et addmissions</p>
       </div>
       <button
-        class="bg-slate-950 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-semibold transition-hover hover:bg-slate-800"
+        @click="isModalOpen = true"
+        class="bg-slate-950 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 text-sm font-bold transition-all hover:bg-slate-800 active:scale-95 shadow-lg shadow-slate-200"
       >
         <Plus class="w-4 h-4" /> Créer Utilisateur
       </button>
     </div>
+
+    <Transition name="fade">
+      <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" @click="resetForm"></div>
+
+        <div
+          class="relative bg-white w-full max-w-lg rounded-lg shadow-2xl border border-slate-100 overflow-hidden animate-in fade-in zoom-in duration-200"
+        >
+          <div class="p-8 border-b border-slate-50 flex justify-between items-center">
+            <div>
+              <h2 class="text-xl font-black text-slate-900">Nouvel Utilisateur</h2>
+              <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">
+                SmartFarm Access
+              </p>
+            </div>
+            <button @click="resetForm" class="p-2 hover:bg-slate-50 rounded-full transition-colors">
+              <X class="w-5 h-5 text-slate-400" />
+            </button>
+          </div>
+
+          <form @submit.prevent="handleSubmit" class="p-8 space-y-6">
+            <div class="space-y-2">
+              <label class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1"
+                >Nom Complet</label
+              >
+              <input
+                v-model="newUser.name"
+                type="text"
+                placeholder="Ex: Amadou Diallo"
+                class="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm outline-none focus:ring-4 focus:ring-slate-950/5 focus:bg-white focus:border-slate-950 transition-all"
+                required
+              />
+            </div>
+
+            <div class="space-y-2">
+              <label class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1"
+                >Adresse Email Professionnelle</label
+              >
+              <div class="relative">
+                <Mail class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                <input
+                  v-model="newUser.email"
+                  type="email"
+                  placeholder="nom@smartfarm.com"
+                  class="w-full pl-12 pr-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm outline-none focus:ring-4 focus:ring-slate-950/5 focus:bg-white focus:border-slate-950 transition-all"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="space-y-2">
+              <label class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1"
+                >Mot de passe</label
+              >
+              <div class="relative">
+                <Mail class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                <input
+                  v-model="newUser.password"
+                  type="password"
+                  placeholder="password1234"
+                  class="w-full pl-12 pr-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm outline-none focus:ring-4 focus:ring-slate-950/5 focus:bg-white focus:border-slate-950 transition-all"
+                />
+              </div>
+              <samp
+                ><small class="text-xs text-slate-400"
+                  >Le mot de passe doit contenir au moins 8 caractères et inclure un chiffre.</small
+                >
+                <span class="text-xs text-red-500">(Facultatif)</span>
+              </samp>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div class="space-y-2">
+                <label class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1"
+                  >Rôle</label
+                >
+                <select
+                  v-model="newUser.role"
+                  class="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm outline-none appearance-none focus:bg-white focus:border-slate-950 transition-all cursor-pointer"
+                >
+                  <option v-for="r in roles" :key="r" :value="r">{{ r }}</option>
+                </select>
+              </div>
+
+              <div class="space-y-2">
+                <label class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1"
+                  >Département</label
+                >
+                <select
+                  v-model="newUser.dept"
+                  class="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm outline-none appearance-none focus:bg-white focus:border-slate-950 transition-all cursor-pointer"
+                >
+                  <option v-for="d in départements" :key="d" :value="d">{{ d }}</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="flex gap-3 pt-4">
+              <button
+                type="button"
+                @click="resetForm"
+                class="flex-1 py-4 text-sm font-bold text-slate-500 hover:bg-slate-50 rounded-2xl transition-all"
+              >
+                Annuler
+              </button>
+              <button
+                type="submit"
+                class="flex-1 py-4 bg-slate-950 text-white text-sm font-bold rounded-2xl hover:bg-slate-800 transition-all shadow-lg shadow-slate-100 active:scale-95"
+              >
+                Confirmer l'ajout
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </Transition>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       <div
@@ -124,20 +305,25 @@ const getRoleIcon = (role) => {
         <Search class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
         <input
           type="text"
+          v-model="search"
           placeholder="Rechercher par nom ou username..."
           class="w-full pl-11 pr-4 py-2.5 bg-slate-100/50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-slate-200 transition-all"
         />
       </div>
       <select
+        v-model="role"
         class="bg-slate-100/50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-600 outline-none min-w-[200px]"
       >
-        <option>Tous les rôles</option>
+        <option value="">Tous les rôles</option>
+        <option v-for="r in allRoles" :key="r" :value="r">
+          {{ r.charAt(0).toUpperCase() + r.slice(1) }}
+        </option>
       </select>
     </div>
 
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
       <div class="p-6 border-b border-slate-50">
-        <h2 class="font-bold text-slate-800">Liste des Utilisateurs ({{ users.length }})</h2>
+        <h2 class="font-bold text-slate-800">Liste des Utilisateurs</h2>
       </div>
 
       <table class="w-full text-left">
@@ -149,7 +335,7 @@ const getRoleIcon = (role) => {
             <th class="px-6 py-4">Email</th>
             <th class="px-6 py-4 text-center">Rôle</th>
             <th class="px-6 py-4">Département</th>
-            <th class="px-6 py-4">Dernière Connexion</th>
+            <th class="px-6 py-4">Date de Création</th>
             <th class="px-6 py-4 text-center">Statut</th>
             <th class="px-6 py-4 text-right">Actions</th>
           </tr>
@@ -157,7 +343,7 @@ const getRoleIcon = (role) => {
         <tbody class="divide-y divide-slate-50">
           <tr v-for="user in users" :key="user.id" class="hover:bg-slate-50/50 transition-colors">
             <td class="px-6 py-4">
-              <div class="font-bold text-slate-900 text-sm">{{ user.nom }}</div>
+              <div class="font-bold text-slate-900 text-sm">{{ user.name }}</div>
               <div class="text-xs text-slate-400">{{ user.username }}</div>
             </td>
             <td class="px-6 py-4 text-sm text-slate-500">{{ user.email }}</td>
@@ -176,26 +362,27 @@ const getRoleIcon = (role) => {
             </td>
             <td class="px-6 py-4">
               <span
-                v-if="user.dept !== '-'"
+                v-if="user.dept"
                 class="px-3 py-1 bg-white border border-slate-200 text-slate-600 rounded-lg text-[11px] font-bold"
               >
                 {{ user.dept }}
               </span>
               <span v-else class="text-slate-300">-</span>
             </td>
-            <td class="px-6 py-4 text-sm text-slate-500">{{ user.lastLogin }}</td>
+            <td class="px-6 py-4 text-sm text-slate-500">{{ user.createdAt }}</td>
             <td class="px-6 py-4">
               <div class="flex justify-center">
                 <span
                   class="bg-emerald-500 text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase"
                 >
-                  {{ user.statut }}
+                  {{ user.isActive ? 'Actif' : 'Inactif' }}
                 </span>
               </div>
             </td>
             <td class="px-6 py-4">
               <div class="flex justify-end gap-2">
                 <button
+                  @click="editing(user)"
                   class="p-2 border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-500 transition-colors"
                 >
                   <Edit2 class="w-4 h-4" />
@@ -206,6 +393,7 @@ const getRoleIcon = (role) => {
                   <Lock class="w-4 h-4" />
                 </button>
                 <button
+                  @click="handleDelete(user._id)"
                   class="p-2 border border-rose-100 rounded-lg hover:bg-rose-50 text-rose-500 transition-colors"
                 >
                   <Trash2 class="w-4 h-4" />
@@ -216,5 +404,16 @@ const getRoleIcon = (role) => {
         </tbody>
       </table>
     </div>
-</main>
+  </main>
 </template>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>
