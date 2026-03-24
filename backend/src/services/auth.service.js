@@ -34,6 +34,7 @@ export const register = async ({ username, email, password }) => {
 };
 
 export const login = async ({ email, password }) => {
+  console.log({ email, password });
   const user = await User.findOne({ email });
   if (!user) throw new Error("Utilisateur non trouvé");
 
@@ -43,7 +44,8 @@ export const login = async ({ email, password }) => {
   const token = jwt.sign({ 
     sub: user._id.toString(),
     role: user.role,
-    email: user.email
+    email: user.email,
+    userName: user.username
   }, JWT_SECRET, { expiresIn: "7d" });
 
   return { user, token };

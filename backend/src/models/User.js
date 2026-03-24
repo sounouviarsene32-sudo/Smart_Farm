@@ -7,7 +7,7 @@ const userSchema = new mongoose.Schema({
     password: { type: String, required: true },
     role: {
         type: String,
-        enum: ['admin', 'responsable', 'agent'],
+        enum: ['admin', 'chef', 'agent'],
         default: 'agent'
     },
     isActive: { type: Boolean, default: true },
@@ -15,10 +15,9 @@ const userSchema = new mongoose.Schema({
 });
 
 // Hashage du mot de passe avant sauvegarde
-userSchema.pre('save', async function (next) {
+userSchema.pre('save', async function () {
     if (!this.isModified('password')) return next();
     this.password = await bcrypt.hash(this.password, 10);
-    next();
 });
 
 // Méthode pour comparer les mots de passe

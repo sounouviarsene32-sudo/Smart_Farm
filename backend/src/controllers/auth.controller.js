@@ -70,8 +70,9 @@ const authController = {
     // Authentification et remise du badge (Token JWT) [cite: 40]
     tentativeConnexion: async (req, res) => {
         try {
-            console.log('Body connexion reçu:', req.body);
             const { email, password } = req.body;
+            console.log({ email, password });
+            
             const utilisateur = await User.findOne({ email });
 
             if (!utilisateur || !(await utilisateur.comparePassword(password))) {
@@ -79,12 +80,12 @@ const authController = {
             }
 
             const jetonSecurise = jwt.sign(
-                { id: utilisateur._id, role: utilisateur.role },
+                { id: utilisateur._id, role: utilisateur.role, userName: utilisateur.name },
                 process.env.JWT_SECRET,
                 { expiresIn: '24h' }
             );
 
-            res.json({ token: jetonSecurise, role: utilisateur.role, nom: utilisateur.name });
+            res.json(jetonSecurise);
         } catch (erreur) {
             console.error('Erreur connexion:', erreur);
             res.status(500).json({ message: erreur.message });
