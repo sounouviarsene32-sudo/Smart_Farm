@@ -1,12 +1,47 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { Pie } from 'vue-chartjs';
 import { Download, Plus, DollarSign, ShoppingCart, Users, TrendingUp, Search } from 'lucide-vue-next';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import NewSaleModal from '@/components/NewSaleModal.vue';
+import api from '@/api/axios.config.js';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const searchQuery = ref('');
+const isModalOpen = ref(false);
+
+const campaignsList = ref([]);
+const recentTransactions = ref([]);
+
+// Récupération des données au montage
+onMounted(async () => {
+  try {
+    // Charger les campagnes
+    const campaignsRes = await api.get('/campaigns');
+    campaignsList.value = campaignsRes.data;
+
+    // Charger les transactions récentes
+    const salesRes = await api.get('/ventes');
+    recentTransactions.value = salesRes.data.map(sale => ({
+      id: sale._id,
+      date: new Date(sale.date).toLocaleDateString('fr-FR'),
+      client: sale.clientName,
+      dept: sale.dept || 'N/A',
+      product: sale.product || 'N/A',
+      quantity: sale.quantity,
+      unitPrice: sale.unitPrice.toLocaleString('fr-FR'),
+      total: sale.totalAmount.toLocaleString('fr-FR'),
+      status: sale.status || 'Payé'
+    }));
+  } catch (error) {
+    console.error("Erreur lors du chargement des données :", error);
+  }
+});
+
+const onSaleAdded = (newSale) => {
+  recentTransactions.value.unshift(newSale); // Ajoute au début de la liste
+};
 
 const salesStats = [
   { label: 'Ventes Totales', value: '12 500 000 F CFA', icon: DollarSign, color: 'text-emerald-500' },
@@ -46,22 +81,11 @@ const topClients = ref([
   { id: 5, name: 'Hôtel Luxe', transactions: 8, amount: '980 000' },
 ]);
 
-const recentTransactions = ref([
-  { id: 1, date: '18/03/2026', client: 'Restaurant La Paix', dept: 'Volaille', product: 'Poulets', quantity: 100, unitPrice: '2 500', total: '250 000', status: 'Payé' },
-  { id: 2, date: '17/03/2026', client: 'Boucherie Moderne', dept: 'Bovins', product: 'Bœufs', quantity: 5, unitPrice: '240 000', total: '1 200 000', status: 'Payé' },
-  { id: 3, date: '17/03/2026', client: 'Supermarché Fresh', dept: 'Volaille', product: 'Œufs (plateaux)', quantity: 150, unitPrice: '300', total: '45 000', status: 'Payé' },
-  { id: 4, date: '16/03/2026', client: 'Restaurant Teranga', dept: 'Caprins', product: 'Chèvres', quantity: 15, unitPrice: '25 000', total: '375 000', status: 'En attente' },
-  { id: 5, date: '15/03/2026', client: 'Marché Central', dept: 'Ovins', product: 'Moutons', quantity: 8, unitPrice: '35 000', total: '280 000', status: 'Payé' },
-  { id: 6, date: '15/03/2026', client: 'Hôtel Luxe', dept: 'Volaille', product: 'Poulets Bio', quantity: 50, unitPrice: '3 500', total: '175 000', status: 'Payé' },
-  { id: 7, date: '14/03/2026', client: 'Boucherie du Coin', dept: 'Bovins', product: 'Veaux', quantity: 3, unitPrice: '180 000', total: '540 000', status: 'Payé' },
-  { id: 8, date: '13/03/2026', client: 'Restaurant Saveurs', dept: 'Caprins', product: 'Chevreaux', quantity: 10, unitPrice: '18 000', total: '180 000', status: 'Payé' },
-]);
-
 const filteredTransactions = computed(() => {
   const query = searchQuery.value.toLowerCase().trim();
   if (!query) return recentTransactions.value;
-  return recentTransactions.value.filter(tx => 
-    tx.client.toLowerCase().includes(query) || 
+  return recentTransactions.value.filter(tx =>
+    tx.client.toLowerCase().includes(query) ||
     tx.product.toLowerCase().includes(query)
   );
 });
@@ -75,17 +99,23 @@ const filteredTransactions = computed(() => {
         <p class="text-slate-500 text-sm">Gestion des transactions et clients</p>
       </div>
       <div class="flex items-center gap-3">
-        <button class="bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 hover:bg-slate-50">
+        <button
+          class="bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 hover:bg-slate-50">
           <Download class="w-4 h-4" /> Exporter
         </button>
-        <button class="bg-slate-950 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 hover:bg-slate-800">
+        <button @click="isModalOpen = true"
+          class="bg-slate-950 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 hover:bg-slate-800">
           <Plus class="w-4 h-4" /> Nouvelle Vente
         </button>
+
+        <NewSaleModal :is-open="isModalOpen" :campaigns="campaignsList" @close="isModalOpen = false"
+          @sale-added="onSaleAdded" />
       </div>
     </header>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <div v-for="stat in salesStats" :key="stat.label" class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex justify-between items-center hover:shadow-md transition-shadow">
+      <div v-for="stat in salesStats" :key="stat.label"
+        class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex justify-between items-center hover:shadow-md transition-shadow">
         <div>
           <p class="text-xs font-medium text-slate-400 mb-1.5">{{ stat.label }}</p>
           <p class="text-2xl font-bold text-slate-900">{{ stat.value }}</p>
@@ -118,7 +148,8 @@ const filteredTransactions = computed(() => {
         <div class="space-y-5">
           <div v-for="(client, index) in topClients" :key="client.id" class="flex items-center justify-between gap-4">
             <div class="flex items-center gap-4 flex-1">
-              <div class="bg-blue-50 text-blue-600 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm">
+              <div
+                class="bg-blue-50 text-blue-600 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm">
                 {{ index + 1 }}
               </div>
               <div class="min-w-0 flex-1">
@@ -141,15 +172,11 @@ const filteredTransactions = computed(() => {
         <h2 class="font-bold text-slate-800">Transactions Récentes</h2>
         <div class="relative w-full max-w-xs">
           <Search class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <input 
-            v-model="searchQuery"
-            type="search"
-            placeholder="Rechercher un client ou un produit..." 
-            class="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-slate-950 focus:border-slate-950 outline-none transition-all"
-          />
+          <input v-model="searchQuery" type="search" placeholder="Rechercher un client ou un produit..."
+            class="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-slate-950 focus:border-slate-950 outline-none transition-all" />
         </div>
       </div>
-      
+
       <table class="w-full text-left text-sm border-collapse">
         <thead class="bg-slate-50/50 text-slate-400 font-semibold text-xs uppercase tracking-wider">
           <tr>
@@ -177,7 +204,8 @@ const filteredTransactions = computed(() => {
             <td class="px-6 py-4 text-right text-slate-500">{{ tx.unitPrice }} FCFA</td>
             <td class="px-6 py-4 text-right font-bold text-emerald-500">{{ tx.total }} FCFA</td>
             <td class="px-6 py-4 text-center">
-              <span :class="[tx.status === 'Payé' ? 'bg-emerald-500 text-white' : 'bg-orange-500 text-white', 'px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-tight']">
+              <span
+                :class="[tx.status === 'Payé' ? 'bg-emerald-500 text-white' : 'bg-orange-500 text-white', 'px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-tight']">
                 {{ tx.status }}
               </span>
             </td>
@@ -185,5 +213,5 @@ const filteredTransactions = computed(() => {
         </tbody>
       </table>
     </div>
-</main>
+  </main>
 </template>

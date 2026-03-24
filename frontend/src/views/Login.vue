@@ -22,7 +22,7 @@ try {
     const token = response.data
     loginStore.login(token) // Stocke le token dans le store
     const currentUser = loginStore.getDecodedToken    
-    router.push({name: `dashboard-${currentUser.role}`})
+    router.push({name: `dashboard-${currentUser.role}` })
   } catch (err) {
     // error.value = err.response?.data?.error || "Identifiants incorrects."
     console.error('Login failed:', err)
@@ -147,3 +147,5 @@ try {
     </div>
   </div>
 </template>
+
+
