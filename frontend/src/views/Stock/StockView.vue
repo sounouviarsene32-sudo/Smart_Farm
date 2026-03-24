@@ -1,32 +1,76 @@
 <script setup>
-import { 
-  Plus, Box, AlertTriangle, TrendingDown, 
-  ShoppingCart, Search, UserCircle, ShieldAlert 
+import { ref, onMounted, computed } from 'vue';
+import {
+  Plus, Box, AlertTriangle, TrendingDown,
+  ShoppingCart, Search, UserCircle, ShieldAlert
 } from 'lucide-vue-next';
+import api from '@/api/axios.config.js';
+import NewStockModal from '@/components/NewStockModal.vue';
 
-const stockStats = [
-  { label: 'Total Articles', value: '9', icon: Box, color: 'text-blue-500' },
-  { label: 'Stock Critique', value: '1', icon: ShieldAlert, color: 'text-rose-500' },
-  { label: 'Stock Faible', value: '1', icon: TrendingDown, color: 'text-orange-500' },
-  { label: 'Alertes Actives', value: '2', icon: ShoppingCart, color: 'text-purple-500' },
-];
+const isModalOpen = ref(false);
+const inventory = ref([]);
+const searchQuery = ref('');
 
-const stockAlerts = [
-  { name: 'Vaccin Newcastle', message: 'Stock critique - Réapprovisionnement urgent', type: 'critique' },
-  { name: 'Aliment Bovins', message: 'Stock faible - Commande recommandée', type: 'faible' },
-];
+// Statistiques réelles
+const stockStats = computed(() => {
+  const total = inventory.value.length;
+  const critique = inventory.value.filter(item => item.quantity <= item.threshold).length;
+  const faible = inventory.value.filter(item => item.quantity > item.threshold && item.quantity <= item.threshold * 2).length;
 
-const inventory = [
-  { name: 'Aliment Volaille', quantity: '2500', minStock: '1000', unit: 'kg', status: 'Normal', percent: 100, statusClass: 'bg-emerald-500 text-white', progressColor: 'bg-emerald-500', supplier: 'SEDIMA', lastUpdate: '18/03/2026' },
-  { name: 'Aliment Bovins', quantity: '1800', minStock: '2000', unit: 'kg', status: 'Faible', percent: 45, statusClass: 'bg-orange-500 text-white', progressColor: 'bg-orange-500', supplier: 'SEDIMA', lastUpdate: '17/03/2026' },
-  { name: 'Aliment Caprins', quantity: '800', minStock: '500', unit: 'kg', status: 'Normal', percent: 100, statusClass: 'bg-emerald-500 text-white', progressColor: 'bg-emerald-500', supplier: 'NMA Sanders', lastUpdate: '18/03/2026' },
-  { name: 'Aliment Ovins', quantity: '650', minStock: '500', unit: 'kg', status: 'Normal', percent: 100, statusClass: 'bg-emerald-500 text-white', progressColor: 'bg-emerald-500', supplier: 'NMA Sanders', lastUpdate: '18/03/2026' },
-  { name: 'Vaccin Newcastle', quantity: '100', minStock: '200', unit: 'doses', status: 'Critique', percent: 20, statusClass: 'bg-rose-500 text-white', progressColor: 'bg-rose-500', supplier: 'VETOQUINOL', lastUpdate: '15/03/2026' },
-  { name: 'Vaccin Fièvre Aphteuse', quantity: '350', minStock: '150', unit: 'doses', status: 'Normal', percent: 100, statusClass: 'bg-emerald-500 text-white', progressColor: 'bg-emerald-500', supplier: 'VETOQUINOL', lastUpdate: '16/03/2026' },
-  { name: 'Antiparasitaire', quantity: '45', minStock: '30', unit: 'litres', status: 'Normal', percent: 100, statusClass: 'bg-emerald-500 text-white', progressColor: 'bg-emerald-500', supplier: 'Pharmacie Vétérinaire', lastUpdate: '17/03/2026' },
-  { name: 'Antibiotique large spectre', quantity: '25', minStock: '20', unit: 'flacons', status: 'Normal', percent: 100, statusClass: 'bg-emerald-500 text-white', progressColor: 'bg-emerald-500', supplier: 'Pharmacie Vétérinaire', lastUpdate: '18/03/2026' },
-  { name: 'Désinfectant', quantity: '80', minStock: '50', unit: 'litres', status: 'Normal', percent: 100, statusClass: 'bg-emerald-500 text-white', progressColor: 'bg-emerald-500', supplier: 'SENPRODAL', lastUpdate: '16/03/2026' },
-];
+  return [
+    { label: 'Total Articles', value: total, icon: Box, color: 'text-blue-500' },
+    { label: 'Stock Critique', value: critique, icon: ShieldAlert, color: 'text-rose-500' },
+    { label: 'Stock Faible', value: faible, icon: TrendingDown, color: 'text-orange-500' },
+    { label: 'Alertes Actives', value: critique + faible, icon: ShoppingCart, color: 'text-purple-500' },
+  ];
+});
+
+// Alertes de stock
+const stockAlerts = computed(() => {
+  return inventory.value
+    .filter(item => item.quantity <= item.threshold)
+    .map(item => ({
+      name: item.name,
+      message: `Stock critique (${item.quantity} ${item.unit}) - Réapprovisionnement urgent`,
+      type: 'critique'
+    }))
+    .slice(0, 3); // Limiter à 3 alertes
+});
+
+// Récupération des données
+const fetchStock = async () => {
+  try {
+    const res = await api.get('/stock');
+    inventory.value = res.data;
+  } catch (error) {
+    console.error("Erreur lors du chargement du stock :", error);
+  }
+};
+
+onMounted(fetchStock);
+
+const onStockAdded = (newStock) => {
+  inventory.value.unshift(newStock);
+};
+
+// Filtrage pour la recherche
+const filteredInventory = computed(() => {
+  const query = searchQuery.value.toLowerCase().trim();
+  if (!query) return inventory.value;
+  return inventory.value.filter(item =>
+    item.name.toLowerCase().includes(query) ||
+    item.category.toLowerCase().includes(query) ||
+    item.supplier?.toLowerCase().includes(query)
+  );
+});
+
+// Helper pour le statut
+const getStatusInfo = (item) => {
+  const ratio = item.quantity / item.threshold;
+  if (ratio <= 1) return { label: 'Critique', class: 'bg-rose-500 text-white', progress: 'bg-rose-500', percent: Math.min(100, (item.quantity / item.threshold) * 100) };
+  if (ratio <= 2) return { label: 'Faible', class: 'bg-orange-500 text-white', progress: 'bg-orange-500', percent: 50 };
+  return { label: 'Normal', class: 'bg-emerald-500 text-white', progress: 'bg-emerald-500', percent: 100 };
+};
 </script>
 
 <template>
@@ -36,13 +80,17 @@ const inventory = [
         <h1 class="text-2xl font-bold text-slate-900">Gestion du Stock</h1>
         <p class="text-slate-500 text-sm">Inventaire et approvisionnement</p>
       </div>
-      <button class="bg-slate-950 text-white px-4 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 transition-transform hover:scale-105 active:scale-95">
+      <button @click="isModalOpen = true"
+        class="bg-slate-950 text-white px-4 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 transition-transform hover:scale-105 active:scale-95">
         <Plus class="w-4 h-4" /> Ajouter un Article
       </button>
+
+      <NewStockModal :is-open="isModalOpen" @close="isModalOpen = false" @stock-added="onStockAdded" />
     </header>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <div v-for="stat in stockStats" :key="stat.label" class="bg-white p-6 rounded-lg  shadow-sm flex justify-between items-center">
+      <div v-for="stat in stockStats" :key="stat.label"
+        class="bg-white p-6 rounded-lg  shadow-sm flex justify-between items-center">
         <div>
           <p class="text-xs font-medium text-slate-400 mb-1">{{ stat.label }}</p>
           <p class="text-2xl font-bold text-slate-900">{{ stat.value }}</p>
@@ -56,7 +104,12 @@ const inventory = [
         <AlertTriangle class="w-5 h-5" /> Alertes de Stock
       </div>
       <div class="space-y-3">
-        <div v-for="alert in stockAlerts" :key="alert.name" class="bg-white p-4 rounded-xl border border-[#FFE7D3] flex justify-between items-center shadow-sm">
+        <div v-if="stockAlerts.length === 0"
+          class="text-slate-400 text-sm py-4 text-center italic bg-white/50 rounded-xl">
+          Aucune alerte de stock en cours.
+        </div>
+        <div v-for="alert in stockAlerts" :key="alert.name"
+          class="bg-white p-4 rounded-xl border border-[#FFE7D3] flex justify-between items-center shadow-sm">
           <div>
             <h4 class="font-bold text-slate-900 text-sm">{{ alert.name }}</h4>
             <p :class="['text-xs font-medium', alert.type === 'critique' ? 'text-rose-500' : 'text-orange-500']">
@@ -70,16 +123,17 @@ const inventory = [
       </div>
     </div>
 
-    <div class="bg-white shadow-sm overflow-hidden">
+    <div class="bg-white shadow-sm overflow-hidden rounded-2xl border border-slate-100">
       <div class="p-6 border-b border-slate-50 flex justify-between items-center">
         <h2 class="font-bold text-slate-800">Inventaire</h2>
         <div class="relative">
           <Search class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input type="text" placeholder="Rechercher..." class="pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-950 w-64" />
+          <input v-model="searchQuery" type="text" placeholder="Rechercher..."
+            class="pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-950 w-64" />
         </div>
       </div>
-      
-      <table class="w-full text-left text-sm">
+
+      <table class="w-full text-left text-sm border-collapse">
         <thead class="bg-slate-50/50 text-slate-400 font-semibold text-xs uppercase tracking-wider">
           <tr>
             <th class="px-6 py-4">Article</th>
@@ -92,39 +146,47 @@ const inventory = [
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-50">
-          <tr v-for="item in inventory" :key="item.name" class="hover:bg-slate-50/30 transition-colors">
+          <tr v-for="item in filteredInventory" :key="item._id" class="hover:bg-slate-50/30 transition-colors">
             <td class="px-6 py-4 flex items-center gap-3">
               <Box class="w-4 h-4 text-slate-300" />
-              <span class="font-bold text-slate-800">{{ item.name }}</span>
+              <div class="flex flex-col">
+                <span class="font-bold text-slate-800">{{ item.name }}</span>
+                <span class="text-[10px] text-slate-400 uppercase tracking-tighter">{{ item.category }}</span>
+              </div>
             </td>
             <td class="px-6 py-4 font-bold text-slate-900">{{ item.quantity }} {{ item.unit }}</td>
-            <td class="px-6 py-4 text-slate-400">{{ item.minStock }} {{ item.unit }}</td>
+            <td class="px-6 py-4 text-slate-400">{{ item.threshold }} {{ item.unit }}</td>
             <td class="px-6 py-4">
               <div class="w-24">
-                <div :class="['text-[10px] font-bold uppercase px-2 py-0.5 rounded inline-block mb-1', item.statusClass]">
-                  {{ item.status }}
+                <div
+                  :class="['text-[10px] font-bold uppercase px-2 py-0.5 rounded inline-block mb-1', getStatusInfo(item).class]">
+                  {{ getStatusInfo(item).label }}
                 </div>
                 <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                  <div :class="['h-full rounded-full', item.progressColor]" :style="{ width: item.percent + '%' }"></div>
+                  <div :class="['h-full rounded-full', getStatusInfo(item).progress]"
+                    :style="{ width: getStatusInfo(item).percent + '%' }"></div>
                 </div>
               </div>
             </td>
-            <td class="px-6 py-4 text-slate-500 font-medium">{{ item.supplier }}</td>
-            <td class="px-6 py-4 text-slate-500">{{ item.lastUpdate }}</td>
+            <td class="px-6 py-4 text-slate-500 font-medium">{{ item.supplier || 'N/A' }}</td>
+            <td class="px-6 py-4 text-slate-500">{{ new Date(item.lastUpdated).toLocaleDateString('fr-FR') }}</td>
             <td class="px-6 py-4 text-center">
-              <button class="text-slate-700 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-md text-[11px] font-bold hover:bg-slate-100">
+              <button
+                class="text-slate-700 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-md text-[11px] font-bold hover:bg-slate-100">
                 Détails
               </button>
+            </td>
+          </tr>
+          <tr v-if="filteredInventory.length === 0">
+            <td colspan="7" class="px-6 py-12 text-center text-slate-400 italic">
+              Aucun article trouvé dans l'inventaire.
             </td>
           </tr>
         </tbody>
       </table>
     </div>
-</main>
+  </main>
 </template>
 
 
-<style scoped>
-
-
-</style>
+<style scoped></style>
