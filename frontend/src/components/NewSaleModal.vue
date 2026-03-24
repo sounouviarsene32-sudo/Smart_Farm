@@ -2,6 +2,9 @@
 import { ref, computed } from 'vue';
 import { X, ShoppingCart, User, Package, Hash, DollarSign, Tag, CheckCircle } from 'lucide-vue-next';
 import api from '@/api/axios.config.js';
+import { useToast } from 'vue-toastification';
+
+const toast = useToast();
 
 // Props : liste des campagnes à passer depuis le parent
 const props = defineProps({
@@ -69,6 +72,7 @@ const handleSubmit = async () => {
     const res = await api.post('/ventes', payload);
 
     const newSale = res.data;
+    toast.success("Vente enregistrée avec succès !");
 
     // On enrichit l'objet pour l'affichage local dans le parent
     emit('sale-added', {

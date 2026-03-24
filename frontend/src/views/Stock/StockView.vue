@@ -6,8 +6,11 @@ import {
 } from 'lucide-vue-next';
 import api from '@/api/axios.config.js';
 import NewStockModal from '@/components/NewStockModal.vue';
+import StockDetailModal from '@/components/StockDetailModal.vue';
 
 const isModalOpen = ref(false);
+const isDetailModalOpen = ref(false);
+const selectedItem = ref(null);
 const inventory = ref([]);
 const searchQuery = ref('');
 
@@ -53,6 +56,22 @@ const onStockAdded = (newStock) => {
   inventory.value.unshift(newStock);
 };
 
+const onStockDeleted = (id) => {
+  inventory.value = inventory.value.filter(item => item._id !== id);
+};
+
+const onStockUpdated = (updatedStock) => {
+  const index = inventory.value.findIndex(item => item._id === updatedStock._id);
+  if (index !== -1) {
+    inventory.value[index] = updatedStock;
+  }
+};
+
+const openDetails = (item) => {
+  selectedItem.value = item;
+  isDetailModalOpen.value = true;
+};
+
 // Filtrage pour la recherche
 const filteredInventory = computed(() => {
   const query = searchQuery.value.toLowerCase().trim();
@@ -86,6 +105,9 @@ const getStatusInfo = (item) => {
       </button>
 
       <NewStockModal :is-open="isModalOpen" @close="isModalOpen = false" @stock-added="onStockAdded" />
+
+      <StockDetailModal :is-open="isDetailModalOpen" :item="selectedItem" @close="isDetailModalOpen = false"
+        @stock-deleted="onStockDeleted" @stock-updated="onStockUpdated" />
     </header>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -171,8 +193,8 @@ const getStatusInfo = (item) => {
             <td class="px-6 py-4 text-slate-500 font-medium">{{ item.supplier || 'N/A' }}</td>
             <td class="px-6 py-4 text-slate-500">{{ new Date(item.lastUpdated).toLocaleDateString('fr-FR') }}</td>
             <td class="px-6 py-4 text-center">
-              <button
-                class="text-slate-700 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-md text-[11px] font-bold hover:bg-slate-100">
+              <button @click="openDetails(item)"
+                class="text-slate-700 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-md text-[11px] font-bold hover:bg-slate-100 transition-all">
                 Détails
               </button>
             </td>

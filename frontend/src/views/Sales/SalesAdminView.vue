@@ -14,6 +14,95 @@ const isModalOpen = ref(false);
 const campaignsList = ref([]);
 const recentTransactions = ref([]);
 
+// Statistiques dynamiques
+const salesStats = computed(() => {
+  const totalAmount = recentTransactions.value.reduce((sum, tx) => {
+    // Nettoyer le formatage (enlever les espaces et FCFA)
+    const amount = Number(tx.total.replace(/[^0-9.-]+/g, ""));
+    return sum + amount;
+  }, 0);
+
+  const transactionsCount = recentTransactions.value.length;
+  const uniqueClients = new Set(recentTransactions.value.map(tx => tx.client)).size;
+
+  return [
+    { label: 'Ventes Totales', value: `${totalAmount.toLocaleString('fr-FR')} F CFA`, icon: DollarSign, color: 'text-emerald-500' },
+    { label: 'Transactions', value: transactionsCount.toString(), icon: ShoppingCart, color: 'text-blue-500' },
+    { label: 'Clients Actifs', value: uniqueClients.toString(), icon: Users, color: 'text-purple-500' },
+    { label: 'Croissance', value: '+0%', icon: TrendingUp, color: 'text-orange-500' },
+  ];
+});
+
+// Répartition par département dynamique
+const salesByDept = computed(() => {
+  const depts = {};
+  recentTransactions.value.forEach(tx => {
+    const amount = Number(tx.total.replace(/[^0-9.-]+/g, ""));
+    depts[tx.dept] = (depts[tx.dept] || 0) + amount;
+  });
+
+  const total = Object.values(depts).reduce((a, b) => a + b, 0);
+  const colors = {
+    'Volaille': '#10B981',
+    'Bovins': '#3B82F6',
+    'Caprins': '#F59E0B',
+    'Ovins': '#EF4444'
+  };
+
+  return Object.entries(depts).map(([name, amount]) => ({
+    name,
+    amount: amount.toLocaleString('fr-FR'),
+    percent: total > 0 ? Number(((amount / total) * 100).toFixed(1)) : 0,
+    color: colors[name] || '#94a3b8'
+  })).sort((a, b) => b.percent - a.percent);
+});
+
+// Données du graphique dynamiques
+const pieData = computed(() => ({
+  labels: salesByDept.value.map(d => d.name),
+  datasets: [{
+    data: salesByDept.value.map(d => d.percent),
+    backgroundColor: salesByDept.value.map(d => d.color),
+    borderWidth: 0,
+    hoverOffset: 10
+  }]
+}));
+
+const pieOptions = {
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      callbacks: {
+        label: (ctx) => `${ctx.label} : ${ctx.parsed}%`
+      }
+    }
+  },
+  maintainAspectRatio: false,
+  cutout: '0%'
+};
+
+// Top Clients dynamique
+const topClients = computed(() => {
+  const clients = {};
+  recentTransactions.value.forEach(tx => {
+    const amount = Number(tx.total.replace(/[^0-9.-]+/g, ""));
+    if (!clients[tx.client]) {
+      clients[tx.client] = { name: tx.client, transactions: 0, amount: 0 };
+    }
+    clients[tx.client].transactions++;
+    clients[tx.client].amount += amount;
+  });
+
+  return Object.values(clients)
+    .sort((a, b) => b.amount - a.amount)
+    .slice(0, 5)
+    .map((c, index) => ({
+      id: index + 1,
+      ...c,
+      amount: c.amount.toLocaleString('fr-FR')
+    }));
+});
+
 // Récupération des données au montage
 onMounted(async () => {
   try {
@@ -42,44 +131,6 @@ onMounted(async () => {
 const onSaleAdded = (newSale) => {
   recentTransactions.value.unshift(newSale); // Ajoute au début de la liste
 };
-
-const salesStats = [
-  { label: 'Ventes Totales', value: '12 500 000 F CFA', icon: DollarSign, color: 'text-emerald-500' },
-  { label: 'Transactions', value: '8', icon: ShoppingCart, color: 'text-blue-500' },
-  { label: 'Clients Actifs', value: '5', icon: Users, color: 'text-purple-500' },
-  { label: 'Croissance', value: '+15.2%', icon: TrendingUp, color: 'text-orange-500' },
-];
-
-const salesByDept = [
-  { name: 'Volaille', percent: 36, amount: '4 500 000', color: '#10B981' },
-  { name: 'Bovins', percent: 30.4, amount: '3 800 000', color: '#3B82F6' },
-  { name: 'Caprins', percent: 19.2, amount: '2 400 000', color: '#F59E0B' },
-  { name: 'Ovins', percent: 14.4, amount: '1 800 000', color: '#EF4444' },
-];
-
-const pieData = {
-  labels: salesByDept.map(d => d.name),
-  datasets: [{
-    data: salesByDept.map(d => d.percent),
-    backgroundColor: salesByDept.map(d => d.color),
-    borderWidth: 0,
-    hoverOffset: 10
-  }]
-};
-
-const pieOptions = {
-  plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => `${ctx.label} : ${ctx.parsed}%` } } },
-  maintainAspectRatio: false,
-  cutout: '0%' // Full pie
-};
-
-const topClients = ref([
-  { id: 1, name: 'Boucherie Moderne', transactions: 12, amount: '2 850 000' },
-  { id: 2, name: 'Restaurant La Paix', transactions: 18, amount: '1 920 000' },
-  { id: 3, name: 'Supermarché Fresh', transactions: 24, amount: '1 650 000' },
-  { id: 4, name: 'Marché Central', transactions: 15, amount: '1 340 000' },
-  { id: 5, name: 'Hôtel Luxe', transactions: 8, amount: '980 000' },
-]);
 
 const filteredTransactions = computed(() => {
   const query = searchQuery.value.toLowerCase().trim();

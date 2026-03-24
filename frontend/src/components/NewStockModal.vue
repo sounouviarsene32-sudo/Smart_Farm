@@ -2,6 +2,9 @@
 import { ref, computed } from 'vue';
 import { X, Box, Tag, Hash, DollarSign, AlertTriangle, Layers, Truck } from 'lucide-vue-next';
 import api from '@/api/axios.config.js';
+import { useToast } from 'vue-toastification';
+
+const toast = useToast();
 
 const props = defineProps({
     isOpen: {
@@ -63,10 +66,13 @@ const handleSubmit = async () => {
         const res = await api.post('/stock', payload);
         const newStock = res.data;
 
+        toast.success("Article ajouté au stock");
         emit('stock-added', newStock);
         handleClose();
     } catch (err) {
-        errors.value.global = err.response?.data?.message || "Erreur lors de l'enregistrement de l'article";
+        const msg = err.response?.data?.message || "Erreur lors de l'enregistrement de l'article";
+        errors.value.global = msg;
+        toast.error(msg);
         console.error("Détails erreur stock:", err.response?.data);
     } finally {
         isSubmitting.value = false;
@@ -128,8 +134,9 @@ const handleClose = () => {
                                 class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
                                 <Tag class="w-3 h-3" /> Nom de l'Article
                             </label>
-                            <input v-model="form.name" type="text" placeholder="Ex : Aliment Volaille" :class="['w-full p-2.5 bg-slate-50 border rounded-xl text-sm outline-none transition-all',
-                                errors.name ? 'border-red-400' : 'border-slate-200 focus:ring-2 focus:ring-slate-950']" />
+                            <input v-model="form.name" type="text" placeholder="Ex : Aliment Volaille"
+                                :class="['w-full p-2.5 bg-slate-50 border rounded-xl text-sm outline-none transition-all',
+                                    errors.name ? 'border-red-400' : 'border-slate-200 focus:ring-2 focus:ring-slate-950']" />
                             <p v-if="errors.name" class="text-red-500 text-[11px] mt-1">{{ errors.name }}</p>
                         </div>
 
@@ -153,8 +160,9 @@ const handleClose = () => {
                                     class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
                                     <Hash class="w-3 h-3" /> Unité
                                 </label>
-                                <input v-model="form.unit" type="text" placeholder="kg, doses, flacons..." :class="['w-full p-2.5 bg-slate-50 border rounded-xl text-sm outline-none',
-                                    errors.unit ? 'border-red-400' : 'border-slate-200 focus:ring-2 focus:ring-slate-950']" />
+                                <input v-model="form.unit" type="text" placeholder="kg, doses, flacons..."
+                                    :class="['w-full p-2.5 bg-slate-50 border rounded-xl text-sm outline-none',
+                                        errors.unit ? 'border-red-400' : 'border-slate-200 focus:ring-2 focus:ring-slate-950']" />
                                 <p v-if="errors.unit" class="text-red-500 text-[11px] mt-1">{{ errors.unit }}</p>
                             </div>
                         </div>
