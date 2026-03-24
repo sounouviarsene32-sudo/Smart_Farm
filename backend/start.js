@@ -4,7 +4,7 @@ import app from "./src/app.js";
 import { connectDb } from "./src/config/db.js";
 import "dotenv/config";
 
-const PORT = process.env.PORT ?? 6000;
+const PORT = process.env.PORT ?? 8080;
 
 try {
   await connectDb();

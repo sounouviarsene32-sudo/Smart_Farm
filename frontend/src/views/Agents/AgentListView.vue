@@ -13,47 +13,65 @@ import {
   Edit2,
   Trash2,
 } from 'lucide-vue-next'
-
+import campaignService from '@/services/campaign.js'
+import departement from "@/services/";
 // Données des agents
 const isModalOpen = ref(false)
 const agents = ref([])
+const campaigns = ref([])
+
+async function allCampaigns() {
+  try {
+    const data = await campaignService.getCampaigns()
+    campaigns.value = data
+    console.log(campaigns.value)
+  } catch (error) {
+    console.error(error)
+  }
+}
+allCampaigns()
 
 const search = ref('')
 // Statistiques du haut
 const stats = ref()
 async function allAgent() {
   try {
-   // Si role === 'Tous les rôles', on envoie une chaîne vide
-    
-    const res = await agentService.getAllAgents({ 
-      page: 1, 
-      limit: 10, 
-      search: search.value, 
+    // Si role === 'Tous les rôles', on envoie une chaîne vide
+    const res = await agentService.getAllAgents({
+      page: 1,
+      limit: 10,
+      search: search.value,
     })
     agents.value = res.data.items
-    console.log(agents.value)
-    console.log(res.data.items)
     stats.value = [
-      { title: 'Total Agents', value: res.data.total, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
+      {
+        title: 'Total Agents',
+        value: res.data.total,
+        icon: Users,
+        color: 'text-blue-600',
+        bg: 'bg-blue-50',
+      },
       {
         title: 'Agents Actifs',
-        value: res.data.items.filter(agent => agent.statut).length,
+        value: res.data.items.filter((agent) => agent.statut).length,
         icon: CheckCircle2,
         color: 'text-emerald-500',
         bg: 'bg-emerald-50',
       },
       {
         title: 'Tâches Complétées',
-    value: '1100',
-    icon: Medal,
-    color: 'text-orange-500',
-    bg: 'bg-orange-50',
+        value: '1100',
+        icon: Medal,
+        color: 'text-orange-500',
+        bg: 'bg-orange-50',
       },
-      { title: 'Performance Moy.',
-    value: '86.4%',
-    icon: TrendingUp,
-    color: 'text-purple-500',
-    bg: 'bg-purple-50',},
+      {
+        title: 'Performance Moy.',
+        value: '86.4%',
+        icon: TrendingUp,
+        color: 'text-purple-500',
+        bg: 'bg-purple-50',
+      },
     ]
   } catch (error) {
     console.error(error)
@@ -67,7 +85,7 @@ const newUser = reactive({
   role: 'agent',
   dept: '',
   num: '',
-  haveCount : '',
+  haveCount: false,
 })
 
 const départements = ['-', 'Volaille', 'Bovins', 'Caprins', 'Ovins']
@@ -78,16 +96,16 @@ const resetForm = () => {
   newUser.role = 'agent'
   newUser.dept = ''
   newUser.num = ''
-  newUser.haveCount = ''
+  newUser.haveCount = false
   isModalOpen.value = false
 }
 
 // Logique d'ajout
 function handleCreateUser() {
-  userService
-    .register(newUser)
+  agentService
+    .addAgent(newUser)
     .then((response) => {
-      allUsers()
+      allAgent()
     })
     .catch((error) => {
       console.error("Erreur lors de la création de l'utilisateur:", error)
@@ -108,18 +126,16 @@ function editing(user) {
 }
 const handleEdit = async (user) => {
   // Logique de modification
-  userService
-    .updateUserProfile(user._id, newUser)
+  agentService
+    .updateAgent(user._id, newUser)
     .then((response) => {
-      allUsers()
+      allAgent()
       isModalOpen.value = false
     })
     .catch((error) => {
       console.error("Erreur lors de la modification de l'utilisateur:", error)
     })
 }
-
-
 
 // Helper pour les couleurs de performance
 const getPerfClass = (perf) => {
@@ -130,13 +146,16 @@ const getPerfClass = (perf) => {
 onMounted(allAgent)
 </script>
 <template>
-  <main class="flex-1 lg:ml-64 p-4 lg:p-8 transition-all duration-300 w-full bg-red-50 min-h-screen space-y-8">
+  <main
+    class="flex-1 lg:ml-64 p-4 lg:p-8 transition-all duration-300 w-full bg-red-50 min-h-screen space-y-8"
+  >
     <div class="flex justify-between items-start mb-8">
       <div>
         <h1 class="text-3xl font-bold text-slate-900">Agents</h1>
         <p class="text-slate-500 text-sm">Gestion de tous les agents terrain</p>
       </div>
-      <button @click="isModalOpen = true"
+      <button
+        @click="isModalOpen = true"
         class="bg-slate-950 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium"
       >
         <Plus class="w-4 h-4" /> Ajouter un Agent
@@ -193,7 +212,6 @@ onMounted(allAgent)
             </div>
 
             <div class="grid grid-cols-1 gap-4">
-
               <div class="space-y-2">
                 <label class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1"
                   >Département</label
@@ -202,7 +220,7 @@ onMounted(allAgent)
                   v-model="newUser.dept"
                   class="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm outline-none appearance-none focus:bg-white focus:border-slate-950 transition-all cursor-pointer"
                 >
-                  <option ></option>
+                  <option></option>
                 </select>
               </div>
               <div class="space-y-2">
@@ -216,11 +234,17 @@ onMounted(allAgent)
                   <option></option>
                 </select>
               </div>
-              <input v-model="newUser.haveCount" type="checkbox" class="inline" name="campagne" id="campagne">
-              <label for="campagne" class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1"
-                >Créer directement un compte</label
-              >
             </div>
+            <input
+              v-model="newUser.haveCount"
+              type="checkbox"
+              class="inline"
+              name="campagne"
+              id="campagne"
+            />
+            <samp for="campagne" class="text-xs font-black uppercase tracking-[0.2em] ml-1"
+              >Créer directement un compte</samp
+            >
 
             <div class="flex gap-3 pt-4">
               <button
@@ -354,5 +378,5 @@ onMounted(allAgent)
         </tbody>
       </table>
     </div>
-</main>
+  </main>
 </template>
