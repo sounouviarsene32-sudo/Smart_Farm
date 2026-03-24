@@ -27,7 +27,9 @@ import SalesDepartement from '@/views/Sales/SalesDepartement.vue'
 import StockView from '@/views/Stock/StockView.vue'
 import UserView from '@/views/Users/UserView.vue'
 import HealthDepartment from '@/views/Health/HealthDepartment.vue'
+import DepartementDetail from '@/views/Departments/DepartementDetail.vue'
 import { createRouter, createWebHistory } from 'vue-router'
+import CampaignForm from '@/views/Campaigns/CampaignForm.vue'
 
 const routes = [
   {
@@ -53,7 +55,7 @@ const routes = [
     path: '/admin',
     name: 'admin',
     component: AdminLayout,
-    meta: { requiresAuth: true, role: "admin" },
+    meta: { requiresAuth: true, role: 'admin' },
     children: [
       {
         path: 'dashboard',
@@ -101,9 +103,20 @@ const routes = [
         component: DepartmentsListView,
       },
       {
+        path: 'departments/:id', // 👈 Route dynamique pour détails
+        name: 'departement-detail',
+        component: DepartementDetail,
+        meta: { requiresAuth: true, role: 'admin' },
+      },
+      {
         path: 'campaigns',
         name: 'campaigns-admin',
         component: CampaignAdminView,
+      },
+      {
+        path: '/admin/campagnes/nouvelle',
+        name: 'CampagneAdminForm',
+        component: CampaignForm,
       },
       {
         path: 'foods',
@@ -120,13 +133,13 @@ const routes = [
         name: 'rapports-admin',
         component: RapportsAdminView,
       },
-    ]
+    ],
   },
   {
     path: '/chefDepartment',
     name: 'chef',
     component: ChefLayout,
-    meta: { requiresAuth: true, role: "chef" },
+    meta: { requiresAuth: true, role: 'chef' },
     children: [
       {
         path: 'dashboard',
@@ -148,7 +161,7 @@ const routes = [
         name: 'campaigns-chef',
         component: CampaignDepartmentView,
       },
-      
+
       {
         path: 'finances',
         name: 'finances-chef',
@@ -179,14 +192,13 @@ const routes = [
         name: 'foods-chef',
         component: FoodDepartmentView,
       },
-      
-    ]
+    ],
   },
   {
     path: '/agent',
     name: 'agent',
     component: AgentLayout,
-    meta: { requiresAuth: true, role: "agent" },
+    meta: { requiresAuth: true, role: 'agent' },
     children: [
       {
         path: 'dashboard',
@@ -218,9 +230,8 @@ const routes = [
         name: 'foods-agent',
         component: FoodDepartmentView,
       },
-    ]
+    ],
   },
-  
 ]
 
 const router = createRouter({
@@ -228,30 +239,29 @@ const router = createRouter({
   routes,
 })
 
-// router.beforeEach((to, from, next) => {
-//   const loginStore = useLoginStore()
-//   const logged = loginStore.token
-//  const currentUser = loginStore.getDecodedToken
+router.beforeEach((to, from, next) => {
+  const loginStore = useLoginStore()
+  const logged = loginStore.token
+  const currentUser = loginStore.getDecodedToken
 
-//   if (to.meta.requiresAuth && !logged) {
-//     next({ name: 'login' })
-//   } 
-//   else if (to.name === 'login' && logged) {
-//     if (currentUser.role === 'admin') {
-//       next({ name: 'dashboard-admin' })
-//     }
-//     if (currentUser.role === 'agent') {
-//       next({ name: 'dashboard-agent' })
-//     }
-//     if (currentUser.role === 'chef') {
-//       next({ name: 'dashboard-chef' })
-//     }
-//   } 
-//   // if (to.meta.role && to.meta.role !== currentUser.role) {
-//   //   return next({ name: 'unauthorized' })
-//   // }
-//  else {
-//    next()
-//  }
-// })
+  if (to.meta.requiresAuth && !logged) {
+    next({ name: 'login' })
+  } else if (to.name === 'login' && logged) {
+    if (currentUser.role === 'admin') {
+      next({ name: 'dashboard-admin' })
+    }
+    if (currentUser.role === 'agent') {
+      next({ name: 'dashboard-agent' })
+    }
+    if (currentUser.role === 'chef') {
+      next({ name: 'dashboard-chef' })
+    }
+  }
+  // if (to.meta.role && to.meta.role !== currentUser.role) {
+  //   return next({ name: 'unauthorized' })
+  // }
+  else {
+    next()
+  }
+})
 export default router

@@ -1,14 +1,44 @@
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import authService from '../services/auth.js'
+import api from '../api/axios.config.js'
+import {useLoginStore} from '../stores/login.store.js'
+const router = useRouter()
+const loginStore = useLoginStore()
 import { LayoutGrid, Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-vue-next'
 
 const email = ref('')
 const password = ref('')
 const showPassword = ref(false)
 
-const handleLogin = () => {
-  console.log('Tentative de connexion :', email.value)
-  // Logique d'authentification ici
+const handleLogin = async () => {
+
+
+try {
+  console.log({ email: email.value, password: password.value} );
+    const response = await api.post('/auth/login', { email: email.value, password: password.value })
+    
+    const token = response.data
+    loginStore.login(token) // Stocke le token dans le store
+    const currentUser = loginStore.getDecodedToken    
+    router.push({name:`dashboard-${currentUser.role}`})
+  } catch (err) {
+    // error.value = err.response?.data?.error || "Identifiants incorrects."
+    console.error('Login failed:', err)
+  }
+
+  // authService
+  //   .login({ email: email.value, password: password.value })
+  //   .then((response) => {
+  //     // Traite la réponse du backend (par exemple, stocke le token)
+  //     loginStore.login(response) // Stocke le token dans le store
+  //     // console.log('Login successful:', response.data)
+  //   })
+  //   .catch((error) => {
+  //     // Gère les erreurs de connexion
+  //     console.error('Login failed:', error)
+  //   })
 }
 </script>
 <!-- class="flex-1 lg:ml-64 p-4 lg:p-8 transition-all duration-300 w-full p-8 bg-[#F8F9FA] min-h-screen space-y-8" -->
