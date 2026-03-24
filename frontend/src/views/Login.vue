@@ -17,13 +17,8 @@ const handleLogin = async () => {
     const response = await api.post('/auth/login', { email: email.value, password: password.value })
     const token = response.data
     loginStore.login(token) // Stocke le token dans le store
-<<<<<<< HEAD
     const currentUser = loginStore.getDecodedToken
     router.push({ name: `dashboard-${currentUser.role}` })
-=======
-    const currentUser = loginStore.getDecodedToken    
-    router.push({name:`dashboard-${currentUser.role}`})
->>>>>>> c457d49ca817935712ae1e0805aef5f7e7688321
   } catch (err) {
     console.error('Login failed:', err)
   }

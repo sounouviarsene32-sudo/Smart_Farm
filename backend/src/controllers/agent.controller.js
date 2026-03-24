@@ -4,12 +4,22 @@ import Agent from '../models/Agent.model.js';
 
 // controler l'inscription
 export const createAgent = async (req, res) => {
+ console.log(req.body);
+  
   try {
-    const { name, email, role, dept, num, haveCount } = req.body;
-    const agent = await agentService.register({ name, email, role, dept, num, haveCount });
-   return res.status(201).json(agent);
+    // On récupère poste au lieu de role
+    const { name, email, poste, role, dept, num, camp, haveCount } = req.body;
+    console.log("Données reçues dans le controller:", { name, email, poste, role, dept, num, camp, haveCount });
+    
+    // On passe tout au service
+    const agent = await agentService.create({ 
+      name, email, poste, role, dept, num, camp, haveCount 
+    });
+    
+    return res.status(201).json(agent);
   } catch (err) {
-   return res.status(400).json({ error: err.message });
+    console.error("Erreur Controller:", err.message);
+    return res.status(400).json({ error: err.message });
   }
 };
 
