@@ -29,6 +29,7 @@ import UserView from '@/views/Users/UserView.vue'
 import HealthDepartment from '@/views/Health/HealthDepartment.vue'
 import DepartementDetail from '@/views/Departments/DepartementDetail.vue'
 import { createRouter, createWebHistory } from 'vue-router'
+import CampaignForm from '@/views/Campaigns/CampaignForm.vue'
 
 const routes = [
   {
@@ -111,6 +112,11 @@ const routes = [
         path: 'campaigns',
         name: 'campaigns-admin',
         component: CampaignAdminView,
+      },
+      {
+        path: '/admin/campagnes/nouvelle',
+        name: 'CampagneAdminForm',
+        component: CampaignForm,
       },
       {
         path: 'foods',
