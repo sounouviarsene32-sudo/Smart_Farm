@@ -237,15 +237,15 @@ const activities = ref([
       </div>
 
       <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
-        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm h-[400px]">
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm h-100">
           <h3 class="font-bold text-slate-800 mb-6">Revenu par Département</h3>
-          <div class="h-[300px]">
+          <div class="h-75">
             <Pie :data="secteurData" :options="secteurOptions" />
           </div>
         </div>
 
         <div
-          class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm h-[400px] flex flex-col"
+          class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm h-100 flex flex-col"
         >
           <h3 class="font-bold text-slate-800 mb-6">Estimation des Dépenses par Département</h3>
 
