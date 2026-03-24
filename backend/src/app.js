@@ -9,14 +9,14 @@ const app = express();
 
 // CORS
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "http://localhost:5173",
+  origin: process.env.FRONTEND_URL || "http://localhost:5175" || "http://localhost:5173",
   credentials: true
 }));
 
 // JSON
 app.use(express.json());
 
-// 🔥 BRANCHEMENT DES ROUTES
+//  BRANCHEMENT DES ROUTES
 app.use("/api", router);
 
 // Route test
