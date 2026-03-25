@@ -19,7 +19,7 @@ const CampagneService = {
   },
 // Voir toutes les campagnes
   async getAllCampagnes() {
-    return Campagne.find().populate("animals");
+    return Campagne.find().populate("animals").populate("departement");
   },
 // Modifier une campagne
   async updateCampagne(campagneId, data) {

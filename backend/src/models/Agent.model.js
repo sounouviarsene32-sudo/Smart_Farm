@@ -1,11 +1,7 @@
 import mongoose from 'mongoose';
-import Departement from './Departement.js';
-import Campaign from './Campaign.js';
-// import User from './User.js';
-
 const { Schema } = mongoose;
 
-const agentSchema = new mongoose.Schema({
+const agentSchema = new Schema({
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     num: { type: String },
@@ -14,16 +10,15 @@ const agentSchema = new mongoose.Schema({
     camp: { type: Schema.Types.ObjectId, ref: "Campaign"},
     haveCount: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true },
+    todo: [{ type: Schema.Types.ObjectId, ref: "Todo"}],
     createdAt: { type: Date, default: Date.now }
 });
 
-agentSchema.post('save', async function(doc, next) {
+// MIDDLEWARE POST-SAVE : Création automatique du compte User
+agentSchema.post('save', async function(doc) {
   if (doc.haveCount) {
     try {
-      // On récupère le modèle User de cette façon pour éviter les erreurs d'initialisation
       const User = mongoose.model('User');
-
-      // Vérifier si l'user existe déjà pour éviter le crash "Duplicate Key Email"
       const existingUser = await User.findOne({ email: doc.email });
       
       if (!existingUser) {
@@ -31,26 +26,36 @@ agentSchema.post('save', async function(doc, next) {
           name: doc.name,
           email: doc.email,
           num: doc.num,
-          role: "agent", // ou "chef" selon le modèle
+          role: "agent", 
           dept: doc.dept,
           isActive: doc.isActive,
-          password: "password123" // ATTENTION : Ton modèle User requiert probablement un password !
+          password: "password123" // À changer par l'user à la première connexion
         });
-        console.log("Compte utilisateur créé avec succès pour:", doc.email);
+        console.log("✓ Compte utilisateur créé pour:", doc.email);
       }
     } catch (err) {
-      console.error("Erreur lors de la création auto de l'User:", err);
+      console.error("× Erreur création User:", err);
     }
-  }
-  next();
-});
-agentSchema.post('findByIdAndDelete', async function(doc) {
-  if (doc) {
-    const User = mongoose.model('User');
-    // On retire l'ID du commentaire du tableau 'comments' du Post lié
-    await User.findByIdAndDelete(doc._id);
   }
 });
 
+// MIDDLEWARE POST-DELETE : Nettoyage (User + Todos)
+agentSchema.post('findOneAndDelete', async function(doc) {
+  if (doc) {
+    try {
+      const User = mongoose.model('User');
+      const Todo = mongoose.model('Todo');
+      
+      await Promise.all([
+        User.findOneAndDelete({ email: doc.email }),
+        Todo.deleteMany({ agent: doc._id })
+      ]);
+      
+      console.log(`✓ Nettoyage complet effectué pour l'agent ${doc.name}`);
+    } catch (err) {
+      console.error("× Erreur lors du nettoyage post-suppression:", err);
+    }
+  }
+});
 
 export default mongoose.model('Agent', agentSchema);

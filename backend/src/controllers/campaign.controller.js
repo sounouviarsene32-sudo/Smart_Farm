@@ -3,7 +3,7 @@ import Campaign from '../models/Campaign.js';
 export class CampaignController {
     static async getCampaigns(req, res) {
         try {
-            const campaigns = await Campaign.find();
+            const campaigns = await Campaign.find().populate("departement");
             res.json(campaigns);
         } catch (error) {
             res.status(500).json({ error: error.message });

@@ -25,7 +25,7 @@ const DashboardService = {
 
     async getOverview() {
         try {
-            const campaigns = await Campaign.find().limit(15).sort({ createdAt: -1 });
+            const campaigns = await Campaign.find().limit(15).sort({ createdAt: -1 }).populate('departement');
             const recentSales = await Sale.find().limit(15).sort({ createdAt: -1 }).populate('campaignId').populate('animalIds');
             const animals = await Animal.find().limit(15);
             const departmentStats = await Departement.find().lean().exec();
