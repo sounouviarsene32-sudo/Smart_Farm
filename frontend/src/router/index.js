@@ -30,7 +30,7 @@ import HealthDepartment from '@/views/Health/HealthDepartment.vue'
 import DepartementDetail from '@/views/Departments/DepartementDetail.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import CampaignForm from '@/views/Campaigns/CampaignForm.vue'
-
+import CampaignDetail from '@/views/Campaigns/CampaignDetail.vue'
 const routes = [
   {
     path: '/:pathMatch(.*)*',
@@ -112,6 +112,11 @@ const routes = [
         path: 'campaigns',
         name: 'campaigns-admin',
         component: CampaignAdminView,
+      },
+      {
+        path: '/campaigns/:id',
+        name: 'campaigns-detail',
+        component: CampaignDetail,
       },
       {
         path: '/admin/campagnes/nouvelle',

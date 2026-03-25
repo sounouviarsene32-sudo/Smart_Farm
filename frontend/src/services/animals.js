@@ -10,6 +10,11 @@ async function getAnimalById(id) {
   return response.data;
 }
 
+async function getAnimalsByCampaign(campaignId) {
+  const response = await api.get(`/animals?campaignId=${campaignId}`);
+  return response.data;
+}
+
 async function createAnimal(data) {
   const response = await api.post('/animals', data);
   return response.data;
@@ -27,6 +32,7 @@ async function deleteAnimal(id) {
 
 export default {
   getAnimals,
+  getAnimalsByCampaign,
   getAnimalById,
   createAnimal,
   updateAnimal,

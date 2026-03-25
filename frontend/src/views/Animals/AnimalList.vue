@@ -127,44 +127,52 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import {
-  Plus, Search, Beef, Bird, ExternalLink,
-  Activity, ShieldCheck, HeartPulse, AlertCircle,
-  QrCode, ScanLine
-} from 'lucide-vue-next';
-import { useToast } from 'vue-toastification';
+import { ref, onMounted, watch } from 'vue';
+import AnimalService from '@/services/animals.js';
+import { Plus, Search, Beef, Bird, ExternalLink, ShieldCheck, HeartPulse, AlertCircle, QrCode, ScanLine } from 'lucide-vue-next';
 
-const toast = useToast();
+const props = defineProps({
+  campaignId: { type: String, default: null }
+});
+
+const animals = ref([]);
+const animalStats = ref([]);
 const qrInput = ref('');
 
-const animalStats = [
-  { label: 'Total Cheptel', value: '1,250', icon: Beef, color: 'text-orange-500' },
-  { label: 'En Bonne Santé', value: '1,198', icon: ShieldCheck, color: 'text-emerald-500' },
-  { label: 'Sous Traitement', value: '42', icon: HeartPulse, color: 'text-blue-500' },
-  { label: 'Alertes Vitales', value: '10', icon: AlertCircle, color: 'text-rose-500' },
-];
+async function loadAnimals() {
+  try {
+    const data = props.campaignId
+      ? await AnimalService.getAnimalsByCampaign(props.campaignId)
+      : await AnimalService.getAnimals();
 
-const animals = ref([
-  { id: 'BOV-2026-001', name: 'Vache #001', dept: 'Bovins', breed: 'Holstein', weight: '620 kg', status: 'Sain', typeIcon: Beef },
-  { id: 'VOL-2026-452', name: 'Poulet Lot A4', dept: 'Volaille', breed: 'Poulet de chair', weight: '2.5 kg', status: 'Traitement', typeIcon: Bird },
-  { id: 'BOV-2026-045', name: 'Taureau Alpha', dept: 'Bovins', breed: 'Charolais', weight: '850 kg', status: 'Critique', typeIcon: Beef },
-  { id: 'OVN-2026-012', name: 'Brebis #012', dept: 'Ovins', breed: 'Mérinos', weight: '55 kg', status: 'Sain', typeIcon: Beef },
-]);
+    animals.value = data.map(a => ({
+      id: a.identificationNumber,
+      name: `${a.species} #${a.identificationNumber}`,
+      dept: a.campaign?.departement?.name || 'Libre',
+      breed: a.breed,
+      weight: a.weight ? `${a.weight} kg` : '-',
+      status: a.healthStatus,
+      typeIcon: a.species.toLowerCase().includes('volaille') ? Bird : Beef
+    }));
 
-const getStatusClass = (status) => {
-  switch (status) {
-    case 'Sain': return 'bg-emerald-500 text-white';
-    case 'Traitement': return 'bg-blue-600 text-white';
-    case 'Critique': return 'bg-rose-500 text-white';
-    default: return 'bg-slate-400 text-white';
+    // Calcul des stats
+    const total = animals.value.length;
+    const sain = animals.value.filter(a => a.status === 'sain').length;
+    const traitement = animals.value.filter(a => a.status === 'traitement').length;
+    const critique = animals.value.filter(a => a.status === 'malade').length;
+
+    animalStats.value = [
+      { label: 'Total Cheptel', value: total, icon: Beef, color: 'text-orange-500' },
+      { label: 'En Bonne Santé', value: sain, icon: ShieldCheck, color: 'text-emerald-500' },
+      { label: 'Sous Traitement', value: traitement, icon: HeartPulse, color: 'text-blue-500' },
+      { label: 'Alertes Vitales', value: critique, icon: AlertCircle, color: 'text-rose-500' },
+    ];
+
+  } catch (err) {
+    console.error('Erreur chargement animaux:', err);
   }
-};
+}
 
-const handleScan = () => {
-  if (qrInput.value) {
-    toast.info(`Recherche technique pour l'ID : ${qrInput.value}`);
-    qrInput.value = '';
-  }
-};
+onMounted(loadAnimals);
+watch(() => props.campaignId, loadAnimals);
 </script>

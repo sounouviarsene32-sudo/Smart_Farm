@@ -1,13 +1,14 @@
 <script setup>
 import { computed } from 'vue'
 import { CalendarDays, FileText, Settings2 } from 'lucide-vue-next'
+import { useRouter } from 'vue-router'
 
-// Props pour recevoir la campagne
+const router = useRouter()
 const props = defineProps({
-  campaign: { type: Object, required: true }
+  campaign: { type: Object, required: true },
 })
 
-// Fonctions utilitaires
+// Formatage FCFA
 const formatFCFA = (amount) =>
   new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF', minimumFractionDigits: 0 })
     .format(amount)
@@ -21,103 +22,127 @@ const montantRestant = computed(() => {
 // Couleur de progression
 const progressionColor = computed(() => {
   const p = props.campaign.progression || 0
-  if (p >= 75) return 'bg-emerald-500'
-  if (p >= 50) return 'bg-blue-600'
-  return 'bg-orange-500'
+  if (p >= 75) return 'bg-[#750505]' // Bordeaux complet
+  if (p >= 50) return 'bg-slate-700' // Gris neutre
+  return 'bg-slate-400' // Gris clair
 })
+
+// Redirection vers le détail de la campagne
+const goToDetails = () => {
+  router.push({
+    name: 'campaigns-detail',
+    params: { id: props.campaign._id },
+  })
+}
 </script>
 
 <template>
-  <div class="group bg-white p-7 border border-slate-100 rounded-[2rem] transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-900/5 hover:-translate-y-1 relative overflow-hidden">
-    <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-full -mr-16 -mt-16 opacity-50 group-hover:scale-110 transition-transform"></div>
+  <div
+    class="group bg-white p-8 border border-slate-200 rounded-3xl transition-all duration-500 hover:shadow-[0_30px_60px_-15px_rgba(117,5,5,0.1)] hover:-translate-y-1 relative overflow-hidden font-geist"
+  >
+    <div class="absolute top-0 right-0 w-24 h-24 bg-slate-50 rounded-full -mr-12 -mt-12 transition-transform group-hover:scale-150 duration-700"></div>
 
-    <div class="relative flex justify-between items-start mb-6 gap-4">
+    <div class="relative flex justify-between items-start mb-8 gap-4">
       <div class="flex-1">
-        <div class="flex items-center gap-3 mb-3">
-          <h3 class="text-xl font-black text-slate-800 tracking-tighter group-hover:text-[#1E8E6E] transition-colors">
+        <div class="flex items-center gap-3 mb-4">
+          <h3 class="text-2xl font-black text-slate-900 tracking-tighter uppercase transition-colors group-hover:text-[#750505]">
             {{ campaign.name }}
           </h3>
-          <span class="px-3 py-1 bg-[#1E8E6E]/10 text-[#1E8E6E] text-[10px] font-black uppercase rounded-lg tracking-[0.1em]">
-            {{ campaign.departement?.name || 'Unité Libre' }}
+          <span class="px-3 py-1 bg-slate-100 text-slate-500 text-[9px] font-black uppercase rounded-md tracking-[0.15em] border border-slate-200">
+            {{ campaign.departement?.name || 'Standard' }}
           </span>
         </div>
 
-        <div class="flex flex-wrap items-center gap-y-2 gap-x-5 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-          <div class="flex items-center gap-1.5">
-            <span class="text-slate-300">Responsable:</span>
-            <span class="text-slate-600">{{ campaign.manager?.name || 'À définir' }}</span>
+        <div class="flex flex-wrap items-center gap-x-6 gap-y-2">
+          <div class="flex flex-col">
+            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Responsable</span>
+            <span class="text-xs font-black text-slate-700 italic">{{ campaign.manager?.firstName || 'Staff' }}</span>
           </div>
-          <div class="flex items-center gap-1.5">
-            <span class="text-slate-300">Staff:</span>
-            <span class="text-slate-600">{{ campaign.agents?.length || 0 }}</span>
-          </div>
-          <div class="flex items-center gap-1.5">
-            <span class="text-slate-300">Cheptel:</span>
-            <span class="text-[#1E8E6E]">{{ campaign.animals?.length || 0 }} têtes</span>
+          <div class="w-px h-6 bg-slate-100 hidden md:block"></div>
+          <div class="flex flex-col">
+            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Cheptel</span>
+            <span class="text-xs font-black text-[#750505]">{{ campaign.animalsCount || 0 }} Têtes</span>
           </div>
         </div>
       </div>
 
-      <div :class="['px-4 py-2 text-white text-xs font-black rounded-xl shadow-lg transform rotate-3 group-hover:rotate-0 transition-transform tracking-widest', progressionColor]">
+      <div
+        :class="[
+          'px-5 py-2 text-white text-xs font-black rounded-xl shadow-xl transition-all duration-500 tracking-widest',
+          progressionColor,
+        ]"
+      >
         {{ campaign.progression || 0 }}%
       </div>
     </div>
 
-    <div v-if="campaign.budget" class="grid grid-cols-3 gap-3 mb-6 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-      <div class="flex flex-col">
-        <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Budget Total</span>
-        <span class="text-sm font-black text-slate-700">{{ formatFCFA(campaign.budget) }}</span>
+    <div v-if="campaign.budget" class="grid grid-cols-3 gap-1 mb-8">
+      <div class="flex flex-col p-4 bg-slate-50 rounded-l-2xl border-l border-y border-slate-100">
+        <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Alloué</span>
+        <span class="text-[11px] font-black text-slate-900">{{ formatFCFA(campaign.budget) }}</span>
       </div>
-      <div class="flex flex-col border-x border-slate-200 px-3">
-        <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Engagé</span>
-        <span class="text-sm font-black text-amber-600">{{ formatFCFA(campaign.budgetDepense || 0) }}</span>
+      <div class="flex flex-col p-4 bg-slate-50 border-y border-slate-100">
+        <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Dépensé</span>
+        <span class="text-[11px] font-black text-slate-600">{{ formatFCFA(campaign.budgetDepense || 0) }}</span>
       </div>
-      <div class="flex flex-col items-end">
-        <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Disponible</span>
-        <span class="text-sm font-black text-[#1E8E6E]">{{ formatFCFA(montantRestant) }}</span>
+      <div class="flex flex-col p-4 bg-[#750505]/5 rounded-r-2xl border-r border-y border-[#750505]/10 items-end text-right">
+        <span class="text-[8px] font-black text-[#750505] uppercase tracking-widest mb-1">Disponible</span>
+        <span class="text-[11px] font-black text-[#750505]">{{ formatFCFA(montantRestant) }}</span>
       </div>
     </div>
 
-    <div class="relative w-full h-3 bg-slate-100 rounded-full overflow-hidden mb-6 shadow-inner">
-      <div 
-        :class="['h-full rounded-full transition-all duration-1000 ease-out relative', progressionColor]" 
+    <div class="relative w-full h-1.5 bg-slate-100 rounded-full overflow-hidden mb-8 shadow-inner">
+      <div
+        :class="['h-full rounded-full transition-all duration-1000 ease-in-out', progressionColor]"
         :style="{ width: (campaign.progression || 0) + '%' }"
-      >
-        <div class="absolute inset-0 bg-white/20 animate-[pulse_2s_infinite]"></div>
-      </div>
+      ></div>
     </div>
 
     <div class="flex items-center gap-3">
-      <button class="flex-1 px-4 py-3 bg-white text-slate-600 text-[10px] font-black uppercase tracking-widest rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors flex items-center justify-center gap-2">
+      <button
+        class="flex-1 px-4 py-4 bg-white text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] rounded-xl border border-slate-200 hover:bg-slate-50 hover:text-slate-900 transition-all flex items-center justify-center gap-2"
+      >
         <CalendarDays class="w-3.5 h-3.5" /> Planning
       </button>
-      <button class="flex-1 px-4 py-3 bg-white text-slate-600 text-[10px] font-black uppercase tracking-widest rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors flex items-center justify-center gap-2">
+      <button
+        @click="goToDetails"
+        class="flex-1 px-4 py-4 bg-white text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] rounded-xl border border-slate-200 hover:bg-slate-50 hover:text-slate-900 transition-all flex items-center justify-center gap-2"
+      >
         <FileText class="w-3.5 h-3.5" /> Dossier
       </button>
-      <button class="flex-1 px-4 py-3 bg-[#1E8E6E] text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-emerald-200 hover:bg-[#15634d] transition-all flex items-center justify-center gap-2 transform active:scale-95">
-        <Settings2 class="w-3.5 h-3.5 text-emerald-200" /> Gérer
+      <button
+        class="flex-1 px-4 py-4 bg-[#750505] text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-xl shadow-lg shadow-red-900/20 hover:bg-red-900 transition-all flex items-center justify-center gap-2 transform active:scale-95"
+      >
+        <Settings2 class="w-3.5 h-3.5 text-red-300" /> Gérer
       </button>
     </div>
   </div>
 </template>
 
 <style scoped>
-/* Petit effet de brillance sur le bouton principal */
+@import url('https://api.fontshare.com/v2/css?f[]=geist@400,700,900&display=swap');
+
+.font-geist {
+  font-family: 'Geist Sans', sans-serif;
+}
+
 button:last-child {
   position: relative;
   overflow: hidden;
 }
+
 button:last-child::after {
   content: '';
   position: absolute;
   top: -50%;
-  left: -50%;
-  width: 200%;
+  left: -100%;
+  width: 100%;
   height: 200%;
-  background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
   transform: rotate(45deg);
-  transition: 0.5s;
+  transition: 0.8s;
 }
+
 button:last-child:hover::after {
   left: 100%;
 }

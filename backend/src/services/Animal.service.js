@@ -27,9 +27,10 @@ const AnimalService = {
     return Animal.find();
   },
 
-  async getAnimalsByCampagne(campaignId){
-    return Animal.find({ campaignId });
-  },
+  async getAnimalsByCampaign(campaignId) {
+    return Animal.find({ campaign: campaignId }).populate('campaign', 'name departement');
+  }
+,
 
   async getAnimalById(animalId) {
     return Animal.findById(animalId);
