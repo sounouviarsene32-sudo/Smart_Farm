@@ -2,6 +2,7 @@ import Animal from '../models/Animal.js';
 import Campaign from '../models/Campaign.js';
 import Sale from '../models/Sale.js';
 import Transaction from '../models/Transaction.js';
+import Departement from '../models/Departement.js';
 
 const DashboardService = {
     async getStats() {
@@ -24,14 +25,19 @@ const DashboardService = {
 
     async getOverview() {
         try {
-            const campaigns = await Campaign.find().limit(5);
-            const recentSales = await Sale.find().limit(5).sort({ createdAt: -1 }).populate('campaignId').populate('animalIds');
-            const animals = await Animal.find().limit(5);
-            console.log("Données de l'aperçu récupérées:", { campaigns, recentSales, animals });
+            const campaigns = await Campaign.find().limit(15).sort({ createdAt: -1 });
+            const recentSales = await Sale.find().limit(15).sort({ createdAt: -1 }).populate('campaignId').populate('animalIds');
+            const animals = await Animal.find().limit(15);
+            const departmentStats = await Departement.find().lean().exec();
+            const transactionCounts = await Transaction.aggregate([
+                { $group: { _id: "$dept", count: { $sum: 1 } } }
+            ]);
             return {
                 campaigns,
                 recentSales,
-                animals
+                animals,
+                departmentStats,
+                transactionCounts
             };
         } catch (error) {
             throw new Error(`Erreur lors de la récupération de l'aperçu: ${error.message}`);

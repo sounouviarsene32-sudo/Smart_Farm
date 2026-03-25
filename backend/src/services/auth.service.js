@@ -5,14 +5,14 @@ import jwt from "jsonwebtoken";
 const JWT_SECRET = process.env.JWT_SECRET ?? "farm_123";
 export const register = async ({ name, email, password, role, dept, num }) => {
   try {
-    if (password.length < 8)
+    if (password?.length < 8)
       throw new Error("Password must be at least 8 characters");
-    if (!/\d/.test(password))
-      throw new Error("Password must contain at least one number");
+    // if (!/\d/.test(password))
+    //   throw new Error("Password must contain at least one number");
 
     const existingUser = await User.findOne({ email });
     if (existingUser) throw new Error("Email déjà utilisé");
-
+    console.log({ name, email, password, role, dept, num });
     const user = new User({ name, email, password, role, dept, num });
     await user.save(); // 🔥 le hash se fait ici automatiquement
     return { user };
@@ -23,10 +23,8 @@ export const register = async ({ name, email, password, role, dept, num }) => {
 };
 
 export const login = async ({ email, password }) => {
-  const user = await User.findOne({ email }).select('+password');
+  const user = await User.findOne({ email }).select("+password").populate("dept", "name");
   if (!user) throw new Error("Utilisateur non trouvé");
-console.log({ email, password })
-console.log(user)
   // Utilise la méthode définie dans ton schéma !
   const isMatch = await user.comparePassword(password);
   if (!isMatch) throw new Error("Identifiants invalides");
@@ -36,6 +34,7 @@ console.log(user)
       role: user.role,
       email: user.email,
       userName: user.name,
+      dept: user.dept,
     },
     JWT_SECRET,
     { expiresIn: "7d" },
@@ -59,7 +58,7 @@ export const getAllUsers = async ({ page = 1, limit = 10, search, role }) => {
     filter.role = { $regex: role, $options: "i" };
   }
 
-   const [items, total, allRoles] = await Promise.all([
+  const [items, total, allRoles] = await Promise.all([
     User.find(filter)
       .sort({ createdAt: -1 }) // <-- Corrigé : createdAt au lieu de creatAt
       .skip((safePage - 1) * safeLimit)
@@ -75,8 +74,7 @@ export const getAllUsers = async ({ page = 1, limit = 10, search, role }) => {
     total,
     allRoles,
   };
-
-}
+};
 
 export const updateUserProfile = async (userId, updateData) => {
   if (updateData.password) {
