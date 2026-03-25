@@ -23,12 +23,13 @@ export const register = async ({ name, email, password, role, dept, num }) => {
 };
 
 export const login = async ({ email, password }) => {
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email }).select('+password');
   if (!user) throw new Error("Utilisateur non trouvé");
-
-  const isMatch = await bcrypt.compare(password, user.password);
+console.log({ email, password })
+console.log(user)
+  // Utilise la méthode définie dans ton schéma !
+  const isMatch = await user.comparePassword(password);
   if (!isMatch) throw new Error("Identifiants invalides");
-
   const token = jwt.sign(
     {
       sub: user._id.toString(),
