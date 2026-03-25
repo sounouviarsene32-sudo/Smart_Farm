@@ -1,6 +1,10 @@
 <script setup>
 import { ref, computed, onMounted, reactive } from 'vue'
 import agentService from '@/services/agent.js'
+import campaignService from '@/services/campaign.js'
+import departementService from '@/services/departement.js'
+import { useLoginStore } from '@/stores/login.store'
+
 import {
   Users,
   CheckCircle2,
@@ -13,64 +17,66 @@ import {
   Edit2,
   Trash2,
 } from 'lucide-vue-next'
-import campaignService from '@/services/campaign.js'
-import departementService from '@/services/departement.js'
 
-// Données des agents
+// ================= USER =================
+const loginStore = useLoginStore()
+const currentUser = ref(loginStore.getDecodedToken)
+
+const isChef = computed(() => currentUser.value?.role === 'chef')
+
+// ================= STATES =================
 const isModalOpen = ref(false)
 const agents = ref([])
 const campaigns = ref([])
 const departments = ref([])
 const toUpdate = ref(null)
+const stats = ref([])
+const search = ref('')
 
-// ... tes imports ...
-
-// Récupération des données pour le formulaire
+// ================= LOAD DATA =================
 async function allCampDepart() {
   try {
-    // Note: Assure-toi que ces services renvoient res.data ou directement les données
     const campaignsData = await campaignService.getCampaigns()
-    campaigns.value = campaignsData.data || campaignsData // Ajuste selon ton service
+    campaigns.value = campaignsData.data || campaignsData
 
     const departmentsData = await departementService.getDepartements()
     departments.value = departmentsData.data || departmentsData
   } catch (error) {
-    console.error('Erreur chargement listes:', error)
+    console.error(error)
   }
 }
 
-// Correction du handleSubmit
-const handleSubmit = () => {
-  if (toUpdate.value) {
-    handleEdit(toUpdate.value)
-  } else {
-    handleCreateUser()
-  }
-}
-
-const search = ref('')
-// Statistiques du haut
-const stats = ref()
 async function allAgent() {
   try {
-    // Si role === 'Tous les rôles', on envoie une chaîne vide
     const res = await agentService.getAllAgents({
       page: 1,
       limit: 10,
       search: search.value,
     })
-    agents.value = res.data.items
+
+    const allAgents = res.data.items
+
+    // 🔥 FILTRAGE CHEF
+    if (isChef.value) {
+      agents.value = allAgents.filter(
+        (agent) => agent.dept?._id === currentUser.value.dept
+      )
+    } else {
+      agents.value = allAgents
+    }
+
+    // 🔥 STATS CORRIGÉES
     stats.value = [
       {
         title: 'Total Agents',
-        value: res.data.total,
+        value: agents.value.length,
         icon: Users,
         color: 'text-blue-600',
         bg: 'bg-blue-50',
       },
       {
         title: 'Agents Actifs',
-        value: res.data.items.filter((agent) => agent.isActive).length,
+        value: agents.value.filter((a) => a.isActive).length,
         icon: CheckCircle2,
         color: 'text-emerald-500',
         bg: 'bg-emerald-50',
@@ -95,6 +101,7 @@ async function allAgent() {
   }
 }
 
+// ================= FORM =================
 const newAgent = reactive({
   name: '',
   email: '',
@@ -106,63 +113,52 @@ const newAgent = reactive({
   haveCount: false,
 })
 
-const départements = ['-', 'Volaille', 'Bovins', 'Caprins', 'Ovins']
-
 const resetForm = () => {
-  newAgent.name = ''
-  newAgent.email = ''
-  newAgent.poste = ''
-  newAgent.role = 'agent'
-  newAgent.dept = ''
-  newAgent.num = ''
-  newAgent.camp = ''
-  newAgent.haveCount = false
+  Object.assign(newAgent, {
+    name: '',
+    email: '',
+    poste: '',
+    role: 'agent',
+    dept: '',
+    num: '',
+    camp: '',
+    haveCount: false,
+  })
   isModalOpen.value = false
 }
 
-// Logique d'ajout
+// ================= CRUD =================
 function handleCreateUser() {
   agentService
     .addAgent(newAgent)
-    .then((response) => {
-      allAgent()
-    })
-    .catch((error) => {
-      console.error("Erreur lors de la création de l'utilisateur:", error)
-    })
+    .then(() => allAgent())
+    .catch(console.error)
+
   resetForm()
 }
 
-// modifier
 function editing(user) {
-  newAgent.name = user.name
-  newAgent.email = user.email
-  newAgent.role = "agent"
-  newAgent.dept = user.dept
-  newAgent.num = user.num
-  newAgent.camp = user.camp
-  newAgent.haveCount = user.haveCount
+  Object.assign(newAgent, {
+    name: user.name,
+    email: user.email,
+    role: 'agent',
+    dept: user.dept?._id || '',
+    num: user.num,
+    camp: user.camp,
+    haveCount: user.haveCount,
+  })
   isModalOpen.value = true
   toUpdate.value = user
 }
-const handleEdit = async (user) => {
-  // Logique de modification
-  agentService
-    .updateAgent(user._id, newAgent)
-    .then((response) => {
-      allAgent()
-      isModalOpen.value = false
-    })
-    .catch((error) => {
-      console.error("Erreur lors de la modification de l'utilisateur:", error)
-    })
-}
 
-// Helper pour les couleurs de performance
-const getPerfClass = (perf) => {
-  if (perf === 'Excellent') return 'bg-emerald-500 text-white'
-  if (perf === 'Très Bon') return 'bg-blue-500 text-white'
-  return 'bg-slate-500 text-white'
+const handleEdit = async (user) => {
+  try {
+    await agentService.updateAgent(user._id, newAgent)
+    allAgent()
+    isModalOpen.value = false
+  } catch (error) {
+    console.error(error)
+  }
 }
 
 const handleDelete = async (userId) => {
@@ -170,28 +166,51 @@ const handleDelete = async (userId) => {
     await agentService.deleteAgent(userId)
     allAgent()
   } catch (error) {
-    console.error("Erreur lors de la suppression de l'agent:", error)
+    console.error(error)
   }
 }
+
+// ================= HELPERS =================
+const getPerfClass = (perf) => {
+  if (perf === 'Excellent') return 'bg-emerald-500 text-white'
+  if (perf === 'Très Bon') return 'bg-blue-500 text-white'
+  return 'bg-slate-500 text-white'
+}
+
+const handleSubmit = () => {
+  if (toUpdate.value) {
+    handleEdit(toUpdate.value)
+  } else {
+    handleCreateUser()
+  }
+}
+
+// ================= LIFECYCLE =================
 onMounted(allAgent)
 onMounted(allCampDepart)
 </script>
+
 <template>
-  <main
-    class="flex-1 lg:ml-64 p-4 lg:p-8 transition-all duration-300 w-full bg-red-50 min-h-screen space-y-8"
-  >
-    <div class="flex justify-between items-start mb-8">
+  <main class="flex-1 lg:ml-64 p-4 lg:p-8 bg-slate-50 min-h-screen space-y-8">
+    
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
       <div>
-        <h1 class="text-3xl font-bold text-slate-900">Agents</h1>
-        <p class="text-slate-500 text-sm">Gestion de tous les agents terrain</p>
+        <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Gestion des Agents</h1>
+        <div class="flex items-center gap-2 mt-1">
+          <span v-if="isChef" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+            Chef de département : {{ currentUser.dept?.name || 'Chargement...' }}
+          </span>
+          <p class="text-slate-500 text-sm">Consultez et gérez les performances de vos équipes.</p>
+        </div>
       </div>
+
       <button
         @click="isModalOpen = true"
-        class="bg-slate-950 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium"
+        class="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl transition-all shadow-sm text-sm font-semibold"
       >
         <Plus class="w-4 h-4" /> Ajouter un Agent
       </button>
-    </div>
+    </header>
 
     <Transition name="fade">
       <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -338,132 +357,106 @@ onMounted(allCampDepart)
       </div>
     </Transition>
 
-    <div class="grid grid-cols-4 gap-6 mb-8">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       <div
         v-for="stat in stats"
         :key="stat.title"
-        class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm"
+        class="group bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow"
       >
-        <div class="flex justify-between items-start mb-4">
-          <span class="text-sm font-medium text-slate-500">{{ stat.title }}</span>
-          <div :class="[stat.bg, stat.color, 'p-2 rounded-lg']">
-            <component :is="stat.icon" class="w-5 h-5" />
+        <div class="flex justify-between items-start">
+          <div :class="[stat.bg, 'p-2.5 rounded-xl transition-colors']">
+            <component :is="stat.icon" :class="['w-5 h-5', stat.color]" />
           </div>
         </div>
-        <div class="text-2xl font-bold text-slate-900">{{ stat.value }}</div>
+        <div class="mt-4">
+          <p class="text-sm font-medium text-slate-500">{{ stat.title }}</p>
+          <h3 class="text-2xl font-bold text-slate-900 mt-1">{{ stat.value }}</h3>
+        </div>
       </div>
     </div>
 
-    <div class="flex gap-4 mb-6">
-      <div class="relative flex-1">
-        <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-        <input
-          type="text"
-          placeholder="Rechercher par nom ou email..."
-          class="w-full pl-10 pr-4 py-2.5 bg-slate-100 border-none rounded-xl text-sm focus:ring-2 focus:ring-slate-200 outline-none"
-        />
-      </div>
-      <select
-        class="bg-slate-100 border-none rounded-xl px-4 py-2.5 text-sm text-slate-600 outline-none min-w-[200px]"
-      >
-        <option>Tous les départements</option>
-      </select>
-    </div>
-
-    <div v-if="agents.length > 0" class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-      <div class="p-6 border-b border-slate-50">
-        <h2 class="font-bold text-slate-800">Liste des Agents ({{ agents.length }})</h2>
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      
+      <div class="p-4 border-b border-slate-100 flex flex-col md:flex-row justify-between gap-4 bg-white">
+        <div class="relative w-full md:w-96">
+          <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <input 
+            v-model="search"
+            @input="allAgent"
+            type="text" 
+            placeholder="Rechercher un nom ou un email..."
+            class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none transition-all"
+          />
+        </div>
       </div>
 
-      <table class="w-full text-left border-collapse">
-        <thead>
-          <tr class="text-slate-400 text-xs uppercase tracking-wider border-b border-slate-50">
-            <th class="px-6 py-4 font-semibold">Agent</th>
-            <th class="px-6 py-4 font-semibold">Contact</th>
-            <th class="px-6 py-4 font-semibold">Département</th>
-            <th class="px-6 py-4 font-semibold">Rôle</th>
-            <th class="px-6 py-4 font-semibold text-center">Performance</th>
-            <th class="px-6 py-4 font-semibold text-center">Statut</th>
-            <th class="px-6 py-4 font-semibold text-right">Actions</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-slate-50">
-          <tr
-            v-for="agent in agents"
-            :key="agent.id"
-            class="hover:bg-slate-50/50 transition-colors"
-          >
-            <td class="px-6 py-4">
-              <div class="font-bold text-slate-900">{{ agent.name }}</div>
-              <div class="text-xs text-slate-400">Depuis: {{ agent.createdAt }}</div>
-            </td>
-            <td class="px-6 py-4">
-              <div class="flex items-center gap-2 text-xs text-slate-500 mb-1">
-                <Mail class="w-3.5 h-3.5 text-slate-300" /> {{ agent.email }}
-              </div>
-              <div class="flex items-center gap-2 text-xs text-slate-500">
-                <Phone class="w-3.5 h-3.5 text-slate-300" /> {{ agent.num }}
-              </div>
-            </td>
-            <td class="px-6 py-4">
-              <span
-                class="px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-[11px] font-bold border border-slate-200"
-              >
-                {{ agent.dept.name }}
-              </span>
-            </td>
-            <td class="px-6 py-4 text-sm text-slate-500">{{ agent.poste }}</td>
-            <td class="px-6 py-4 text-center">
-              <span
-                :class="[
-                  getPerfClass(agent.perf),
-                  'px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tighter',
-                ]"
-              >
-                {{ agent.perf }}
-              </span>
-            </td>
-            <td class="px-6 py-4 text-center">
-              <span
-                class="bg-emerald-500 text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase"
-              >
-                {{ agent.isActive ? 'Actif' : 'Inactif' }}
-              </span>
-            </td>
-            <td class="px-6 py-4 text-right">
-              <div class="flex justify-end gap-2">
-                <button
-                  @click="editing(agent)"
-                  class="p-1.5 border border-slate-200 rounded-lg hover:bg-slate-100 text-slate-500"
+      <div v-if="agents.length > 0" class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50/50">
+              <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Agent</th>
+              <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Département</th>
+              <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Poste</th>
+              <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Statut</th>
+              <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <tr v-for="agent in agents" :key="agent._id" class="hover:bg-slate-50/50 transition-colors group">
+              <td class="px-6 py-4">
+                <div class="flex flex-col">
+                  <span class="font-bold text-slate-900">{{ agent.name }}</span>
+                  <span class="text-xs text-slate-500">{{ agent.email }}</span>
+                </div>
+              </td>
+              <td class="px-6 py-4 text-sm text-slate-600">
+                {{ agent.dept?.name || 'Non assigné' }}
+              </td>
+              <td class="px-6 py-4">
+                 <span class="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded">
+                   {{ agent.poste || 'Général' }}
+                 </span>
+              </td>
+              <td class="px-6 py-4">
+                <span 
+                  :class="agent.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'"
+                  class="inline-flex items-center px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider"
                 >
-                  <Edit2 class="w-4 h-4" />
-                </button>
-                <button
-                  @click="handleDelete(agent._id)"
-                  class="p-1.5 border border-rose-100 rounded-lg hover:bg-rose-50 text-rose-500"
-                >
-                  <Trash2 class="w-4 h-4" />
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+                  {{ agent.isActive ? 'Actif' : 'Inactif' }}
+                </span>
+              </td>
+              <td class="px-6 py-4 text-right">
+                <div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button @click="editing(agent)" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                    <Edit2 class="w-4 h-4" />
+                  </button>
+                  <button @click="handleDelete(agent._id)" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors">
+                    <Trash2 class="w-4 h-4" />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div v-else class="flex flex-col items-center justify-center py-20 px-4">
+        <div class="bg-slate-100 p-6 rounded-full mb-4">
+          <Users class="w-12 h-12 text-slate-300" />
+        </div>
+        <h3 class="text-lg font-bold text-slate-900">Aucun agent trouvé</h3>
+        <p class="text-slate-500 text-center max-w-sm mt-2">
+          {{ search ? `Aucun résultat pour "${search}". Essayez un autre terme.` : "Commencez par ajouter votre premier agent à l'équipe." }}
+        </p>
+        <button v-if="!search" @click="isModalOpen = true" class="mt-6 text-blue-600 font-semibold hover:underline">
+          Ajouter un membre maintenant
+        </button>
+      </div>
     </div>
-    <div v-else class="bg-white rounded-2xl border border-slate-100 shadow-sm p-12 flex flex-col items-center justify-center text-center">
-  <div class="bg-slate-50 p-4 rounded-full mb-4">
-    <Users class="w-8 h-8 text-slate-300" />
-  </div>
-  <h3 class="text-lg font-bold text-slate-900">Aucun agent trouvé</h3>
-  <p class="text-slate-500 text-sm max-w-xs mt-2">
-    Il semble qu'aucun agent ne corresponde à votre recherche ou que la liste soit vide.
-  </p>
-  <button 
-    @click="isModalOpen = true"
-    class="mt-6 flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors"
-  >
-    <Plus class="w-4 h-4" /> Ajouter votre premier agent
-  </button>
-</div>
+
+    <div v-if="agents.length > 0" class="flex justify-between items-center px-2">
+      <p class="text-sm text-slate-500">Affichage de {{ agents.length }} agents</p>
+    </div>
+
   </main>
 </template>

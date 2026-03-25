@@ -45,7 +45,6 @@ const fetchData = async () => {
     const overview = await dashboardService.getOverview()
     statsData.value = stats
     overviewData.value = overview
-    console.log(overviewData.value)
   } catch (error) {
     console.error('Erreur de chargement du dashboard', error)
   } finally {
