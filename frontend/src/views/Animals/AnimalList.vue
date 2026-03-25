@@ -172,7 +172,6 @@ async function loadAnimals() {
     console.error('Erreur chargement animaux:', err);
   }
 }
-
-onMounted(loadAnimals);
 watch(() => props.campaignId, loadAnimals);
+onMounted(loadAnimals);
 </script>
