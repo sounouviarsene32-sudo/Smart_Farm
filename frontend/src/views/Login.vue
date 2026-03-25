@@ -3,9 +3,10 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../api/axios.config.js'
 import { useLoginStore } from '../stores/login.store.js'
+import { Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-vue-next'
+
 const router = useRouter()
 const loginStore = useLoginStore()
-import { LayoutGrid, Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-vue-next'
 
 const email = ref('')
 const password = ref('')
@@ -15,65 +16,88 @@ const handleLogin = async () => {
   try {
     const response = await api.post('/auth/login', { email: email.value, password: password.value })
     const token = response.data
-    loginStore.login(token) // Stocke le token dans le store
+    loginStore.login(token)
     const currentUser = loginStore.getDecodedToken    
-    router.push({name: `dashboard-${currentUser.role}` })
+    router.push({ name: `dashboard-${currentUser.role}` })
   } catch (err) {
     console.error('Login failed:', err)
   }
 }
 </script>
-<!-- class="flex-1 lg:ml-64 p-4 lg:p-8 transition-all duration-300 w-full p-8 bg-[#F8F9FA] min-h-screen space-y-8" -->
-<template>
-  <div 
-    class="relative min-h-screen w-full flex items-center justify-center p-6 bg-slate-900"
-    style="background-image: linear-gradient(rgba(69, 10, 10, 0.7), rgba(9, 9, 11, 0.9)), url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=2000'); background-size: cover; background-position: center;"
-  >
-    
-    <div class="relative z-10 w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-white/20">
-      
-      <div class="h-2 w-full bg-[#750505]"></div>
 
-      <div class="p-10 md:p-14">
-        <div class="text-center mb-10">
-          <div class="inline-flex items-center justify-center w-20 h-20 bg-[#750505] rounded-3xl mb-6 shadow-xl">
-             <span class="text-white font-black text-4xl">SF</span>
+<template>
+  <!-- Import de la police Inter pour un rendu consistant -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+
+  <div class="relative min-h-screen w-full flex items-center justify-end overflow-hidden bg-slate-950 font-['Inter']">
+    
+    <!-- IMAGE DE FOND -->
+    <div 
+      class="absolute inset-0 z-0 scale-105"
+      style="background-image: url('https://images.unsplash.com/photo-1516467508483-a7212febe31a?q=80&w=2000'); background-size: cover; background-position: center;"
+    ></div>
+
+    <!-- PANNEAU DROIT GLASMORPHISM ROUGE #750505 -->
+    <div class="relative z-10 h-screen w-full md:w-[550px] bg-[#750505]/85 backdrop-blur-2xl border-l border-white/10 flex items-center justify-center p-8 md:p-16 shadow-[-20px_0_50px_rgba(0,0,0,0.5)]">
+      
+      <div class="w-full max-w-sm">
+        <!-- LOGO & TITRE AVEC TYPO ULTRA-BOLD -->
+        <div class="text-center mb-12">
+          <div class="inline-flex items-center justify-center w-20 h-20 bg-white rounded-3xl mb-6 shadow-2xl transition-transform hover:scale-110 duration-500">
+             <span class="text-[#750505] font-[900] text-4xl tracking-tighter">SF</span>
           </div>
-          <h1 class="text-4xl font-black text-slate-900 tracking-tighter uppercase">SmartFarm</h1>
-          <p class="text-[10px] font-black text-red-800 uppercase tracking-[0.4em] mt-2">Gestion Multi-Élevage</p>
+          <h1 class="text-4xl font-[900] text-white tracking-tighter uppercase leading-none">SmartFarm</h1>
+          <p class="text-[10px] font-[900] text-red-200 uppercase tracking-[0.5em] mt-4 opacity-80">Gestion Multi-Élevage</p>
         </div>
 
+        <!-- FORMULAIRE -->
         <form @submit.prevent="handleLogin" class="space-y-6">
           <div class="space-y-2">
-            <label class="text-[11px] font-black uppercase text-slate-400 ml-4">Identifiant</label>
-            <input
-              v-model="email"
-              type="email"
-              placeholder="admin@smartfarm.com"
-              class="w-full px-6 py-5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold outline-none focus:border-red-800 transition-all"
-            />
+            <label class="text-[11px] font-[900] uppercase text-white/60 ml-2 tracking-widest">Identifiant</label>
+            <div class="relative group">
+              <Mail class="absolute left-5 top-1/2 -translate-y-1/2 text-white/40 group-focus-within:text-white transition-colors" :size="18" />
+              <input
+                v-model="email"
+                type="email"
+                placeholder="admin@smartfarm.com"
+                class="w-full pl-14 pr-6 py-5 bg-black/20 border border-white/10 rounded-2xl text-white placeholder:text-white/20 outline-none focus:border-white/40 focus:bg-black/30 transition-all font-bold text-sm"
+              />
+            </div>
           </div>
 
           <div class="space-y-2">
-            <label class="text-[11px] font-black uppercase text-slate-400 ml-4">Mot de passe</label>
-            <input
-              v-model="password"
-              type="password"
-              placeholder="••••••••"
-              class="w-full px-6 py-5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold outline-none focus:border-red-800 transition-all"
-            />
+            <label class="text-[11px] font-[900] uppercase text-white/60 ml-2 tracking-widest">Mot de passe</label>
+            <div class="relative group">
+              <Lock class="absolute left-5 top-1/2 -translate-y-1/2 text-white/40 group-focus-within:text-white transition-colors" :size="18" />
+              <input
+                v-model="password"
+                :type="showPassword ? 'text' : 'password'"
+                placeholder="••••••••"
+                class="w-full pl-14 pr-14 py-5 bg-black/20 border border-white/10 rounded-2xl text-white placeholder:text-white/20 outline-none focus:border-white/40 focus:bg-black/30 transition-all font-bold text-sm"
+              />
+              <button 
+                type="button" 
+                @click="showPassword = !showPassword"
+                class="absolute right-5 top-1/2 -translate-y-1/2 text-white/30 hover:text-white transition-colors"
+              >
+                <Eye v-if="!showPassword" :size="20" />
+                <EyeOff v-else :size="20" />
+              </button>
+            </div>
           </div>
 
           <button
             type="submit"
-            class="w-full bg-[#750505] text-white py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-lg hover:bg-red-900 transition-all transform active:scale-95"
+            class="group w-full bg-white text-[#750505] py-5 rounded-2xl font-[900] text-xs uppercase tracking-[0.2em] shadow-2xl hover:bg-slate-100 transition-all transform active:scale-[0.97] flex items-center justify-center gap-3 mt-8"
           >
             Se Connecter
+            <ArrowRight :size="18" class="group-hover:translate-x-1 transition-transform" />
           </button>
         </form>
 
-        <div class="mt-10 text-center border-t border-slate-100 pt-8">
-           <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">
+        <!-- FOOTER -->
+        <div class="mt-16 text-center border-t border-white/5 pt-8">
+           <p class="text-[9px] text-white/30 font-[900] uppercase tracking-[0.4em]">
             Bovins • Porcins • Volaille • Pisciculture
           </p>
         </div>
@@ -81,11 +105,17 @@ const handleLogin = async () => {
     </div>
   </div>
 </template>
-<style>
-/* On utilise une police système ultra-pro pour éviter tout délai de chargement */
-body {
-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  margin: 0;
-  padding: 0;
+
+<style scoped>
+/* On force le lissage des polices pour un rendu "Apple" */
+ 
+/* On utilise font-[900] pour l'impact maximum */
+h1, span, label, button, p {
+  letter-spacing: -0.05em; /* Resserre les lettres pour le look pro */
+}
+
+/* Exception pour le tracking large des sous-titres */
+p {
+  letter-spacing: 0.4em !important;
 }
 </style>
