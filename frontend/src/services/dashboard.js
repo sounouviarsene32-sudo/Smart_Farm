@@ -11,9 +11,15 @@ export const getOverview = async () => {
   return response.data
 }
 
+export const getOverviewByDept = async (deptId) => {
+  const response = await api.get(`/dashboard/overview/dept/${deptId}`)
+  return response.data
+}
+
 const DashboardService = {
   getStats,
   getOverview,
+  getOverviewByDept,
 }
 
 export default DashboardService

@@ -18,4 +18,14 @@ export class DashboardController {
             res.status(500).json({ error: error.message });
         }
     }
+
+    static async getOverviewByDept(req, res) {
+        try {
+            const { deptId } = req.params;
+            const overview = await DashboardService.getOverviewByDept(deptId);
+            res.json(overview);
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    }
 }

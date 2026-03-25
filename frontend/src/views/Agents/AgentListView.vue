@@ -70,14 +70,12 @@ async function initData() {
       departementService.getDepartements(),
       campaignService.getCampaigns()
     ])
-    
     departments.value = deptsRes.data || deptsRes
     allCampaignsRaw.value = campsRes.data || campsRes
 
 
     if (isChef.value && currentUser.value.dept) {
-      newAgent.dept = currentUser.value.dept._id || currentUser.value.dept.id
-      console.log('Département du chef:', newAgent.dept)
+      newAgent.dept = currentUser.value.dept.id || currentUser.value.dept.id
       filterCampaignsByDept(newAgent.dept)
     } else {
       campaigns.value = allCampaignsRaw.value
@@ -99,7 +97,7 @@ async function fetchAgents() {
 
     const allItems = res.data.items || res.data
     if (isChef.value) {
-      agents.value = allItems.filter(a => a.dept?._id === currentUser.value.dept?._id)
+      agents.value = allItems.filter(a => a.dept?.name === currentUser.value.dept?.name)
     } else {
       agents.value = allItems
     }
@@ -183,11 +181,15 @@ function updateStats() {
   ]
 }
 
+console.log(currentUser.value)
+
 // ================= CRUD AGENT =================
 const resetForm = () => {
   Object.assign(newAgent, {
     name: '', email: '', poste: '', role: 'agent',
-    dept: isChef.value ? (currentUser.value.dept?._id || currentUser.value.dept?.id) : '',
+    dept: isChef.value
+      ? (currentUser.value.dept?._id || currentUser.value.dept?.id || currentUser.value.dept || '')
+      : '',
     num: '', camp: '', haveCount: false,
   })
   isModalOpen.value = false
@@ -334,11 +336,23 @@ onMounted(initData)
             <div class="grid grid-cols-2 gap-5">
               <select v-model="newAgent.dept" :disabled="isChef" class="custom-select" required>
                 <option value="">Secteur</option>
-                <option v-for="d in departments" :key="d.id" :value="d.id">{{ d.name }}</option>
+                <option
+                  v-for="d in departments"
+                  :key="d.id || d._id"
+                  :value="d.id || d._id"
+                >
+                  {{ d.name }}
+                </option>
               </select>
               <select v-model="newAgent.camp" class="custom-select">
                 <option value="">Campagne</option>
-                <option v-for="c in campaigns" :key="c._id" :value="c._id">{{ c.name }}</option>
+                <option
+                  v-for="c in campaigns"
+                  :key="c._id || c.id"
+                  :value="c._id || c.id"
+                >
+                  {{ c.name }}
+                </option>
               </select>
             </div>
             <div v-if="!isChef" class="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl">

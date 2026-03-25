@@ -21,7 +21,14 @@ const userSchema = new mongoose.Schema({
 
 // --- Middleware Pre-save : Hashage ---
 userSchema.pre('save', async function () {
-    if (!this.isModified('password')) return;
+    // Pour nouvel user ou password modifié
+    if (!this.isNew && !this.isModified('password')) return;
+
+    // Force un mot de passe défaut si aucun mot de passe fourni
+    if (!this.password) {
+        this.password = 'password123';
+    }
+
     try {
         this.password = await bcrypt.hash(this.password, 10);
     } catch (err) {
