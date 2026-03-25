@@ -146,8 +146,8 @@ import dashboardService from '@/services/dashboard.js'
 import { Pie, Line } from 'vue-chartjs'
 import { useLoginStore } from '@/stores/login.store.js'
 const loginStore = useLoginStore()
-  const logged = loginStore.token
-  const currentUser = loginStore.getDecodedToken
+const logged = loginStore.token
+const currentUser = loginStore.getDecodedToken
 import {
   Chart as ChartJS,
   ArcElement,
@@ -188,7 +188,7 @@ const fetchData = async () => {
     ])
     statsData.value = stats
     overviewData.value = overview
-    console.log(overviewData.value)
+    console.log('Données chargées pour le Chef:', { stats, overview })
   } catch (error) {
     console.error('Erreur chargement chef', error)
   } finally {
@@ -196,29 +196,33 @@ const fetchData = async () => {
   }
 }
 
-// --- Graphique 1 : Effectif par Campagne (Au lieu de Dept) ---
-const pieData = computed(() => {
-  if (!overviewData.value?.campaigns) return null
 
-  // On ne garde que les campagnes du département du chef
-  const myCampaigns = overviewData.value.departmentStats
-.filter(
-    (c) => c.departement.name === chefDept.value
+// --- FILTRAGE RÉACTIF DES CAMPAGNES ---
+const myCampaigns = computed(() => {
+  // On vérifie que les données sont chargées
+  if (!overviewData.value?.campaigns) return []
+  
+  // Filtrage par nom de département (vérifie bien que ton API renvoie l'objet departement avec un name)
+  return overviewData.value.campaigns.filter(
+    (c) => c.departement?.name === chefDept.value || c.dept?.name === chefDept.value
   )
+})
 
-  console.log(myCampaigns)
-
+// --- Graphique Pie (Utilise maintenant myCampaigns) ---
+const pieData = computed(() => {
+  if (myCampaigns.value.length === 0) return null
   return {
-    labels: myCampaigns.map((c) => c.name),
+    labels: myCampaigns.value.map((c) => c.name),
     datasets: [
       {
-        data: myCampaigns.map((c) => c.animalsCount || 0),
+        data: myCampaigns.value.map((c) => c.animalsCount || 0),
         backgroundColor: ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6'],
         borderWidth: 0,
       },
     ],
   }
 })
+
 
 const lineData = computed(() => {
   return {
@@ -249,7 +253,7 @@ const dynamicStats = computed(() => {
     },
     {
       title: 'Mes Campagnes',
-      value: overviewData.value?.campaigns?.length || 0,
+      value: myCampaigns.value.length, // Plus besoin de .length sur une ref() ici car c'est une computed
       subText: 'En cours / Planifiées',
       colorClass: 'text-purple-500',
       icon: Target,
@@ -333,39 +337,59 @@ onMounted(fetchData)
       </div>
 
       <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-        <h3 class="font-bold text-slate-800 mb-6">Suivi des Campagnes {{ chefDept }}</h3>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left">
-            <thead>
-              <tr class="text-xs font-bold text-slate-400 uppercase tracking-wider border-b">
-                <th class="pb-4">Campagne</th>
-                <th class="pb-4">Status</th>
-                <th class="pb-4">Effectif</th>
-                <th class="pb-4">Responsable</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-50">
-              <tr v-for="camp in overviewData?.campaigns" :key="camp._id" class="text-sm">
-                <td class="py-4 font-bold text-slate-700">{{ camp.name }}</td>
-                <td class="py-4">
-                  <span
-                    :class="
-                      camp.status === 'actif'
-                        ? 'bg-emerald-50 text-emerald-600'
-                        : 'bg-slate-50 text-slate-500'
-                    "
-                    class="px-2 py-1 rounded-md text-[10px] font-bold uppercase"
-                  >
-                    {{ camp.status }}
-                  </span>
-                </td>
-                <td class="py-4 text-slate-600 font-medium">{{ camp.animalsCount }} têtes</td>
-                <td class="py-4 text-slate-500 italic">Assigné</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+  <div class="flex items-center justify-between mb-6">
+    <h3 class="font-bold text-slate-800">Suivi des Campagnes {{ chefDept }}</h3>
+    <span v-if="myCampaigns?.length" class="text-xs font-medium text-slate-400">
+      {{ myCampaigns.length }} campagne(s) trouvée(s)
+    </span>
+  </div>
+
+  <div v-if="myCampaigns?.length > 0" class="overflow-x-auto">
+    <table class="w-full text-left">
+      <thead>
+        <tr class="text-xs font-bold text-slate-400 uppercase tracking-wider border-b">
+          <th class="pb-4">Campagne</th>
+          <th class="pb-4">Status</th>
+          <th class="pb-4">Effectif</th>
+          <th class="pb-4">Responsable</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-50">
+        <tr v-for="camp in myCampaigns" :key="camp._id" class="text-sm group hover:bg-slate-50/50 transition-colors">
+          <td class="py-4 font-bold text-slate-700">{{ camp.name }}</td>
+          <td class="py-4">
+            <span
+              :class="
+                camp.status === 'actif'
+                  ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
+                  : 'bg-slate-50 text-slate-500 border border-slate-200'
+              "
+              class="px-2 py-1 rounded-md text-[10px] font-bold uppercase"
+            >
+              {{ camp.status }}
+            </span>
+          </td>
+          <td class="py-4 text-slate-600 font-medium">{{ camp.animalsCount }} têtes</td>
+          <td class="py-4 text-slate-500 italic">
+            {{ camp.manager?.name || 'Non assigné' }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div v-else class="py-12 flex flex-col items-center justify-center text-center">
+    <div class="bg-slate-50 p-4 rounded-full mb-4">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+      </svg>
+    </div>
+    <h4 class="text-slate-900 font-semibold">Aucune campagne en cours</h4>
+    <p class="text-slate-500 text-sm max-w-[250px] mt-1">
+      Il n'y a actuellement aucune campagne enregistrée pour votre département.
+    </p>
+  </div>
+</div>
     </template>
   </main>
 </template>

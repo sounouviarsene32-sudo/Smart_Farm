@@ -39,7 +39,7 @@ async function loadCampaign() {
   loading.value = true;
   try {
     const data = await campaignService.getCampaignById(campaignId);
-    form.departement = data.departement?._id || '';
+    form.departement = data.departement?.id || '';
     form.name = data.name;
     form.description = data.description || '';
     form.startDate = data.startDate ? data.startDate.split('T')[0] : '';
@@ -145,7 +145,7 @@ onMounted(() => {
               required
             >
               <option value="" disabled>Sélectionner une unité</option>
-              <option v-for="d in departements" :key="d._id" :value="d._id">{{ d.name }}</option>
+              <option v-for="d in departements" :key="d.id" :value="d.id">{{ d.name }}</option>
             </select>
           </div>
 

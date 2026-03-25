@@ -3,6 +3,7 @@ import agentController from '../controllers/agent.controller.js';
 
 const router = express.Router();
 
+// router.get('/:id/stats', agentController.getAgentTodo);
 router.post('/', agentController.createAgent);
 router.put('/:id', agentController.updateAgent);
 router.delete('/:id', agentController.removeAgent);

@@ -13,11 +13,11 @@ export const getAllAgents = async ({ page = 1, limit = 10, search }) => {
     filter.name = { $regex: search, $options: "i" };
   }
 
-
   try {
     const [items, total] = await Promise.all([
       Agent.find(filter) // ✅ Utilise Agent au lieu de User
         .populate('dept') // Pour récupérer le nom du département au lieu de l'ID
+        .populate('todo')
         .sort({ createdAt: -1 })
         .skip((safePage - 1) * safeLimit)
         .limit(safeLimit)
