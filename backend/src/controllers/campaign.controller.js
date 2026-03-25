@@ -2,12 +2,20 @@ import Campaign from "../models/Campaign.js";
 import Animal from "../models/Animal.js";
 
 export class CampaignController {
+    // static async getCampaigns(req, res) {
+    //     try {
+    //         const campaigns = await Campaign.find().populate("departement");
+    //         res.json(campaigns);
+    //     } catch (error) {
+    //         res.status(500).json({ error: error.message });
+    //     }
+    // }
 
   // 🔹 Récupérer toutes les campagnes avec stats animales
   static async getCampaigns(req, res) {
     try {
       const campaigns = await Campaign.find()
-        .populate('departement', 'name')
+        .populate('departement')
         .populate('manager', 'firstName lastName')
         .populate('agents', 'firstName lastName');
 

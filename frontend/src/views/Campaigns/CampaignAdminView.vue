@@ -4,6 +4,11 @@ import { Plus } from 'lucide-vue-next'
 import CampaignCard from '@/components/CampaignCard.vue'
 import CampaignForm from './CampaignForm.vue'
 import campaignService from '@/services/campaign.js'
+import {useRouter} from 'vue-router'
+// import { Target, CheckCircle2, TrendingUp, DollarSign } from 'lucide-vyue-next'
+
+ 
+const router = useRouter()
 
 const campaigns = ref([])
 const stats = ref([])

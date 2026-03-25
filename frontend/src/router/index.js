@@ -166,6 +166,11 @@ const routes = [
         name: 'campaigns-chef',
         component: CampaignDepartmentView,
       },
+      {
+        path: '/chef/campagnes/nouvelle',
+        name: 'CampagneDepartmentForm',
+        component: CampaignForm,
+      },
 
       {
         path: 'finances',

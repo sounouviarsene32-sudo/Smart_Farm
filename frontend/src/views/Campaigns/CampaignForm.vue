@@ -1,3 +1,97 @@
+<script setup>
+import { ref, reactive, onMounted } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import campaignService from '@/services/campaign.js';
+import departementService from '@/services/departement.js';
+
+const router = useRouter();
+const route = useRoute();
+const campaignId = route.params.id || null;
+
+const loading = ref(false);
+const submitting = ref(false);
+const error = ref(null);
+const success = ref(null);
+
+const form = reactive({
+  departement: '',
+  name: '',
+  description: '',
+  startDate: '',
+  endDate: '',
+  status: 'planifié',
+  budget: ''
+});
+
+const departements = ref([]);
+
+async function loadDepartements() {
+  try {
+    const data = await departementService.getDepartements();
+    departements.value = data;
+  } catch (err) {
+    console.error('Erreur chargement départements:', err);
+  }
+}
+
+async function loadCampaign() {
+  if (!campaignId) return;
+  loading.value = true;
+  try {
+    const data = await campaignService.getCampaignById(campaignId);
+    form.departement = data.departement?.id || '';
+    form.name = data.name;
+    form.description = data.description || '';
+    form.startDate = data.startDate ? data.startDate.split('T')[0] : '';
+    form.endDate = data.endDate ? data.endDate.split('T')[0] : '';
+    form.status = data.status || 'planifié';
+    form.budget = data.budget || '';
+  } catch (err) {
+    console.error('Erreur chargement campagne:', err);
+  } finally {
+    loading.value = false;
+  }
+}
+
+async function submitForm() {
+  submitting.value = true;
+  error.value = null;
+  success.value = null;
+
+  try {
+    const payload = {
+      departement: form.departement,
+      name: form.name,
+      description: form.description,
+      startDate: form.startDate,
+      endDate: form.endDate || null,
+      status: form.status,
+      budget: form.budget ? Number(form.budget) : 0
+    };
+
+    if (campaignId) {
+      await campaignService.updateCampaign(campaignId, payload);
+      success.value = 'Campagne mise à jour avec succès !';
+    } else {
+      await campaignService.createCampaign(payload);
+      success.value = 'Campagne créée avec succès !';
+    }
+    
+    setTimeout(() => router.back(), 1500);
+  } catch (err) {
+    console.error(err);
+    error.value = 'Une erreur est survenue lors de la sauvegarde.';
+  } finally {
+    submitting.value = false;
+  }
+}
+
+onMounted(() => {
+  loadDepartements();
+  loadCampaign();
+});
+</script>
+
 <template>
   <div
     class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 tracking-tight"
@@ -64,36 +158,10 @@
             <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider"
               >Unité / Département</label
             >
-            <div class="relative">
-              <select
-                v-model="form.departement"
-                class="w-full bg-slate-50 border border-slate-200 focus:border-[#1E8E6E] focus:bg-white rounded-xl px-4 py-3 text-sm font-semibold text-slate-800 outline-none cursor-pointer appearance-none shadow-sm"
-                required
-              >
-                <option disabled value="">Sélectionner une unité...</option>
-                <option v-for="dep in departements" :key="dep._id" :value="dep._id">
-                  {{ dep.name }}
-                </option>
-              </select>
-              <div
-                class="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-400"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-4 w-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </div>
-            </div>
+            <select name="departement" id="departement" v-model="form.departement">
+              <option value="" disabled>Sélectionner une unité</option>
+              <option v-for="d in departements" :key="d.id" :value="d.id">{{ d.name }}</option>
+            </select>
           </div>
 
           <div>
@@ -216,7 +284,7 @@
   </div>
 </template>
 
-<script setup>
+<!-- <script setup>
 import { ref, onMounted } from 'vue'
 import campaignService from '@/services/campaign.js'
 import departementService from '@/services/departement.js'
@@ -279,7 +347,7 @@ const handleSubmit = async () => {
     console.error('Erreur création campagne:', err.response?.data || err)
   }
 }
-</script>
+</script> -->
 
 <style scoped>
 /* Scrollbar ultra-fine et discrète sans @apply */

@@ -25,6 +25,11 @@ export const getAllAgents = async ({ page, limit, search }) => {
   return response
 }
 
+// Dans agent.service.js
+export const getAgentWithStats = async  (agentId) =>{
+    return await api.get(`/agents/${agentId}/stats`);
+}
+
 const agentService = {
   addAgent,
   getUserById,
