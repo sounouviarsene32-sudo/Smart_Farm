@@ -1,15 +1,13 @@
+// Animal.service.js
 import Animal from "../models/Animal.js";
 import Campaign from "../models/Campaign.js";
-import AlertService from "./Alert.service.js";
 
-// 📌 Service métier pour gérer les animaux
-// Toutes les fonctions liées au suivi, poids, santé, alertes
+// Service métier pour gérer les animaux
 const AnimalService = {
   async createAnimal(data) {
-    const campaign = await Campaign.findById(data.campaignId);
+    const campaign = await Campaign.findById(data.campaign);
     if (!campaign) throw new Error("Campagne introuvable");
 
-    // Crée l'animal avec les données fournies selon le modèle
     const animal = await Animal.create({
       identificationNumber: data.identificationNumber,
       species: data.species,
@@ -17,23 +15,23 @@ const AnimalService = {
       birthDate: data.birthDate,
       gender: data.gender,
       weight: data.weight || 0,
-      campaignId: data.campaignId,
+      campaign: data.campaign,
       status: 'actif'
     });
+
     return animal;
   },
 
   async getAllAnimals() {
-    return Animal.find();
+    return Animal.find().populate('campaign', 'name departement');
   },
 
   async getAnimalsByCampaign(campaignId) {
     return Animal.find({ campaign: campaignId }).populate('campaign', 'name departement');
-  }
-,
+  },
 
   async getAnimalById(animalId) {
-    return Animal.findById(animalId);
+    return Animal.findById(animalId).populate('campaign', 'name departement');
   },
 
   async updateAnimal(animalId, payload) {
