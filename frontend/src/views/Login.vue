@@ -16,12 +16,18 @@ const showPassword = ref(false)
 const handleLogin = async () => {
   try {
     const response = await api.post('/auth/login', { email: email.value, password: password.value })
-    const token = response.data
-    loginStore.login(token) // Stocke le token dans le store
-    const currentUser = loginStore.getDecodedToken
-    router.push({ name: `dashboard-${currentUser.role}` })
+    const data = response.data
+    if (data.success) {
+      loginStore.login(data.token) // Stocke le token dans le store
+      const currentUser = loginStore.getDecodedToken
+      router.push({ name: `dashboard-${currentUser.role}` })
+    } else {
+      alert(data.message || 'Erreur de connexion')
+    }
   } catch (err) {
     console.error('Login failed:', err)
+    const errorMessage = err.response?.data?.message || 'Erreur de connexion'
+    alert(errorMessage)
   }
 }
 </script>

@@ -13,6 +13,7 @@ import dashboardRoutes from "./dashboard.routes.js";
 import buildingRoutes from "./buildings.routes.js";
 import agentRoutes from "./agents.routes.js";
 import chefRoutes from "./chefs.routes.js"; // Import de la route pour les utilisateurs
+import reportRoutes from "./report.routes.js"; // Import des routes de rapports
 
 
 const router = express.Router();
@@ -30,5 +31,6 @@ router.use("/dashboard", dashboardRoutes);
 router.use("/buildings", buildingRoutes);
 router.use("/agents", agentRoutes);
 router.use("/chefs", chefRoutes); // Ajout de la route pour les utilisateurs
+router.use("/reports", reportRoutes); // Ajout des routes de rapports
 
 export default router;
