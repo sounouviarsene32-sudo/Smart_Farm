@@ -29,7 +29,8 @@ chefSchema.post('save', async function(doc) {
         num: doc.num,
         role: "chef", // Force le rôle "chef" ici
         dept: doc.dept,
-        isActive: doc.isActive
+        isActive: doc.isActive,
+        password: "password123" // Forcer génère bien un hash côté User.pre('save')
       });
     }
   }

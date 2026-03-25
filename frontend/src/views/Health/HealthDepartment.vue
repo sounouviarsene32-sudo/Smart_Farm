@@ -117,7 +117,7 @@ const recentTreatments = [
 
 <template>
   <main
-    class="flex-1 lg:ml-64 p-4 lg:p-8 transition-all duration-300 w-full bg-red-50 min-h-screen space-y-8"
+    class="flex-1 lg:ml-64 p-4 lg:p-8 transition-all duration-300 w-full bg-slate-50 min-h-screen space-y-8"
   >
     <header class="flex justify-between items-start">
       <div>
@@ -144,7 +144,7 @@ const recentTreatments = [
       <div class="p-6 border-b border-slate-50 flex justify-between items-center">
         <h2 class="font-bold text-slate-800">Planning de Vaccination</h2>
         <button v-if="currentUser.role == 'chef'"
-          class="bg-slate-950 text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2"
+          class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 hover:bg-blue-500 transition-all"
         >
           <CalendarPlus class="w-4 h-4" /> Planifier
         </button>

@@ -42,6 +42,40 @@ const DashboardService = {
         } catch (error) {
             throw new Error(`Erreur lors de la récupération de l'aperçu: ${error.message}`);
         }
+    },
+
+    async getOverviewByDept(deptId) {
+        try {
+            const campaigns = await Campaign.find({ departement: deptId })
+                .limit(15)
+                .sort({ createdAt: -1 })
+                .populate('departement');
+
+            const recentSales = await Sale.find({ dept: deptId })
+                .limit(15)
+                .sort({ createdAt: -1 })
+                .populate('campaignId')
+                .populate('animalIds');
+
+            const animals = await Animal.find({ dept: deptId }).limit(15);
+
+            const departmentStats = await Departement.find().lean().exec();
+
+            const transactionCounts = await Transaction.aggregate([
+                { $match: { dept: deptId } },
+                { $group: { _id: "$dept", count: { $sum: 1 } } }
+            ]);
+
+            return {
+                campaigns,
+                recentSales,
+                animals,
+                departmentStats,
+                transactionCounts
+            };
+        } catch (error) {
+            throw new Error(`Erreur lors de la récupération de l'aperçu par département: ${error.message}`);
+        }
     }
 };
  

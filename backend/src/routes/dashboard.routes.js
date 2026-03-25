@@ -5,5 +5,6 @@ const router = express.Router();
 
 router.get("/stats", DashboardController.getStats);
 router.get("/overview", DashboardController.getOverview);
+router.get("/overview/dept/:deptId", DashboardController.getOverviewByDept);
 
 export default router;

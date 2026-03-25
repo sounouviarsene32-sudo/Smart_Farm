@@ -70,14 +70,12 @@ async function initData() {
       departementService.getDepartements(),
       campaignService.getCampaigns()
     ])
-    
     departments.value = deptsRes.data || deptsRes
     allCampaignsRaw.value = campsRes.data || campsRes
 
 
     if (isChef.value && currentUser.value.dept) {
-      newAgent.dept = currentUser.value.dept._id || currentUser.value.dept.id
-      console.log('Département du chef:', newAgent.dept)
+      newAgent.dept = currentUser.value.dept.id || currentUser.value.dept.id
       filterCampaignsByDept(newAgent.dept)
     } else {
       campaigns.value = allCampaignsRaw.value
@@ -99,7 +97,7 @@ async function fetchAgents() {
 
     const allItems = res.data.items || res.data
     if (isChef.value) {
-      agents.value = allItems.filter(a => a.dept?._id === currentUser.value.dept?._id)
+      agents.value = allItems.filter(a => a.dept?.name === currentUser.value.dept?.name)
     } else {
       agents.value = allItems
     }
@@ -183,11 +181,15 @@ function updateStats() {
   ]
 }
 
+console.log(currentUser.value)
+
 // ================= CRUD AGENT =================
 const resetForm = () => {
   Object.assign(newAgent, {
     name: '', email: '', poste: '', role: 'agent',
-    dept: isChef.value ? (currentUser.value.dept?._id || currentUser.value.dept?.id) : '',
+    dept: isChef.value
+      ? (currentUser.value.dept?._id || currentUser.value.dept?.id || currentUser.value.dept || '')
+      : '',
     num: '', camp: '', haveCount: false,
   })
   isModalOpen.value = false
@@ -244,7 +246,7 @@ onMounted(initData)
           </span>
         </div>
       </div>
-      <button @click="isModalOpen = true" class="inline-flex items-center gap-2 bg-slate-950 hover:bg-slate-800 text-white px-6 py-3 rounded-2xl transition-all shadow-lg text-sm font-bold">
+      <button @click="isModalOpen = true" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-2xl transition-all shadow-lg text-sm font-bold">
         <Plus class="w-5 h-5" /> Ajouter un Agent
       </button>
     </header>
@@ -334,18 +336,30 @@ onMounted(initData)
             <div class="grid grid-cols-2 gap-5">
               <select v-model="newAgent.dept" :disabled="isChef" class="custom-select" required>
                 <option value="">Secteur</option>
-                <option v-for="d in departments" :key="d.id" :value="d.id">{{ d.name }}</option>
+                <option
+                  v-for="d in departments"
+                  :key="d.id || d._id"
+                  :value="d.id || d._id"
+                >
+                  {{ d.name }}
+                </option>
               </select>
               <select v-model="newAgent.camp" class="custom-select">
                 <option value="">Campagne</option>
-                <option v-for="c in campaigns" :key="c._id" :value="c._id">{{ c.name }}</option>
+                <option
+                  v-for="c in campaigns"
+                  :key="c._id || c.id"
+                  :value="c._id || c.id"
+                >
+                  {{ c.name }}
+                </option>
               </select>
             </div>
             <div v-if="!isChef" class="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl">
               <input v-model="newAgent.haveCount" type="checkbox" id="hasAccount" class="w-4 h-4 accent-slate-900" />
               <label for="hasAccount" class="text-xs font-bold text-slate-700">Accès Digital</label>
             </div>
-            <button type="submit" class="w-full py-4 bg-slate-950 text-white font-bold rounded-2xl hover:bg-slate-800 transition-all">
+            <button type="submit" class="w-full py-4 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-500 transition-all">
               {{ toUpdate ? 'Mettre à jour' : 'Confirmer' }}
             </button>
           </form>
@@ -382,7 +396,7 @@ onMounted(initData)
                   <option value="high">Haute</option>
                 </select>
                 <input v-model="newTodo.dueDate" type="date" class="custom-select !bg-white" />
-                <button @click="handleAddTodo" :disabled="!newTodo.title" class="bg-slate-950 text-white rounded-xl font-bold text-xs disabled:opacity-50">Ajouter</button>
+                <button @click="handleAddTodo" :disabled="!newTodo.title" class="bg-blue-600 text-white rounded-xl font-bold text-xs disabled:opacity-50 hover:bg-blue-500">Ajouter</button>
               </div>
             </div>
 

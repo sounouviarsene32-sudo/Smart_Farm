@@ -101,7 +101,7 @@ const getStatusInfo = (item) => {
         <p class="text-slate-500 text-sm font-medium">Suivi en temps réel • SmartFarm</p>
       </div>
       <button @click="isModalOpen = true"
-        class="bg-slate-950 text-white px-4 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 transition-transform hover:scale-105 active:scale-95">
+        class="bg-blue-600 text-white px-4 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 transition-all hover:bg-blue-500 active:scale-95">
         <Plus class="w-4 h-4" /> Ajouter un Article
       </button>
 
@@ -217,11 +217,11 @@ const getStatusInfo = (item) => {
 
       <div class="relative w-full max-w-xl bg-white/95 backdrop-blur-xl border border-white shadow-2xl rounded-[2.5rem] overflow-hidden animate-modal">
         
-        <div class="bg-red-900 p-8 text-white">
+        <div class="bg-blue-600 p-8 text-white">
           <div class="flex justify-between items-start">
             <div>
               <h2 class="text-2xl font-black tracking-tight">Nouvel Article</h2>
-              <p class="text-red-200 text-xs font-bold uppercase tracking-widest mt-1">Inventaire SmartFarm</p>
+              <p class="text-blue-100 text-xs font-bold uppercase tracking-widest mt-1">Inventaire SmartFarm</p>
             </div>
             <button @click="showModal = false" class="p-2 hover:bg-white/10 rounded-full transition-colors">
               <X class="w-6 h-6" />
@@ -274,7 +274,7 @@ const getStatusInfo = (item) => {
         <div class="px-8 py-6 bg-slate-50/50 border-t border-slate-100 flex justify-end gap-4">
           <button @click="showModal = false" class="text-slate-400 hover:text-slate-600 font-bold text-sm">Annuler</button>
           <button @click="addItem" :disabled="isLoading"
-            class="bg-red-900 text-white px-8 py-3 rounded-2xl font-bold text-sm shadow-lg shadow-red-900/20 hover:bg-red-950 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+            class="bg-blue-600 text-white px-8 py-3 rounded-2xl font-bold text-sm shadow-lg hover:bg-blue-500 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
             {{ isLoading ? 'Ajout...' : 'Ajouter au Stock' }}
           </button>
         </div>

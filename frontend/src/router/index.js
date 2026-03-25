@@ -147,7 +147,7 @@ const routes = [
     ],
   },
   {
-    path: '/chefDepartment',
+    path: '/chef',
     name: 'chef',
     component: ChefLayout,
     meta: { requiresAuth: true, role: 'chef' },

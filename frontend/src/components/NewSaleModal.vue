@@ -126,7 +126,7 @@ const handleClose = () => {
           <!-- En-tête -->
           <div class="p-6 border-b border-slate-100 flex justify-between items-center">
             <div class="flex items-center gap-3">
-              <div class="bg-slate-950 text-white p-2 rounded-xl">
+              <div class="bg-blue-600 text-white p-2 rounded-xl">
                 <ShoppingCart class="w-4 h-4" />
               </div>
               <div>
@@ -145,7 +145,7 @@ const handleClose = () => {
 
             <!-- Erreur globale -->
             <div v-if="errors.global"
-              class="bg-red-50 border border-red-200 text-red-600 text-xs font-semibold px-4 py-3 rounded-xl">
+              class="bg-blue-50 border border-blue-200 text-blue-700 text-xs font-semibold px-4 py-3 rounded-xl">
               ⚠ {{ errors.global }}
             </div>
 
@@ -241,7 +241,7 @@ const handleClose = () => {
             </div>
 
             <!-- Aperçu du total -->
-            <div class="bg-slate-950 text-white rounded-xl px-5 py-3 flex justify-between items-center">
+            <div class="bg-blue-600 text-white rounded-xl px-5 py-3 flex justify-between items-center">
               <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total estimé</span>
               <span class="text-lg font-bold text-emerald-400">{{ computedTotal }} FCFA</span>
             </div>
@@ -254,7 +254,7 @@ const handleClose = () => {
               Annuler
             </button>
             <button @click="handleSubmit" :disabled="isSubmitting"
-              class="flex-1 px-4 py-2.5 bg-slate-950 text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+              class="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
               <span v-if="isSubmitting"
                 class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               {{ isSubmitting ? 'Enregistrement…' : 'Confirmer la vente' }}

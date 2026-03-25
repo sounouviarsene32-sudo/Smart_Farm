@@ -110,7 +110,7 @@ const handleUpdate = async () => {
                     <!-- En-tête -->
                     <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                         <div class="flex items-center gap-3">
-                            <div class="bg-slate-950 text-white p-2.5 rounded-xl shadow-lg shadow-slate-200">
+                            <div class="bg-blue-600 text-white p-2.5 rounded-xl shadow-lg">
                                 <Box class="w-5 h-5" />
                             </div>
                             <div>

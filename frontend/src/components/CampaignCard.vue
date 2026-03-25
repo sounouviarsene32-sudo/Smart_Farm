@@ -111,7 +111,7 @@ const goToDetails = () => {
         <FileText class="w-3.5 h-3.5" /> Dossier
       </button>
       <button
-        class="flex-1 px-4 py-4 bg-[#750505] text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-xl shadow-lg shadow-red-900/20 hover:bg-red-900 transition-all flex items-center justify-center gap-2 transform active:scale-95"
+        class="flex-1 px-4 py-4 bg-blue-600 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-xl shadow-lg hover:bg-blue-500 transition-all flex items-center justify-center gap-2 transform active:scale-95"
       >
         <Settings2 class="w-3.5 h-3.5 text-red-300" /> Gérer
       </button>

@@ -210,7 +210,7 @@ const getStatusClass = (status) => {
     case 'validated':
       return 'bg-green-100 text-green-800';
     case 'rejected':
-      return 'bg-red-100 text-red-800';
+      return 'bg-blue-100 text-blue-800';
     default:
       return 'bg-gray-100 text-gray-800';
   }
@@ -241,7 +241,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <main class="flex-1 lg:ml-64 p-6 lg:p-10 bg-red-50 min-h-screen">
+  <main class="flex-1 lg:ml-64 p-6 lg:p-10 bg-slate-50 min-h-screen">
     <header class="mb-8">
       <h1 class="text-3xl font-black text-slate-900 tracking-tight">Rapports Chef</h1>
       <p class="text-slate-500 text-sm mt-1">Validez et transférez les rapports des agents</p>
@@ -458,7 +458,7 @@ onMounted(() => {
               'flex-1 px-4 py-2 rounded-lg flex items-center justify-center gap-2',
               validationData.action === 'validate' 
                 ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                : 'bg-red-600 hover:bg-red-700 text-white'
+                : 'bg-blue-600 hover:bg-blue-500 text-white transition-all'
             ]"
           >
             <component 

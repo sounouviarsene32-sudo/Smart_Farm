@@ -206,7 +206,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <main class="flex-1 lg:ml-64 p-6 lg:p-10 bg-red-50 min-h-screen space-y-10">
+  <main class="flex-1 lg:ml-64 p-6 lg:p-10 bg-slate-50 min-h-screen space-y-10">
     <header>
       <div class="flex justify-between items-center">
         <div>
@@ -381,7 +381,7 @@ onMounted(() => {
                       'px-2 py-1 text-xs font-medium rounded-full',
                       transaction.type === 'revenu' 
                         ? 'bg-emerald-100 text-emerald-800' 
-                        : 'bg-red-100 text-red-800'
+                        : 'bg-blue-100 text-blue-800'
                     ]">
                       {{ transaction.type === 'revenu' ? 'Revenu' : 'Dépense' }}
                     </span>

@@ -43,16 +43,23 @@ async function loadCampaigns() {
     loading.value = true
     const data = await campaignService.getCampaigns()
 
-    // --- FILTRAGE RÉACTIF DES CAMPAGNES ---//
-    const myCampaigns = computed(() => {
-      // On vérifie que les données sont chargées
-      if (!data) return []
+    // --- FILTRAGE RÉACTIF DES CAMPAGNES SELON LE RÔLE ---//
+    let filteredCampaigns = []
 
-      // Filtrage par nom de département (vérifie bien que ton API renvoie l'objet departement avec un name)
-      return data.filter(
+    if (currentUser.role === 'chef') {
+      // Filtrage par département pour les chefs
+      filteredCampaigns = data.filter(
         (c) => c.departement?.name === chefDept.value || c.dept?.name === chefDept.value,
       )
-    })
+    } else if (currentUser.role === 'agent') {
+      // Filtrage par agent pour les agents - ne montrer que les campagnes où l'agent est assigné
+      filteredCampaigns = data.filter((c) => {
+        const agentIds = c.agents?.map(agent => agent._id || agent) || []
+        return agentIds.includes(currentUser._id)
+      })
+    }
+
+    myCampaigns.value = filteredCampaigns
 
     // Calcul rapide des stats
     const actives = myCampaigns.value.filter((c) => c.progression < 100).length
@@ -101,7 +108,7 @@ onMounted(() => loadCampaigns())
 
 
   <template>
-  <main class="flex-1 lg:ml-64 p-6 lg:p-10 transition-all duration-300 w-full bg-[#FDFDFD] min-h-screen space-y-10">
+  <main class="flex-1 lg:ml-64 p-6 lg:p-10 transition-all duration-300 w-full bg-slate-50 min-h-screen space-y-10">
     
     <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
       <div class="space-y-1">
@@ -121,7 +128,7 @@ onMounted(() => loadCampaigns())
       <button
         v-if="currentUser.role === 'chef'"
         @click="router.push({ name: 'CampagneDepartmentForm' })"
-        class="group relative flex items-center gap-3 px-8 py-4 bg-slate-950 text-white rounded-2xl text-sm font-bold shadow-2xl shadow-slate-200 transition-all hover:bg-slate-800 hover:-translate-y-1 active:scale-95"
+        class="group relative flex items-center gap-3 px-8 py-4 bg-blue-600 text-white rounded-2xl text-sm font-bold shadow-md hover:bg-blue-500 hover:shadow-lg transition-all active:scale-95"
       >
         <div class="absolute inset-0 rounded-2xl bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
         <Plus class="w-5 h-5 transition-transform group-hover:rotate-90" /> 

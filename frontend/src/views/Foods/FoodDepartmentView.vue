@@ -67,7 +67,7 @@ const rationsCampagne = [
 
 <template>
   <main
-    class="flex-1 lg:ml-64 lg:p-8 transition-all duration-300 w-full p-8 bg-red-50 min-h-screen space-y-8"
+    class="flex-1 lg:ml-64 lg:p-8 transition-all duration-300 w-full p-8 bg-slate-50 min-h-screen space-y-8"
   >
     <header>
       <div>
@@ -126,7 +126,7 @@ const rationsCampagne = [
           <p class="text-xs text-orange-700">Stock faible - Commande recommandée</p>
         </div>
         <button
-          class="px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded-xl transition-hover hover:bg-slate-800"
+          class="px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-xl transition-all hover:bg-blue-500"
         >
           Commander
         </button>

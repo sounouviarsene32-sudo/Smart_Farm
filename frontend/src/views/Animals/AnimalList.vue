@@ -2,6 +2,8 @@
 import { ref, onMounted, watch } from 'vue'
 import AnimalService from '@/services/animals.js'
 import AnimalForm from '../Form/AnimalForm.vue'
+import { useLoginStore } from '@/stores/login.store'
+import campaignService from '@/services/campaign.js'
 import {
   Plus,
   Search,
@@ -19,15 +21,39 @@ const props = defineProps({
   campaignId: { type: String, default: null },
 })
 
+const loginStore = useLoginStore()
+const currentUser = loginStore.getDecodedToken
+
 const animals = ref([])
 const animalStats = ref([])
 const qrInput = ref('')
 
 async function loadAnimals() {
   try {
-    const data = props.campaignId
-      ? await AnimalService.getAnimalsByCampaign(props.campaignId)
-      : await AnimalService.getAnimals()
+    let data = []
+
+    if (props.campaignId) {
+      // Si campaignId est passé en prop (pour les vues spécifiques)
+      data = await AnimalService.getAnimalsByCampaign(props.campaignId)
+    } else if (currentUser.role === 'agent') {
+      // Pour les agents : récupérer les animaux de leurs campagnes uniquement
+      const campaigns = await campaignService.getCampaigns()
+      const agentCampaigns = campaigns.filter((c) => {
+        const agentIds = c.agents?.map(agent => agent._id || agent) || []
+        return agentIds.includes(currentUser._id)
+      })
+
+      // Récupérer tous les animaux de ces campagnes
+      const animalPromises = agentCampaigns.map(campaign =>
+        AnimalService.getAnimalsByCampaign(campaign._id)
+      )
+      const animalArrays = await Promise.all(animalPromises)
+      data = animalArrays.flat()
+    } else {
+      // Pour les autres rôles (admin, chef) : tous les animaux
+      data = await AnimalService.getAnimals()
+    }
+
     animals.value = data.map((a) => ({
       id: a._id,
       identificationNumber: a.identificationNumber,
@@ -86,16 +112,21 @@ const getStatusClass = (status) => {
 
 <template>
   <main
-    class="flex-1 lg:ml-64 p-4 lg:p-8 transition-all duration-300 w-full bg-red-50 min-h-screen space-y-8"
+    class="flex-1 lg:ml-64 p-4 lg:p-8 transition-all duration-300 w-full bg-slate-50 min-h-screen space-y-8"
   >
     <header class="flex justify-between items-start mb-10">
       <div>
-        <h1 class="text-3xl font-extrabold text-slate-950">Cheptel & Animaux</h1>
-        <p class="text-slate-500 mt-1">Gestion individuelle et suivi de santé</p>
+        <h1 class="text-3xl font-extrabold text-slate-900">
+          {{ currentUser.role === 'agent' ? 'Vos Animaux' : 'Cheptel & Animaux' }}
+        </h1>
+        <p class="text-slate-500 mt-1">
+          {{ currentUser.role === 'agent' ? 'Suivi des animaux de vos campagnes' : 'Gestion individuelle et suivi de santé' }}
+        </p>
       </div>
       <button
+        v-if="currentUser.role !== 'agent'"
         @click="openForm"
-        class="flex items-center gap-2.5 px-6 py-3 bg-slate-950 text-white rounded-xl text-sm font-semibold shadow-sm transition-hover hover:bg-slate-800"
+        class="flex items-center gap-2.5 px-6 py-3 bg-blue-600 text-white rounded-xl text-sm font-semibold shadow-sm hover:bg-blue-500 transition-all"
       >
         <Plus class="w-5 h-5" /> Enregistrer un Animal
       </button>
@@ -192,7 +223,7 @@ const getStatusClass = (status) => {
       </div>
 
       <div class="space-y-8">
-        <div class="bg-slate-950 p-8 rounded-3xl text-white shadow-xl shadow-slate-200">
+        <div class="bg-blue-600 p-8 rounded-3xl text-white shadow-xl">
           <div class="flex items-center gap-3 mb-6">
             <div class="p-2.5 bg-white/10 rounded-xl">
               <QrCode class="w-6 h-6" />

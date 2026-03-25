@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import chefService from '@/services/chef.js'
 import departementService from '@/services/departement.js'
 import {
@@ -40,6 +40,7 @@ async function fetchData() {
     const resChefs = await chefService.getAllChefs({ page: 1, limit: 12, search: search.value })
 
     chefs.value = resChefs.data.items || resChefs.items || []
+    console.log(chefs.value)
     const departmentsData = await departementService.getDepartements()
     departments.value = departmentsData.data || departmentsData
 
@@ -119,56 +120,84 @@ const handleDelete = async (id) => {
   // }
 }
 
+const availableDepartments = computed(() => {
+  const assignedDeptIds = chefs.value
+    .map((chef) => (chef.dept?._id || chef.dept || chef.dept?.id)?.toString())
+    .filter(Boolean)
+
+  const editingDeptId = (toUpdate.value?.dept?._id || toUpdate.value?.dept || toUpdate.value?.dept?.id)?.toString()
+
+  return departments.value.filter((dept) => {
+    const deptId = (dept._id || dept.id || dept).toString()
+    if (editingDeptId && deptId === editingDeptId) return true
+    return !assignedDeptIds.includes(deptId)
+  })
+})
+
 onMounted(fetchData)
 </script>
 
 <template>
   <main
-    class="flex-1 lg:ml-64 p-4 lg:p-8 transition-all duration-300 w-full bg-red-50 min-h-screen space-y-8"
+    class="flex-1 lg:ml-64 p-6 lg:p-10 w-full min-h-screen space-y-10 
+           bg-slate-50 text-slate-800"
   >
-    <header class="flex justify-between items-start mb-8">
+    <!-- HEADER -->
+    <header class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
       <div>
-        <h1 class="text-3xl font-extrabold text-slate-950">Chefs de Département</h1>
-        <p class="text-slate-500 mt-1">Gestion des responsables de l'exploitation</p>
+        <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900">
+          Chefs de Département
+        </h1>
+        <p class="text-slate-500 mt-2 text-sm md:text-base">
+          Gérez les responsables avec efficacité
+        </p>
       </div>
+
       <button
         @click="isModalOpen = true"
-        class="flex items-center gap-2.5 px-6 py-3 bg-slate-950 text-white rounded-xl text-sm font-semibold shadow-sm hover:bg-slate-800 transition-all"
+        class="flex items-center gap-2 px-5 py-3 bg-blue-600 hover:bg-blue-500 
+               text-white rounded-xl text-sm font-semibold shadow-md 
+               hover:shadow-lg transition-all active:scale-95"
       >
-        <Plus class="w-5 h-5" /> Ajouter un Chef
+        <Plus class="w-5 h-5" /> Nouveau Chef
       </button>
     </header>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <!-- STATS -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       <div
         v-for="stat in stats"
         :key="stat.title"
-        class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm"
+        class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition"
       >
-        <div class="flex justify-between items-start">
-          <span class="text-sm font-medium text-slate-500">{{ stat.title }}</span>
-          <div :class="['p-2.5 rounded-xl', stat.bg, stat.color]">
+        <div class="flex justify-between items-center">
+          <span class="text-sm text-slate-500">{{ stat.title }}</span>
+          <div class="p-2 rounded-lg bg-blue-100 text-blue-600">
             <component :is="stat.icon" class="w-5 h-5" />
           </div>
         </div>
-        <h3 class="text-3xl font-extrabold text-slate-900 mt-5">{{ stat.value }}</h3>
+        <h3 class="text-3xl font-bold text-slate-900 mt-4">{{ stat.value }}</h3>
       </div>
-    </div>
+    </section>
 
-    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+    <!-- SEARCH -->
+    <section class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
       <div class="relative w-full max-w-xl">
         <Search class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
         <input
           v-model="search"
           @input="fetchData"
           type="search"
-          placeholder="Rechercher un chef par nom..."
-          class="w-full pl-12 pr-4 py-3.5 bg-slate-50 text-slate-900 rounded-xl border border-slate-200 focus:ring-2 focus:ring-slate-300 outline-none transition-all"
+          placeholder="Rechercher un chef..."
+          class="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 
+                 rounded-xl text-sm text-slate-700 placeholder:text-slate-400
+                 focus:ring-2 focus:ring-blue-500 outline-none transition"
         />
       </div>
-    </div>
+    </section>
 
-    <div v-if="chefs.length > 0" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+    <!-- LISTE -->
+    <section v-if="chefs.length > 0" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
       <ChefCard
         v-for="chef in chefs"
         :key="chef._id"
@@ -176,110 +205,111 @@ onMounted(fetchData)
         @edit="openEditModal(chef)"
         @delete="handleDelete(chef._id)"
       />
-    </div>
+    </section>
 
-    <div v-else class="text-center py-20 bg-white rounded-3xl border border-slate-100">
-      <UserCircle class="w-16 h-16 text-slate-200 mx-auto mb-4" />
-      <p class="text-slate-500 font-medium">Aucun responsable trouvé.</p>
-    </div>
+    <!-- EMPTY -->
+    <section
+      v-else
+      class="text-center py-20 bg-white border border-slate-200 rounded-2xl shadow-sm"
+    >
+      <UserCircle class="w-16 h-16 text-slate-300 mx-auto mb-4" />
+      <p class="text-slate-500 font-medium">Aucun chef trouvé</p>
+    </section>
 
+    <!-- MODAL -->
     <Transition name="fade">
       <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" @click="resetForm"></div>
+        
+        <!-- backdrop -->
         <div
-          class="relative bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-slate-100 overflow-hidden animate-in zoom-in duration-200"
+          class="absolute inset-0 bg-black/30 backdrop-blur-sm"
+          @click="resetForm"
+        ></div>
+
+        <!-- modal -->
+        <div
+          class="relative w-full max-w-lg bg-white rounded-2xl shadow-xl overflow-hidden"
         >
-          <div class="p-8 border-b border-slate-50 flex justify-between items-center">
-            <h2 class="text-xl font-black text-slate-900">
-              {{ toUpdate ? 'Modifier le Chef' : 'Nouveau Chef' }}
+          <!-- header -->
+          <div class="p-6 border-b flex justify-between items-center">
+            <h2 class="text-lg font-bold text-slate-800">
+              {{ toUpdate ? 'Modifier Chef' : 'Nouveau Chef' }}
             </h2>
-            <button @click="resetForm" class="p-2 hover:bg-slate-50 rounded-full transition-colors">
+            <button @click="resetForm" class="p-2 hover:bg-slate-100 rounded-lg">
               <X class="w-5 h-5 text-slate-400" />
             </button>
           </div>
 
-          <form @submit.prevent="handleSubmit" class="p-8 space-y-5">
-            <div class="space-y-2">
-              <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1"
-                >Nom Complet</label
-              >
-              <input
-                v-model="newChef.name"
-                type="text"
-                required
-                class="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm outline-none focus:border-slate-950 transition-all"
-              />
-            </div>
+          <!-- form -->
+          <form @submit.prevent="handleSubmit" class="p-6 space-y-5">
+            
+            <input
+              v-model="newChef.name"
+              type="text"
+              placeholder="Nom complet"
+              required
+              class="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-200
+                     focus:ring-2 focus:ring-blue-500 outline-none"
+            />
 
-            <div class="space-y-2">
-              <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1"
-                >Email Professionnel</label
-              >
-              <input
-                v-model="newChef.email"
-                type="email"
-                required
-                class="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm outline-none focus:border-slate-950 transition-all"
-              />
-            </div>
+            <input
+              v-model="newChef.email"
+              type="email"
+              placeholder="Email"
+              required
+              class="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-200
+                     focus:ring-2 focus:ring-blue-500 outline-none"
+            />
 
             <div class="grid grid-cols-2 gap-4">
-              <div class="space-y-2">
-                <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1"
-                  >Téléphone</label
-                >
-                <input
-                  v-model="newChef.num"
-                  type="tel"
-                  class="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm outline-none focus:border-slate-950 transition-all"
-                />
-              </div>
-              <div class="space-y-2">
-                <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1"
-                  >Département</label
-                >
-                <select
-                  v-model="newChef.dept"
-                  required
-                  class="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm outline-none appearance-none focus:border-slate-950 transition-all"
-                >
-                  <option value="">Sélectionner</option>
-                  <option v-for="dept in departments" :key="dept.id" :value="dept.id">
-                    {{ dept.name }}
-                  </option>
-                </select>
-              </div>
-            </div>
-
-            <div class="flex items-center gap-3 pt-2">
               <input
-                v-model="newChef.haveCount"
-                type="checkbox"
-                id="chefCount"
-                class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900"
+                v-model="newChef.num"
+                type="tel"
+                placeholder="Téléphone"
+                class="px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 outline-none"
               />
-              <label
-                for="chefCount"
-                class="text-xs font-bold uppercase tracking-wider text-slate-600 cursor-pointer"
-                >Créer un compte accès système</label
+
+              <select
+                v-model="newChef.dept"
+                required
+                class="px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 outline-none"
               >
+                <option value="">Département</option>
+                <option
+                  v-for="dept in availableDepartments"
+                  :key="dept._id"
+                  :value="dept._id"
+                >
+                  {{ dept.name }}
+                </option>
+              </select>
             </div>
 
-            <div class="flex gap-3 pt-6">
+            <div class="flex items-center gap-3">
+              <input v-model="newChef.haveCount" type="checkbox" />
+              <span class="text-sm text-slate-600">
+                Créer un accès système
+              </span>
+            </div>
+
+            <div class="flex gap-3 pt-4">
               <button
                 type="button"
                 @click="resetForm"
-                class="flex-1 py-4 text-sm font-bold text-slate-500 hover:bg-slate-50 rounded-2xl transition-all"
+                class="flex-1 py-3 text-sm font-semibold text-slate-500 
+                       hover:bg-slate-100 rounded-xl"
               >
                 Annuler
               </button>
               <button
                 type="submit"
-                class="flex-1 py-4 bg-slate-950 text-white text-sm font-bold rounded-2xl hover:bg-slate-800 shadow-lg active:scale-95 transition-all"
+                class="flex-1 py-3 bg-blue-600 text-white rounded-xl 
+                       font-semibold hover:bg-blue-500 transition"
               >
-                {{ toUpdate ? 'Enregistrer' : 'Confirmer' }}
+                {{ toUpdate ? 'Modifier' : 'Créer' }}
               </button>
             </div>
+
           </form>
         </div>
       </div>

@@ -120,7 +120,7 @@ onMounted(() => {
         </div>
         <button
           @click="$emit('close')"
-          class="group p-2 rounded-xl bg-slate-50 hover:bg-red-50 transition-all"
+          class="group p-2 rounded-xl bg-slate-50 hover:bg-slate-100 transition-all"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"

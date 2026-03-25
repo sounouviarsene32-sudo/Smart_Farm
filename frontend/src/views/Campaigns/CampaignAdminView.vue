@@ -46,14 +46,14 @@ const handleFormClose = () => {
 </script>
 
 <template>
-  <main class="flex-1 lg:ml-64 p-4 lg:p-8 w-full bg-red-50 min-h-screen space-y-8">
+  <main class="flex-1 lg:ml-64 p-4 lg:p-8 w-full bg-slate-50 min-h-screen space-y-8">
     
     <header class="flex justify-between items-start mb-8">
       <div>
-        <h1 class="text-3xl font-extrabold text-slate-950">Campagnes</h1>
+        <h1 class="text-3xl font-extrabold text-slate-900">Campagnes</h1>
         <p class="text-slate-500 mt-1">Gestion des campagnes et projets</p>
       </div>
-      <button @click="showForm = true" class="flex items-center gap-2.5 px-6 py-3.5 bg-slate-950 text-white rounded-xl text-sm font-semibold shadow-sm hover:bg-slate-800">
+      <button @click="showForm = true" class="flex items-center gap-2.5 px-6 py-3.5 bg-blue-600 text-white rounded-xl text-sm font-semibold shadow-sm hover:bg-blue-500 transition-all">
         <Plus class="w-5 h-5" /> Nouvelle Campagne
       </button>
     </header>
