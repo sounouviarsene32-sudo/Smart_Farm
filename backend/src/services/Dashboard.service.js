@@ -3,7 +3,7 @@ import Campaign from '../models/Campaign.js';
 import Sale from '../models/Sale.js';
 import Transaction from '../models/Transaction.js';
 import Departement from '../models/Departement.js';
-
+ 
 const DashboardService = {
     async getStats() {
         try {
@@ -11,7 +11,7 @@ const DashboardService = {
             const totalCampaigns = await Campaign.countDocuments();
             const activeCampaigns = await Campaign.countDocuments({ status: 'actif' });
             const totalSales = await Sale.countDocuments();
-            
+           
             return {
                 totalAnimals,
                 totalCampaigns,
@@ -22,7 +22,7 @@ const DashboardService = {
             throw new Error(`Erreur lors de la récupération des statistiques: ${error.message}`);
         }
     },
-
+ 
     async getOverview() {
         try {
             const campaigns = await Campaign.find().limit(15).sort({ createdAt: -1 }).populate('departement');
@@ -78,5 +78,7 @@ const DashboardService = {
         }
     }
 };
-
+ 
 export default DashboardService;
+ 
+ 

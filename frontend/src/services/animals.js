@@ -10,9 +10,19 @@ async function getAnimalById(id) {
   return response.data;
 }
 
+async function getAnimalsByCampaign(campaignId) {
+  const response = await api.get(`/animals?campaignId=${campaignId}`);
+  return response.data;
+}
+
 async function createAnimal(data) {
   const response = await api.post('/animals', data);
   return response.data;
+}
+
+async function createManyAnimals(data) {
+  const response = await api.post('/animals/batch', data)
+  return response.data
 }
 
 async function updateAnimal(id, data) {
@@ -26,7 +36,10 @@ async function deleteAnimal(id) {
 }
 
 export default {
+  createManyAnimals,
+  createAnimalsBatch: createManyAnimals, // Alias pour compatibilité
   getAnimals,
+  getAnimalsByCampaign,
   getAnimalById,
   createAnimal,
   updateAnimal,

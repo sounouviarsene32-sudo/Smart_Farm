@@ -18,10 +18,17 @@ export const registerUser = async (req, res) => {
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const token = await authService.login({ email, password });
-    res.status(200).json(token);
+    const result = await authService.login({ email, password });
+    res.status(200).json({ 
+      success: true,
+      token: result.token,
+      user: result.user
+    });
   } catch (err) {
-    res.status(400).json({ MotdePassOuEmail: err.message });
+    res.status(400).json({ 
+      success: false,
+      message: err.message 
+    });
   }
 };
 // mettre a jour le profil de l'utilisateur connecté

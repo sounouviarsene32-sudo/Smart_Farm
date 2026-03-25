@@ -93,67 +93,84 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="max-w-4xl mx-auto bg-[#fcfcfc] rounded-3xl shadow-2xl shadow-slate-200/50 border border-slate-100 overflow-hidden tracking-tight">
-    <div class="relative bg-white border-b border-slate-100 p-8">
-      <div class="flex items-center justify-between">
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 tracking-tight"
+  >
+    <div
+      class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden border border-slate-200 flex flex-col max-h-[95vh]"
+    >
+      <div
+        class="px-8 py-6 bg-white border-b border-slate-100 flex items-center justify-between shrink-0"
+      >
         <div>
-          <h1 class="text-3xl font-extrabold text-slate-900 tracking-tighter">
-            {{ campaignId ? 'Édition Campagne' : 'Nouvelle Campagne' }}
-          </h1>
-          <p class="text-slate-500 mt-1 font-medium">Gestion et planification des ressources SmartFarm</p>
+          <div class="flex items-center gap-2 mb-1">
+            <span class="relative flex h-2 w-2">
+              <span
+                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"
+              ></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-[#1E8E6E]"></span>
+            </span>
+            <span class="text-[10px] font-black uppercase tracking-[0.2em] text-[#1E8E6E]"
+              >SmartFarm Protocol</span
+            >
+          </div>
+          <h2 class="text-2xl font-extrabold text-slate-900 tracking-tighter uppercase">
+            Initialiser Campagne
+          </h2>
         </div>
-        <div class="h-14 w-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-[#1E8E6E]">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04 Pel m6 10H6.618m6 10H6.618" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707" />
+        <button
+          @click="$emit('close')"
+          class="group p-2 rounded-xl bg-slate-50 hover:bg-red-50 transition-all"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5 text-slate-400 group-hover:text-red-500"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
-        </div>
+        </button>
       </div>
-    </div>
 
-    <div v-if="loading" class="flex flex-col items-center justify-center py-24 space-y-4">
-      <div class="animate-spin rounded-full h-12 w-12 border-[3px] border-slate-100 border-t-[#1E8E6E]"></div>
-      <p class="text-slate-400 font-semibold uppercase text-xs tracking-[0.2em]">Synchronisation</p>
-    </div>
-
-    <form v-else @submit.prevent="submitForm" class="p-10 space-y-8">
-      
-      <section class="space-y-6">
-        <div class="flex items-center gap-4 mb-2">
-          <span class="h-px flex-1 bg-slate-100"></span>
-          <span class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Informations Générales</span>
-          <span class="h-px flex-1 bg-slate-100"></span>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div class="md:col-span-2 group">
-            <label class="block text-sm font-bold text-slate-700 mb-2 ml-1">Nom de l'opération</label>
-            <input 
-              v-model="form.name" 
-              type="text" 
-              placeholder="Saisissez le titre de la campagne..."
-              class="w-full bg-white border-2 border-slate-100 focus:border-[#1E8E6E] focus:ring-0 rounded-2xl px-5 py-4 transition-all outline-none font-medium text-slate-800" 
-              required 
+      <form @submit.prevent="handleSubmit" class="p-8 space-y-6 overflow-y-auto custom-scrollbar">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="md:col-span-2">
+            <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider"
+              >Titre de l'opération</label
+            >
+            <input
+              v-model="form.name"
+              type="text"
+              placeholder="Ex: Campagne Semis 2026"
+              class="w-full bg-slate-50 border border-slate-200 focus:border-[#1E8E6E] focus:bg-white rounded-xl px-4 py-3 text-sm font-semibold text-slate-800 outline-none transition-all shadow-sm"
+              required
             />
           </div>
 
-          <div class="space-y-2">
-            <label class="block text-sm font-bold text-slate-700 ml-1">Département</label>
-            <select 
-              v-model="form.departement" 
-              class="w-full bg-white border-2 border-slate-100 focus:border-[#1E8E6E] rounded-2xl px-5 py-4 font-medium text-slate-800 outline-none appearance-none cursor-pointer"
-              required
+          <div>
+            <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider"
+              >Unité / Département</label
             >
+            <select name="departement" id="departement" v-model="form.departement">
               <option value="" disabled>Sélectionner une unité</option>
               <option v-for="d in departements" :key="d.id" :value="d.id">{{ d.name }}</option>
             </select>
           </div>
 
-          <div class="space-y-2">
-            <label class="block text-sm font-bold text-slate-700 ml-1">État actuel</label>
-            <select 
-              v-model="form.status" 
-              class="w-full bg-white border-2 border-slate-100 focus:border-[#1E8E6E] rounded-2xl px-5 py-4 font-bold text-[#1E8E6E] outline-none appearance-none cursor-pointer"
+          <div>
+            <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider"
+              >Statut</label
+            >
+            <select
+              v-model="form.status"
+              class="w-full bg-slate-50 border border-slate-200 focus:border-[#1E8E6E] focus:bg-white rounded-xl px-4 py-3 text-sm font-bold text-[#1E8E6E] outline-none shadow-sm appearance-none cursor-pointer"
             >
               <option value="planifié">Planifié</option>
               <option value="actif">Actif</option>
@@ -162,86 +179,189 @@ onMounted(() => {
           </div>
         </div>
 
-        <div class="group">
-          <label class="block text-sm font-bold text-slate-700 mb-2 ml-1">Objectifs & Description</label>
-          <textarea 
-            v-model="form.description" 
-            class="w-full bg-white border-2 border-slate-100 focus:border-[#1E8E6E] rounded-2xl px-5 py-4 border outline-none resize-none font-medium" 
-            rows="4"
-          ></textarea>
-        </div>
-      </section>
-
-      <section class="bg-white border border-slate-100 p-8 rounded-[2.5rem] shadow-sm space-y-6">
-        <div class="flex items-center gap-4 mb-2">
-          <span class="text-[10px] font-black uppercase tracking-[0.3em] text-amber-500">Planning & Finance</span>
-          <span class="h-px flex-1 bg-amber-50"></span>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div class="space-y-2">
-            <label class="block text-xs font-black text-slate-400 uppercase ml-1">Date d'ouverture</label>
-            <input v-model="form.startDate" type="date" class="w-full bg-slate-50 border-none focus:ring-2 focus:ring-[#1E8E6E] rounded-xl px-4 py-3 font-semibold text-slate-700 outline-none" required />
+        <div
+          class="p-6 bg-slate-50/80 rounded-2xl border border-slate-100 grid grid-cols-1 md:grid-cols-3 gap-6 shadow-inner"
+        >
+          <div>
+            <label class="block text-[10px] font-black text-slate-400 uppercase mb-2"
+              >Début de mission</label
+            >
+            <input
+              v-model="form.startDate"
+              type="date"
+              class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-xs font-bold text-slate-700 outline-none focus:ring-1 focus:ring-[#1E8E6E]"
+              required
+            />
           </div>
-          <div class="space-y-2">
-            <label class="block text-xs font-black text-slate-400 uppercase ml-1">Clôture prévue</label>
-            <input v-model="form.endDate" type="date" class="w-full bg-slate-50 border-none focus:ring-2 focus:ring-[#1E8E6E] rounded-xl px-4 py-3 font-semibold text-slate-700 outline-none" />
+          <div>
+            <label class="block text-[10px] font-black text-slate-400 uppercase mb-2"
+              >Clôture prévue</label
+            >
+            <input
+              v-model="form.endDate"
+              type="date"
+              class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-xs font-bold text-slate-700 outline-none focus:ring-1 focus:ring-[#1E8E6E]"
+            />
           </div>
-          <div class="space-y-2">
-            <label class="block text-xs font-black text-amber-600 uppercase ml-1">Allocation (FCFA)</label>
-            <input 
-              v-model="form.budget" 
-              type="number" 
+          <div>
+            <label class="block text-[10px] font-black text-amber-600 uppercase mb-2"
+              >Budget (FCFA)</label
+            >
+            <input
+              v-model="form.budget"
+              type="number"
               placeholder="0"
-              class="w-full bg-amber-50/50 border-none focus:ring-2 focus:ring-amber-500 rounded-xl px-4 py-3 font-black text-amber-700 outline-none" 
+              class="w-full bg-white border border-slate-200 focus:border-amber-500 rounded-lg px-3 py-2.5 text-xs font-black text-amber-700 outline-none"
             />
           </div>
         </div>
-      </section>
 
-      <div class="flex items-center justify-between pt-4">
-        <div class="flex-1 mr-4">
-          <transition 
-            enter-active-class="transition duration-300 ease-out"
-            enter-from-class="opacity-0 -translate-x-4"
-            enter-to-class="opacity-100 translate-x-0"
-            mode="out-in"
-          >
-            <p 
-              v-if="error || success" 
-              :key="error ? 'err' : 'succ'"
-              :class="error ? 'text-red-900 bg-red-50 border-red-100' : 'text-emerald-900 bg-emerald-50 border-emerald-100'"
-              class="inline-flex items-center px-4 py-2 rounded-full border text-[13px] font-bold"
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider"
+              >Manager Principal</label
             >
-              <span class="mr-2">{{ error ? '✕' : '✓' }}</span>
-              {{ error || success }}
+            <select
+              v-model="form.manager"
+              class="w-full bg-slate-50 border border-slate-200 focus:border-[#1E8E6E] focus:bg-white rounded-xl px-4 py-3 text-sm font-semibold text-slate-800 outline-none appearance-none"
+            >
+              <option value="">Non assigné</option>
+              <option v-for="agent in agents" :key="agent._id" :value="agent._id">
+                {{ agent.firstName }} {{ agent.lastName }}
+              </option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider"
+              >Équipe assignée</label
+            >
+            <select
+              v-model="form.agents"
+              multiple
+              class="w-full bg-slate-50 border border-slate-200 focus:border-[#1E8E6E] focus:bg-white rounded-xl px-4 py-2 text-xs font-semibold text-slate-800 h-[60px] overflow-hidden"
+            >
+              <option v-for="agent in agents" :key="agent._id" :value="agent._id">
+                {{ agent.lastName }}
+              </option>
+            </select>
+            <p
+              class="text-[9px] text-slate-400 mt-1 ml-1 leading-none italic font-medium opacity-70"
+            >
+              Maintenez Ctrl pour sélection multiple
             </p>
-          </transition>
+          </div>
         </div>
 
-        <div class="flex gap-4">
-          <button 
-            type="button" 
-            @click="router.back()" 
-            class="px-8 py-4 text-slate-400 hover:text-slate-600 font-bold transition-all text-sm uppercase tracking-widest"
+        <div>
+          <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider"
+            >Notes stratégiques</label
           >
-            Retour
+          <textarea
+            v-model="form.description"
+            rows="3"
+            placeholder="Description de la mission..."
+            class="w-full bg-slate-50 border border-slate-200 focus:border-[#1E8E6E] focus:bg-white rounded-xl px-4 py-3 text-sm font-medium text-slate-700 outline-none resize-none transition-all"
+          ></textarea>
+        </div>
+
+        <div class="flex items-center justify-end gap-4 pt-4 border-t border-slate-50 shrink-0">
+          <button
+            type="button"
+            @click="$emit('close')"
+            class="text-xs font-bold text-slate-400 hover:text-slate-600 px-4 py-2 uppercase tracking-widest transition-colors"
+          >
+            Annuler
           </button>
-          <button 
-            type="submit" 
-            class="px-10 py-4 bg-[#1E8E6E] hover:bg-[#15634d] text-white rounded-2xl font-black shadow-xl shadow-emerald-200 transition-all transform active:scale-95 disabled:opacity-50 text-sm uppercase tracking-widest flex items-center gap-3"
-            :disabled="submitting"
+          <button
+            type="submit"
+            class="bg-[#1E8E6E] hover:bg-[#15634d] text-white px-10 py-4 rounded-xl font-black text-xs uppercase tracking-[0.15em] shadow-lg shadow-emerald-900/10 transition-all active:scale-95 transform"
           >
-            <span v-if="submitting" class="h-4 w-4 border-2 border-white/20 border-t-white animate-spin rounded-full"></span>
-            {{ submitting ? 'Traitement' : (campaignId ? 'Mettre à jour' : 'Confirmer') }}
+            Confirmer l'ouverture
           </button>
         </div>
-      </div>
-    </form>
+      </form>
+    </div>
   </div>
 </template>
 
+<!-- <script setup>
+import { ref, onMounted } from 'vue'
+import campaignService from '@/services/campaign.js'
+import departementService from '@/services/departement.js'
+import agentService from '@/services/agent.js'
+
+const emit = defineEmits(['close'])
+
+const form = ref({
+  name: '',
+  departement: '',
+  description: '',
+  startDate: '',
+  endDate: '',
+  status: 'planifié',
+  budget: 0,
+  manager: '',
+  agents: [],
+})
+
+const departements = ref([])
+const agents = ref([])
+
+onMounted(async () => {
+  try {
+    const depData = await departementService.getDepartements()
+    // Assure-toi que depData est un tableau d’objets { _id, name }
+    departements.value = depData
+    console.log('Départements chargés:', departements.value)
+
+    const agentData = await agentService.getAgents()
+    agents.value = agentData
+  } catch (err) {
+    console.error('Erreur chargement départements/agents:', err)
+  }
+})
+
+const handleSubmit = async () => {
+  try {
+    const payload = {
+      name: form.value.name,
+      departement: form.value.departement,
+      description: form.value.description,
+
+      startDate: new Date(form.value.startDate),
+      endDate: form.value.endDate ? new Date(form.value.endDate) : null,
+
+      status: form.value.status,
+      budget: Number(form.value.budget) || 0,
+
+      manager: form.value.manager || null,
+      agents: form.value.agents.filter(a => a)
+    }
+
+    console.log('Payload envoyé:', payload)
+
+    await campaignService.createCampaign(payload)
+
+    emit('close')
+  } catch (err) {
+    console.error('Erreur création campagne:', err.response?.data || err)
+  }
+}
+</script> -->
+
 <style scoped>
+/* Scrollbar ultra-fine et discrète sans @apply */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 10px;
+}
+
 /* Suppression des flèches sur les inputs number */
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
