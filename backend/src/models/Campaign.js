@@ -15,6 +15,7 @@ const campaignSchema = new mongoose.Schema({
     default: "planifié",
   },
   budget: { type: Number },
+  animalsCount: { type: Number, default: 0 },
   manager: {
     // responsable principal de la campagne
     type: mongoose.Schema.Types.ObjectId,
