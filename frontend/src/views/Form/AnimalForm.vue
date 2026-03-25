@@ -78,7 +78,7 @@
         <!-- Actions -->
         <div class="flex justify-end gap-3 pt-4">
           <button type="button" @click="$emit('close')" class="px-4 py-2 border rounded-xl">Annuler</button>
-          <button type="submit" class="px-6 py-2 bg-slate-950 text-white rounded-xl">Enregistrer</button>
+          <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-500 transition-all">Enregistrer</button>
         </div>
       </form>
     </div>

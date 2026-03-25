@@ -86,7 +86,7 @@ const isActive = (path) => route.path === path
   <!-- v-if="currentUser.role && currentUser.role === 'admin'" -->
   <div>
     <div
-      class="lg:hidden top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 z-40"
+      class="lg:hidden top-0 left-0 right-0 h-16 bg-linear-to-br from-slate-950 via-blue-900 to-slate-900 flex items-center justify-between px-4 z-40"
     >
       <h1 class="text-xl">SmartFarm</h1>
       <button @click="sidebarOpen = !sidebarOpen" class="p-2 rounded-md hover:bg-gray-100">
@@ -104,33 +104,21 @@ const isActive = (path) => route.path === path
     >
       <div class="flex flex-col h-full">
         <!-- Logo -->
-        <div class="h-16 flex items-center px-6 border-b border-gray-200">
-          <h1 class="text-xl flex justify-center gap-5 font-semibold text-red-600">
-            <svg
-              width="30"
-              height="30"
-              viewBox="0 0 100 100"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <rect x="0" y="0" width="100" height="100" rx="20" fill="#EF4444" />
+       <div class="h-16 flex items-center px-6 border-b border-slate-200 bg-white shadow-sm">
+  <h1 class="flex items-center gap-3 text-lg font-bold tracking-tight">
+    
+    <!-- LOGO -->
+    <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-md">
+      <span class="text-red-800 text-lg font-black">SF</span>
+    </div>
 
-              <text
-                x="50"
-                y="62"
-                font-family="Inter, system-ui, Arial, sans-serif"
-                font-size="40"
-                font-weight="900"
-                fill="white"
-                text-anchor="middle"
-                letter-spacing="-1"
-              >
-                SF
-              </text>
-            </svg>
-            <span>SmartFarm</span>
-          </h1>
-        </div>
+    <!-- TEXTE -->
+    <span class="text-red-600 text-xl font-extrabold">
+      SmartFarm
+    </span>
+
+  </h1>
+</div>
 
         <!-- Navigation -->
         <div class="flex-1 px-3 py-4 overflow-y-auto">
@@ -143,8 +131,8 @@ const isActive = (path) => route.path === path
               class="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors"
               :class="
                 isActive(`/${currentUser.role}${item.href}`)
-                  ? 'bg-red-100 text-red-800'
-                  : 'text-gray-700 hover:bg-red-50'
+                  ? 'bg-slate-900/60 text-gray-300'
+                  : 'text-gray-400 hover:bg-slate-500/40'
               "
             >
               <component :is="item.icon" class="w-5 h-5" />

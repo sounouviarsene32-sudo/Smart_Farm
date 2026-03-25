@@ -47,7 +47,7 @@ const handleLogin = async () => {
 
     <!-- PANNEAU DROIT GLASMORPHISM ROUGE #750505 -->
     <div
-      class="relative z-10 h-screen w-full md:w-[550px] bg-[#750505]/85 backdrop-blur-2xl border-l border-white/10 flex items-center justify-center p-8 md:p-16 shadow-[-20px_0_50px_rgba(0,0,0,0.5)]">
+      class="relative z-10 h-screen w-full md:w-[550px] bg-slate-950/85 backdrop-blur-2xl border-l border-white/10 flex items-center justify-center p-8 md:p-16 shadow-[-20px_0_50px_rgba(0,0,0,0.5)]">
 
       <div class="w-full max-w-sm">
         <!-- LOGO & TITRE AVEC TYPO ULTRA-BOLD -->
@@ -64,28 +64,28 @@ const handleLogin = async () => {
         <!-- FORMULAIRE -->
         <form @submit.prevent="handleLogin" class="space-y-6">
           <div class="space-y-2">
-            <label class="text-[11px] font-[900] uppercase text-white/60 ml-2 tracking-widest">Identifiant</label>
+            <label class="text-[11px] font-[900] uppercase text-white ml-2 tracking-widest">Identifiant</label>
             <div class="relative group">
               <Mail
-                class="absolute left-5 top-1/2 -translate-y-1/2 text-white/40 group-focus-within:text-white transition-colors"
+                class="absolute left-5 top-1/2 -translate-y-1/2 text-gray-800 group-focus-within:text-gray-500 transition-colors"
                 :size="18" />
               <input v-model="email" type="email" placeholder="admin@smartfarm.com"
-                class="w-full pl-14 pr-6 py-5 bg-black/20 border border-white/10 rounded-2xl text-white placeholder:text-white/20 outline-none focus:border-white/40 focus:bg-black/30 transition-all font-bold text-sm" />
+                class="w-full pl-14 pr-6 py-5 bg-black/20 border border-white/10 rounded-2xl text-white placeholder:text-white/20 outline-none focus:border-gray-800 focus:bg-black/30 transition-all font-bold text-sm" />
             </div>
           </div>
 
           <div class="space-y-2">
-            <label class="text-[11px] font-[900] uppercase text-white/60 ml-2 tracking-widest">Mot de passe</label>
+            <label class="text-[11px] font-[900] uppercase text-white ml-2 tracking-widest">Mot de passe</label>
             <div class="relative group">
               <Lock
-                class="absolute left-5 top-1/2 -translate-y-1/2 text-white/40 group-focus-within:text-white transition-colors"
+                class="absolute left-5 top-1/2 -translate-y-1/2 text-gray-800 group-focus-within:text-gray-500 transition-colors"
                 :size="18" />
               <input v-model="password" :type="showPassword ? 'text' : 'password'" placeholder="••••••••"
                 class="w-full pl-14 pr-14 py-5 bg-black/20 border border-white/10 rounded-2xl text-white placeholder:text-white/20 outline-none focus:border-white/40 focus:bg-black/30 transition-all font-bold text-sm" />
               <button type="button" @click="showPassword = !showPassword"
                 class="absolute right-5 top-1/2 -translate-y-1/2 text-white/30 hover:text-white transition-colors">
-                <Eye v-if="!showPassword" :size="20" />
-                <EyeOff v-else :size="20" />
+                <Eye class="text-gray-800" v-if="!showPassword" :size="20" />
+                <EyeOff class="text-gray-500" v-else :size="20" />
               </button>
             </div>
           </div>

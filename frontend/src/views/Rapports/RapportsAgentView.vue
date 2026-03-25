@@ -252,7 +252,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <main class="flex-1 lg:ml-64 p-6 lg:p-10 bg-red-50 min-h-screen">
+  <main class="flex-1 lg:ml-64 p-6 lg:p-10 bg-slate-50 min-h-screen">
     <header class="mb-8">
       <h1 class="text-3xl font-black text-slate-900 tracking-tight">Rapports Agent</h1>
       <p class="text-slate-500 text-sm mt-1">Générez et transférez vos rapports</p>
@@ -355,7 +355,7 @@ onMounted(() => {
                     report.status === 'draft' ? 'bg-gray-100 text-gray-800' :
                     report.status === 'transferred' ? 'bg-blue-100 text-blue-800' :
                     report.status === 'validated' ? 'bg-green-100 text-green-800' :
-                    'bg-red-100 text-red-800'
+                    'bg-blue-100 text-blue-800'
                   ]">
                     {{ report.status === 'draft' ? 'Brouillon' :
                        report.status === 'transferred' ? 'Transféré' :

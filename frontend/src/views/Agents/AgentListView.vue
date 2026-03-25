@@ -246,7 +246,7 @@ onMounted(initData)
           </span>
         </div>
       </div>
-      <button @click="isModalOpen = true" class="inline-flex items-center gap-2 bg-slate-950 hover:bg-slate-800 text-white px-6 py-3 rounded-2xl transition-all shadow-lg text-sm font-bold">
+      <button @click="isModalOpen = true" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-2xl transition-all shadow-lg text-sm font-bold">
         <Plus class="w-5 h-5" /> Ajouter un Agent
       </button>
     </header>
@@ -359,7 +359,7 @@ onMounted(initData)
               <input v-model="newAgent.haveCount" type="checkbox" id="hasAccount" class="w-4 h-4 accent-slate-900" />
               <label for="hasAccount" class="text-xs font-bold text-slate-700">Accès Digital</label>
             </div>
-            <button type="submit" class="w-full py-4 bg-slate-950 text-white font-bold rounded-2xl hover:bg-slate-800 transition-all">
+            <button type="submit" class="w-full py-4 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-500 transition-all">
               {{ toUpdate ? 'Mettre à jour' : 'Confirmer' }}
             </button>
           </form>
@@ -396,7 +396,7 @@ onMounted(initData)
                   <option value="high">Haute</option>
                 </select>
                 <input v-model="newTodo.dueDate" type="date" class="custom-select !bg-white" />
-                <button @click="handleAddTodo" :disabled="!newTodo.title" class="bg-slate-950 text-white rounded-xl font-bold text-xs disabled:opacity-50">Ajouter</button>
+                <button @click="handleAddTodo" :disabled="!newTodo.title" class="bg-blue-600 text-white rounded-xl font-bold text-xs disabled:opacity-50 hover:bg-blue-500">Ajouter</button>
               </div>
             </div>
 

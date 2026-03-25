@@ -106,7 +106,7 @@ const handleClose = () => {
                     <!-- En-tête -->
                     <div class="p-6 border-b border-slate-100 flex justify-between items-center">
                         <div class="flex items-center gap-3">
-                            <div class="bg-slate-950 text-white p-2 rounded-xl">
+                            <div class="bg-blue-600 text-white p-2 rounded-xl">
                                 <Box class="w-4 h-4" />
                             </div>
                             <div>
@@ -124,7 +124,7 @@ const handleClose = () => {
                     <!-- Corps -->
                     <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto text-left">
                         <div v-if="errors.global"
-                            class="bg-red-50 border border-red-200 text-red-600 text-xs font-semibold px-4 py-3 rounded-xl">
+                            class="bg-blue-50 border border-blue-200 text-blue-700 text-xs font-semibold px-4 py-3 rounded-xl">
                             ⚠ {{ errors.global }}
                         </div>
 
@@ -219,7 +219,7 @@ const handleClose = () => {
                             Annuler
                         </button>
                         <button @click="handleSubmit" :disabled="isSubmitting"
-                            class="flex-1 px-4 py-2.5 bg-slate-950 text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                            class="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-500 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
                             <span v-if="isSubmitting"
                                 class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                             {{ isSubmitting ? 'Enregistrement…' : 'Ajouter l\'article' }}

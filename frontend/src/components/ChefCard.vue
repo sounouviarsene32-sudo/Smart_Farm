@@ -27,14 +27,14 @@ const getPerformanceClass = (perf) => {
       <div class="flex items-center gap-4">
         <UserCircle class="w-14 h-14 text-slate-300" stroke-width="1" />
         <div>
-          <h3 class="text-xl font-bold text-slate-950">{{ chef.nom }}</h3>
+          <h3 class="text-xl font-bold text-slate-950">{{ chef.name }}</h3>
           <span class="text-xs font-medium text-slate-500 uppercase tracking-wider">
-            {{ chef.departement }}
+            {{ chef.dept.name }}
           </span>
         </div>
       </div>
       <span :class="['px-3 py-1 text-xs font-bold rounded-full border', getPerformanceClass(chef.performance)]">
-        {{ chef.performance }}
+        {{ chef.isActive? 'Actif': 'Inactif' }}
       </span>
     </div>
 
@@ -45,11 +45,11 @@ const getPerformanceClass = (perf) => {
       </div>
       <div class="flex items-center gap-3 text-sm text-slate-600">
         <Phone class="w-4 h-4 text-slate-400" />
-        {{ chef.telephone }}
+        {{ chef.num }}
       </div>
       <div class="flex items-center gap-3 text-sm text-slate-600">
         <CalendarDays class="w-4 h-4 text-slate-400" />
-        Depuis le {{ chef.dateArrivee }}
+        Depuis le {{ chef.createdAt }}
       </div>
     </div>
 
@@ -58,13 +58,13 @@ const getPerformanceClass = (perf) => {
     <div class="grid grid-cols-2 gap-4 text-center mb-6">
       <div class="border-r border-slate-100 pr-4">
         <p class="text-xs text-slate-500 font-medium">Agents</p>
-        <p class="text-3xl font-bold text-slate-900">{{ chef.totalAgents }}</p>
+        <p class="text-3xl font-bold text-slate-900">{{ chef.dept.agentsCount }}</p>
       </div>
       <div class="flex flex-col items-center">
         <p class="text-xs text-slate-500 font-medium flex items-center gap-1">
           Animaux <PawPrint class="w-3.5 h-3.5 text-slate-400" />
         </p>
-        <p class="text-3xl font-bold text-slate-900">{{ chef.totalAnimaux }}</p>
+        <p class="text-3xl font-bold text-slate-900">{{ chef.dept.animalsCount }}</p>
       </div>
     </div>
 

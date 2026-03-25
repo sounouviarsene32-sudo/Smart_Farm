@@ -68,7 +68,7 @@ const filteredTransactions = computed(() => {
 </script>
 
 <template>
-  <main class="flex-1 lg:ml-64 p-4 lg:p-8 transition-all duration-300 w-full bg-red-50 min-h-screen space-y-8">
+  <main class="flex-1 lg:ml-64 p-4 lg:p-8 transition-all duration-300 w-full bg-slate-50 min-h-screen space-y-8">
     <header class="flex justify-between items-start">
       <div>
         <h1 class="text-3xl font-bold text-slate-900">Ventes</h1>
@@ -80,7 +80,7 @@ const filteredTransactions = computed(() => {
           <Download class="w-4 h-4" /> Exporter
         </button>
         <button
-          class="bg-slate-950 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 hover:bg-slate-800">
+          class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 hover:bg-blue-500 transition-all">
           <Plus class="w-4 h-4" /> Nouvelle Vente
         </button>
       </div>
