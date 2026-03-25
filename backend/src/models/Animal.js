@@ -9,7 +9,7 @@ const animalSchema = new mongoose.Schema({
     status: { type: String, enum: ['actif', 'vendu', 'décédé'], default: 'actif' },
     weight: { type: Number },
     healthStatus: { type: String, enum: ['sain', 'malade', 'traitement'], default: 'sain' },
-    campaignId: { type: mongoose.Schema.Types.ObjectId, ref: 'Campaign', required: true },
+    campaign: { type: mongoose.Schema.Types.ObjectId, ref: 'Campaign', required: true },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now }
 });

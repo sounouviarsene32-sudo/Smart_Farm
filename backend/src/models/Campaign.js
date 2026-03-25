@@ -15,18 +15,19 @@ const campaignSchema = new mongoose.Schema({
     default: "planifié",
   },
   budget: { type: Number },
+
   manager: {
-    // responsable principal de la campagne
     type: mongoose.Schema.Types.ObjectId,
     ref: "Agent",
   },
+
   agents: [
-    // plusieurs agents assignés
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Agent",
-    },
+    }
   ],
+
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
