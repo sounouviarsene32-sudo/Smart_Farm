@@ -25,9 +25,9 @@ const DashboardService = {
     async getOverview() {
         try {
             const campaigns = await Campaign.find().limit(5);
-            const recentSales = await Sale.find().limit(5).sort({ createdAt: -1 });
+            const recentSales = await Sale.find().limit(5).sort({ createdAt: -1 }).populate('campaignId').populate('animalIds');
             const animals = await Animal.find().limit(5);
-            
+            console.log("Données de l'aperçu récupérées:", { campaigns, recentSales, animals });
             return {
                 campaigns,
                 recentSales,
