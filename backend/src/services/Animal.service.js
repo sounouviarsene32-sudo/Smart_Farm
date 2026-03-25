@@ -1,15 +1,13 @@
+// Animal.service.js
 import Animal from "../models/Animal.js";
 import Campaign from "../models/Campaign.js";
-import AlertService from "./Alert.service.js";
 
-// 📌 Service métier pour gérer les animaux
-// Toutes les fonctions liées au suivi, poids, santé, alertes
+// Service métier pour gérer les animaux
 const AnimalService = {
   async createAnimal(data) {
     const campaign = await Campaign.findById(data.campaignId);
     if (!campaign) throw new Error("Campagne introuvable");
 
-    // Crée l'animal avec les données fournies selon le modèle
     const animal = await Animal.create({
       identificationNumber: data.identificationNumber,
       species: data.species,
@@ -17,23 +15,65 @@ const AnimalService = {
       birthDate: data.birthDate,
       gender: data.gender,
       weight: data.weight || 0,
+      departmentId: data.departmentId,
       campaignId: data.campaignId,
-      status: 'actif'
+      status: "actif",
+      healthStatus: "sain"
     });
+
     return animal;
   },
 
-  async getAllAnimals() {
-    return Animal.find();
+  async createManyAnimals(data) {
+    const animals = []
+
+    for (let i = 1; i <= data.quantity; i++) {
+      const padded = String(i).padStart(4, '0') // 0001, 0002...
+
+      animals.push({
+        identificationNumber: `${data.prefix}-${padded}`,
+        species: data.species,
+        breed: data.breed,
+        birthDate: data.birthDate,
+        gender: data.gender,
+        weight: data.weight || 0,
+        departmentId: data.departmentId,
+        campaignId: data.campaignId,
+        status: 'actif',
+        healthStatus: 'sain'
+      })
+    }
+
+    return Animal.insertMany(animals)
   },
 
-  async getAnimalsByCampaign(campaignId) {
-    return Animal.find({ campaign: campaignId }).populate('campaign', 'name departement');
-  }
-,
+
+async getAllAnimals() {
+  return Animal.find()
+    .populate({
+      path: 'campaignId',
+      populate: {
+        path: 'departement',
+        select: 'name'
+      }
+    });
+},
+
+async getAnimalsByCampaign(campaignId) {
+  return Animal.find({ campaignId })
+    .populate({
+      path: 'campaignId',
+      populate: {
+        path: 'departement',
+        select: 'name'
+      }
+    });
+},
 
   async getAnimalById(animalId) {
-    return Animal.findById(animalId);
+    return Animal.findById(animalId)
+      .populate("campaignId", "name")
+      .populate("departmentId", "name");
   },
 
   async updateAnimal(animalId, payload) {
@@ -42,7 +82,7 @@ const AnimalService = {
 
   async deleteAnimal(animalId) {
     return Animal.findByIdAndDelete(animalId);
-  }
+  },
 };
 
 export default AnimalService;

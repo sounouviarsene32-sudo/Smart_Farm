@@ -25,13 +25,12 @@ const loadCampaigns = async () => {
     const progressionMoyenne = data.length
       ? Math.round(data.reduce((sum, c) => sum + (c.progression || 0), 0) / data.length)
       : 0
-    const totalAnimals = data.reduce((sum, c) => sum + (c.animalsCount || 0), 0) // 🔥 ajout animaux
 
     stats.value = [
       { title: 'Campagnes Actives', value: data.filter(c => c.status === 'actif').length, color: 'text-blue-600', bg: 'bg-blue-50', icon: Plus },
       { title: 'Total Campagnes', value: data.length, color: 'text-emerald-500', bg: 'bg-emerald-50', icon: Plus },
       { title: 'Progression Moy.', value: progressionMoyenne + '%', color: 'text-purple-600', bg: 'bg-purple-50', icon: Plus },
-      { title: 'Cheptel Total', value: totalAnimals + ' Têtes', color: 'text-orange-500', bg: 'bg-orange-50', icon: Plus } // 🔥 nouveau stat
+      { title: 'Budget Total', value: totalBudget.toLocaleString() + ' FCFA', color: 'text-orange-500', bg: 'bg-orange-50', icon: Plus }
     ]
   } catch (err) {
     console.error(err)
@@ -79,7 +78,6 @@ const handleFormClose = () => {
       </div>
 
       <div class="space-y-6">
-        <!-- 🔥 Passe la campagne entière, elle contient animalsCount maintenant -->
         <CampaignCard v-for="campaign in campaigns" :key="campaign._id" :campaign="campaign" />
       </div>
     </div>

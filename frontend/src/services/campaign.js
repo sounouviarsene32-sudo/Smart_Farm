@@ -10,6 +10,7 @@ async function getCampaignById(id) {
   return response.data;
 }
 
+
 async function createCampaign(data) {
   const response = await api.post('/campaigns', data);
   return response.data;

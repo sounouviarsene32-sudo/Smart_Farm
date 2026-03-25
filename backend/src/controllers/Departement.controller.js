@@ -2,13 +2,13 @@ import DepartementService from "../services/Departement.service.js";
 
 const DepartementController = {
 
-  async create(req, res) {
-    console.log("donnée reçu", req.body);
+  async getAllWithCampaigns(req, res) {
     try {
-      const departement = await DepartementService.createDepartement(req.body);
-      res.status(201).json(departement);
+      const departements = await DepartementService.getAllDepartementsWithCampaigns();
+      res.json(departements);
     } catch (err) {
-      res.status(400).json({ error: err.message });
+      console.error("Erreur getAllWithCampaigns:", err);
+      res.status(500).json({ error: "Impossible de récupérer les départements avec campagnes" });
     }
   },
 
@@ -28,6 +28,15 @@ const DepartementController = {
       res.json(departement);
     } catch (err) {
       res.status(500).json({ error: err.message });
+    }
+  },
+
+  async create(req, res) {
+    try {
+      const departement = await DepartementService.createDepartement(req.body);
+      res.status(201).json(departement);
+    } catch (err) {
+      res.status(400).json({ error: err.message });
     }
   },
 

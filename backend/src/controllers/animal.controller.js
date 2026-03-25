@@ -1,11 +1,13 @@
+// Animal.controller.js
 import AnimalService from "../services/Animal.service.js";
 
 const AnimalController = {
-
   async getAnimals(req, res) {
     try {
       if (req.query.campaignId) {
-        const animals = await AnimalService.getAnimalsByCampagne(req.query.campaignId);
+        const animals = await AnimalService.getAnimalsByCampaign(
+          req.query.campaignId,
+        );
         return res.json(animals);
       }
       const animals = await AnimalService.getAllAnimals();
@@ -23,13 +25,12 @@ const AnimalController = {
       res.status(400).json({ error: err.message });
     }
   },
-
-  async getAllByCampagne(req, res) {
+  async createManyAnimals(req, res) {
     try {
-      const animals = await AnimalService.getAnimalsByCampagne(req.params.campagneId);
-      res.json(animals);
+      const animals = await AnimalService.createManyAnimals(req.body);
+      res.status(201).json(animals);
     } catch (err) {
-      res.status(500).json({ error: err.message });
+      res.status(400).json({ error: err.message });
     }
   },
 
@@ -59,8 +60,7 @@ const AnimalController = {
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
-  }
-
+  },
 };
 
 export default AnimalController;
