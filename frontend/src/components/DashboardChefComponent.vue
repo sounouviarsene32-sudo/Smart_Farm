@@ -69,6 +69,8 @@ const fetchData = async () => {
     statsData.value = stats
     overviewData.value = overview
     console.log('Données chargées pour le Chef:', { stats, overview, deptId })
+    console.log('Campaigns in overview:', overview?.campaigns)
+    console.log('My campaigns after filtering:', myCampaigns.value)
   } catch (error) {
     console.error('Erreur chargement chef', error)
   } finally {
@@ -144,17 +146,39 @@ const myCampaigns = computed(() => {
 
 // --- Graphique Pie (Utilise maintenant myCampaigns) ---
 const pieData = computed(() => {
-  if (myCampaigns.value.length === 0) return null
-  return {
-    labels: myCampaigns.value.map((c) => c.name),
+  console.log('pieData computed - myCampaigns:', myCampaigns.value)
+  console.log('pieData computed - overviewData:', overviewData.value)
+
+  if (!myCampaigns.value || myCampaigns.value.length === 0) {
+    console.log('pieData: No campaigns found')
+    return null
+  }
+
+  // Filtrer les campagnes qui ont des animaux (pour éviter les 0)
+  const campaignsWithAnimals = myCampaigns.value.filter(c => (c.animalsCount || 0) > 0)
+
+  if (campaignsWithAnimals.length === 0) {
+    console.log('pieData: No campaigns with animals')
+    return null
+  }
+
+  const data = {
+    labels: campaignsWithAnimals.map((c) => c.name),
     datasets: [
       {
-        data: myCampaigns.value.map((c) => c.animalsCount || 0),
+        data: campaignsWithAnimals.map((c) => {
+          const count = c.animalsCount || 0
+          console.log(`Campaign ${c.name}: animalsCount = ${count}`)
+          return count
+        }),
         backgroundColor: ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6'],
         borderWidth: 0,
       },
     ],
   }
+
+  console.log('pieData final:', data)
+  return data
 })
 
 
@@ -209,17 +233,23 @@ const lineOptions = {
 // --- Stats Cards adaptées au Chef ---
 const dynamicStats = computed(() => {
   if (!statsData.value) return []
+
+  // Calculer le nombre total d'animaux dans les campagnes du chef
+  const totalAnimalsInDept = myCampaigns.value.reduce((total, campaign) => {
+    return total + (campaign.animalsCount || 0)
+  }, 0)
+
   return [
     {
       title: 'Animaux (Dépt)',
-      value: statsData.value.totalAnimals || 0,
+      value: totalAnimalsInDept,
       subText: chefDept.value,
       colorClass: 'text-emerald-500',
       icon: PawPrint,
     },
     {
       title: 'Mes Campagnes',
-      value: myCampaigns.value.length, // Plus besoin de .length sur une ref() ici car c'est une computed
+      value: myCampaigns.value.length,
       subText: 'En cours / Planifiées',
       colorClass: 'text-purple-500',
       icon: Target,
