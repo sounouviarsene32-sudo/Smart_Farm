@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import {
   FileBarChart,
   FileText,
@@ -11,100 +11,59 @@ import {
   UserCircle,
 } from 'lucide-vue-next'
 
-
 import { 
   Download, QrCode, Search, ScanQrCode, Beef,
   Users, DollarSign, Activity, TrendingUp, TrendingDown, Package,
- CalendarClock, Target, Syringe, Heart, Factory
+  CalendarClock, Target, Syringe, Heart, Factory
 } from 'lucide-vue-next';
 
-// Données des rapports en attente de validation
-const reportsToValidate = ref([
-  {
-    id: 1,
-    title: 'Bilan Hebdomadaire - Production Œufs',
-    author: 'Jean Dupont',
-    dept: 'Volaille',
-    date: 'Hier, 16:45',
-  },
-  {
-    id: 2,
-    title: 'Rapport Sanitaire Mensuel',
-    author: 'Dr. Sow',
-    dept: 'Santé & Vétérinaire',
-    date: "Aujourd'hui, 09:12",
-  },
-  {
-    id: 3,
-    title: 'Inventaire Aliments Stock B',
-    author: 'Paul Lefebvre',
-    dept: 'Stock',
-    date: '19/03/2026',
-  },
-])
+// Données dynamiques - Rapports en attente de validation
+const reportsToValidate = ref([]);
+const permissionRequests = ref([]);
+const reportHistory = ref([]);
+const searchHistory = ref('');
+const filterStatus = ref('all');
+const loading = ref(false);
 
-// Données des demandes de permissions (de la part des agents/chefs)
-const permissionRequests = ref([
-  {
-    id: 1,
-    user: 'Marie Martin',
-    initials: 'MM',
-    role: 'Chef Département Bovins',
-    module: 'Finances',
-  },
-  {
-    id: 2,
-    user: 'Pierre Durand',
-    initials: 'PD',
-    role: 'Agent de Terrain',
-    module: 'Inventaire Avancé',
-  },
-])
+// Charger les rapports soumis par les agents et chefs
+const loadReports = async () => {
+  loading.value = true;
+  try {
+    // Récupérer les rapports en attente de validation
+    const res = await fetch('http://localhost:8080/api/reports/pending');
+    if (res.ok) {
+      const data = await res.json();
+      reportsToValidate.value = data.reports || [];
+      reportHistory.value = data.history || [];
+    }
+  } catch (error) {
+    console.error('Erreur chargement rapports:', error);
+  } finally {
+    loading.value = false;
+  }
+};
 
-const validate = (id, action) => {
-  // Logique pour traiter le rapport (Approuver ou Rejeter)
-  reportsToValidate.value = reportsToValidate.value.filter((r) => r.id !== id)
-}
+// Valider un rapport
+const validate = async (id, action) => {
+  try {
+    const res = await fetch(`http://localhost:8080/api/reports/${id}/validate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action })
+    });
 
-import { ExternalLink } from 'lucide-vue-next' // Ajoute ces imports
-
-const searchHistory = ref('')
-const filterStatus = ref('all')
-
-const reportHistory = ref([
-  {
-    id: 101,
-    title: 'Inventaire Mensuel - Mars',
-    dept: 'Stock',
-    author: 'Paul Lefebvre',
-    date: '20/03/2026',
-    status: 'Validé',
-  },
-  {
-    id: 102,
-    title: 'Consommation Alimentaire Hebdo',
-    dept: 'Bovins',
-    author: 'Marie Martin',
-    date: '19/03/2026',
-    status: 'Rejeté',
-  },
-  {
-    id: 103,
-    title: 'Rapport Sanitaire Q1',
-    dept: 'Santé',
-    author: 'Dr. Sow',
-    date: '18/03/2026',
-    status: 'Validé',
-  },
-  {
-    id: 104,
-    title: 'Ventes Poulets de chair',
-    dept: 'Finance',
-    author: 'Jean Dupont',
-    date: '17/03/2026',
-    status: 'En attente',
-  },
-])
+    if (res.ok) {
+      reportsToValidate.value = reportsToValidate.value.filter((r) => r.id !== id);
+      // Mettre à jour l'historique
+      const report = reportHistory.value.find(r => r.id === id);
+      if (report) {
+        report.status = action === 'approve' ? 'Validé' : 'Rejeté';
+      }
+    }
+  } catch (error) {
+    console.error('Erreur validation:', error);
+  }
+};
 
 // Logique de filtrage
 const filteredHistory = computed(() => {
@@ -128,7 +87,7 @@ const getStatusBg = (status) => {
   return 'bg-orange-50 text-orange-600'
 }
 
-// --- Données Rapports Prédéfinis (reproduites fidèlement) ---
+// --- Données Rapports Prédéfinis (dynamiques) ---
 const predefinedReports = [
   { title: 'Rapport Mensuel', description: 'Vue d’ensemble du mois en cours', icon: FileText, colorIcon: 'text-blue-600', bgIcon: 'bg-blue-50' },
   { title: 'Rapport Trimestriel', description: 'Analyse des 3 derniers mois', icon: CalendarClock, colorIcon: 'text-emerald-500', bgIcon: 'bg-emerald-50' },
@@ -137,11 +96,36 @@ const predefinedReports = [
   { title: 'Rapport Sanitaire', description: 'État de santé du cheptel', icon: Heart, colorIcon: 'text-rose-500', bgIcon: 'bg-rose-50' },
   { title: 'Rapport Production', description: 'Performances par département', icon: Factory, colorIcon: 'text-orange-500', bgIcon: 'bg-white border border-slate-100' },
 ];
+
+// Générer un rapport prédéfini
+const generatePredefinedReport = async (reportTitle) => {
+  try {
+    const endpoint = `http://localhost:8080/api/reports/${reportTitle.toLowerCase().replace(' ', '-')}`;
+    const res = await fetch(endpoint);
+    if (res.ok) {
+      const report = await res.json();
+      // Télécharger le rapport
+      const dataStr = JSON.stringify(report, null, 2);
+      const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+      const exportFileDefaultName = `rapport-${reportTitle.toLowerCase().replace(' ', '-')}-${new Date().toISOString().split('T')[0]}.json`;
+      const linkElement = document.createElement('a');
+      linkElement.setAttribute('href', dataUri);
+      linkElement.setAttribute('download', exportFileDefaultName);
+      linkElement.click();
+    }
+  } catch (error) {
+    console.error('Erreur génération rapport:', error);
+  }
+};
+
+onMounted(() => {
+  loadReports();
+});
 </script>
 
 <template>
   <main
-    class="flex-1 lg:ml-64 p-4 lg:p-8 transition-all duration-300 w-full bg-red-50 min-h-screen space-y-8"
+    class="flex-1 lg:ml-64 p-4 lg:p-8 transition-all duration-300 w-full bg-slate-50 min-h-screen space-y-8"
   >
     <header>
       <div>
@@ -286,7 +270,7 @@ const predefinedReports = [
               <p class="text-xs text-slate-400 mt-1">{{ report.description }}</p>
             </div>
           </div>
-          <button class="text-slate-400 hover:text-slate-900 transition-colors">
+          <button @click="generatePredefinedReport(report.title)" class="text-slate-400 hover:text-slate-900 transition-colors">
             <Download class="w-4 h-4" />
           </button>
         </div>

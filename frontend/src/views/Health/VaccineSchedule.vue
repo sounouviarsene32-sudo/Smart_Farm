@@ -28,7 +28,7 @@ const recentTreatments = [
 
 
 <template>
-  <main class="flex-1 lg:ml-64 p-4 lg:p-8 transition-all duration-300 w-full bg-red-50 min-h-screen space-y-8">
+  <main class="flex-1 lg:ml-64 p-4 lg:p-8 transition-all duration-300 w-full bg-slate-50 min-h-screen space-y-8">
     <header class="flex justify-between items-start">
       <div>
         <h1 class="text-2xl font-bold text-slate-900">Santé des Animaux</h1>
@@ -49,7 +49,7 @@ const recentTreatments = [
     <div class="bg-white my-10 rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
       <div class="p-6 border-b border-slate-50 flex justify-between items-center">
         <h2 class="font-bold text-slate-800">Planning de Vaccination</h2>
-        <button class="bg-slate-950 text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2">
+        <button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 hover:bg-blue-500 transition-all">
           <CalendarPlus class="w-4 h-4" /> Planifier
         </button>
       </div>

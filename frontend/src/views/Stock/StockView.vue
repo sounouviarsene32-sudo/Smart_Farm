@@ -93,14 +93,15 @@ const getStatusInfo = (item) => {
 </script>
 
 <template>
-  <main class="flex-1 lg:ml-64 p-4 lg:p-8 transition-all duration-300 w-full bg-red-50 min-h-screen space-y-8">
-    <header class="flex justify-between items-start">
+  <main class="flex-1 lg:ml-64 p-4 lg:p-8 bg-slate-50 min-h-screen space-y-8">
+    
+    <header class="flex justify-between items-center">
       <div>
-        <h1 class="text-2xl font-bold text-slate-900">Gestion du Stock</h1>
-        <p class="text-slate-500 text-sm">Inventaire et approvisionnement</p>
+        <h1 class="text-2xl font-black text-slate-900 tracking-tight">Gestion du Stock</h1>
+        <p class="text-slate-500 text-sm font-medium">Suivi en temps réel • SmartFarm</p>
       </div>
       <button @click="isModalOpen = true"
-        class="bg-slate-950 text-white px-4 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 transition-transform hover:scale-105 active:scale-95">
+        class="bg-blue-600 text-white px-4 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 transition-all hover:bg-blue-500 active:scale-95">
         <Plus class="w-4 h-4" /> Ajouter un Article
       </button>
 
@@ -114,15 +115,17 @@ const getStatusInfo = (item) => {
       <div v-for="stat in stockStats" :key="stat.label"
         class="bg-white p-6 rounded-lg  shadow-sm flex justify-between items-center">
         <div>
-          <p class="text-xs font-medium text-slate-400 mb-1">{{ stat.label }}</p>
-          <p class="text-2xl font-bold text-slate-900">{{ stat.value }}</p>
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">{{ stat.label }}</p>
+          <p class="text-3xl font-black text-slate-900">{{ stat.value }}</p>
         </div>
-        <component :is="stat.icon" :class="['w-8 h-8', stat.color]" />
+        <div :class="['p-3 rounded-2xl bg-slate-50', stat.color]">
+            <component :is="stat.icon" class="w-6 h-6" />
+        </div>
       </div>
     </div>
 
-    <div class="bg-[#FFF8F1] border border-[#FFE7D3] p-6 rounded-2xl space-y-4">
-      <div class="flex items-center gap-2 text-[#935D27] font-bold text-sm uppercase tracking-wide">
+    <div class="bg-orange-50 border border-orange-100 p-6 rounded-3xl space-y-4">
+      <div class="flex items-center gap-2 text-orange-700 font-black text-xs uppercase tracking-widest">
         <AlertTriangle class="w-5 h-5" /> Alertes de Stock
       </div>
       <div class="space-y-3">
@@ -134,11 +137,11 @@ const getStatusInfo = (item) => {
           class="bg-white p-4 rounded-xl border border-[#FFE7D3] flex justify-between items-center shadow-sm">
           <div>
             <h4 class="font-bold text-slate-900 text-sm">{{ alert.name }}</h4>
-            <p :class="['text-xs font-medium', alert.type === 'critique' ? 'text-rose-500' : 'text-orange-500']">
+            <p :class="['text-xs font-bold uppercase mt-1', alert.type === 'critique' ? 'text-rose-500' : 'text-orange-500']">
               {{ alert.message }}
             </p>
           </div>
-          <button class="bg-slate-950 text-white px-5 py-2 rounded-lg text-xs font-bold hover:bg-slate-800">
+          <button class="bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-black transition-colors">
             Commander
           </button>
         </div>
@@ -208,7 +211,76 @@ const getStatusInfo = (item) => {
       </table>
     </div>
   </main>
-</template>
+<main>
+    <div v-if="showModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-md transition-opacity" @click="showModal = false"></div>
 
+      <div class="relative w-full max-w-xl bg-white/95 backdrop-blur-xl border border-white shadow-2xl rounded-[2.5rem] overflow-hidden animate-modal">
+        
+        <div class="bg-blue-600 p-8 text-white">
+          <div class="flex justify-between items-start">
+            <div>
+              <h2 class="text-2xl font-black tracking-tight">Nouvel Article</h2>
+              <p class="text-blue-100 text-xs font-bold uppercase tracking-widest mt-1">Inventaire SmartFarm</p>
+            </div>
+            <button @click="showModal = false" class="p-2 hover:bg-white/10 rounded-full transition-colors">
+              <X class="w-6 h-6" />
+            </button>
+          </div>
+        </div>
+        
+
+        <div class="p-8 grid grid-cols-2 gap-6">
+          <div class="col-span-2 space-y-1">
+            <label class="label-pro">Nom de l'article</label>
+            <input v-model="newItem.name" class="input-pro" placeholder="Ex: Aliment Caprins" />
+          </div>
+
+          <div class="space-y-1">
+            <label class="label-pro">Quantité</label>
+            <input v-model="newItem.quantity" type="number" class="input-pro" placeholder="0.00" />
+          </div>
+
+          <div class="space-y-1">
+            <label class="label-pro">Unité</label>
+            <input v-model="newItem.unit" class="input-pro" placeholder="kg, L, doses..." />
+          </div>
+
+          <div class="space-y-1">
+            <label class="label-pro">Stock minimum</label>
+            <input v-model="newItem.minStock" type="number" class="input-pro" placeholder="Seuil d'alerte" />
+          </div>
+
+          <div class="space-y-1">
+            <label class="label-pro">Statut initial</label>
+            <select v-model="newItem.status" class="input-pro cursor-pointer">
+              <option>Normal</option>
+              <option>Faible</option>
+              <option>Critique</option>
+            </select>
+          </div>
+
+          <div class="col-span-2 space-y-1">
+            <label class="label-pro">Fournisseur</label>
+            <input v-model="newItem.supplier" class="input-pro" placeholder="Nom de l'entreprise" />
+          </div>
+        </div>
+
+        <div v-if="messageStatus" :class="['w-full p-4 rounded-2xl mt-4 font-bold text-sm mb-4', 
+          messageStatus.includes('succès') ? 'bg-emerald-100 border border-emerald-200 text-emerald-800' : 
+          'bg-rose-100 border border-rose-200 text-rose-800']">
+          {{ messageStatus }}
+        </div>
+        <div class="px-8 py-6 bg-slate-50/50 border-t border-slate-100 flex justify-end gap-4">
+          <button @click="showModal = false" class="text-slate-400 hover:text-slate-600 font-bold text-sm">Annuler</button>
+          <button @click="addItem" :disabled="isLoading"
+            class="bg-blue-600 text-white px-8 py-3 rounded-2xl font-bold text-sm shadow-lg hover:bg-blue-500 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+            {{ isLoading ? 'Ajout...' : 'Ajouter au Stock' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+</template>
 
 <style scoped></style>

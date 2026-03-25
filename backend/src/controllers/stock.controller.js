@@ -12,6 +12,26 @@ const stockController = {
         }
     },
 
+    // Stats dashboard
+    stats: async (req, res) => {
+        try {
+            const stats = await StockService.getStats();
+            res.json(stats);
+        } catch (error) {
+            res.status(500).json({ message: error.message });
+        }
+    },
+
+    // Alertes de stock
+    alerts: async (req, res) => {
+        try {
+            const alerts = await StockService.getAlerts();
+            res.json(alerts);
+        } catch (error) {
+            res.status(500).json({ message: error.message });
+        }
+    },
+
     // Créer un nouvel article
     creerArticle: async (req, res) => {
         try {

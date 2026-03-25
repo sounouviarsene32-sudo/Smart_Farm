@@ -28,19 +28,31 @@ export const login = async ({ email, password }) => {
   // Utilise la méthode définie dans ton schéma !
   const isMatch = await user.comparePassword(password);
   if (!isMatch) throw new Error("Identifiants invalides");
-  const token = jwt.sign(
-    {
-      sub: user._id.toString(),
-      role: user.role,
-      email: user.email,
-      userName: user.name,
-      dept: user.dept,
-    },
-    JWT_SECRET,
-    { expiresIn: "7d" },
-  );
 
-  return token;
+  const deptId = user.dept?._id?.toString() || user.dept?.toString() || null;
+  const deptName = user.dept?.name || null;
+
+  const tokenPayload = {
+    sub: user._id.toString(),
+    role: user.role,
+    email: user.email,
+    userName: user.name,
+    dept: deptId,
+    deptName,
+  };
+
+  const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: "7d" });
+
+  return {
+    token,
+    user: {
+      id: user._id,
+      email: user.email,
+      role: user.role,
+      name: user.name,
+      dept: user.dept
+    }
+  };
 };
 
 export const getUserById = async (userId) => {

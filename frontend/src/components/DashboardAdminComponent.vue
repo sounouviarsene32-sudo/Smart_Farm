@@ -141,7 +141,7 @@ onMounted(fetchData)
 </script>
 
 <template>
-  <main class="flex-1 lg:ml-64 p-4 lg:p-8 bg-red-50 min-h-screen space-y-8">
+  <main class="flex-1 lg:ml-64 p-4 lg:p-8 bg-slate-50 min-h-screen space-y-8">
     <div v-if="loading" class="flex justify-center items-center h-64">
       <p class="text-slate-500 font-bold animate-pulse">Chargement des données...</p>
     </div>
@@ -262,7 +262,7 @@ onMounted(fetchData)
 </script>
 
 <template>
-  <main class="flex-1 lg:ml-64 p-4 lg:p-8 bg-red-50 min-h-screen space-y-8">
+  <main class="flex-1 lg:ml-64 p-4 lg:p-8 bg-slate-50 min-h-screen space-y-8">
     
     <header v-if="!loading" class="mb-8">
       <h2 class="text-2xl font-bold text-slate-800">Tableau de Bord Stratégique</h2>

@@ -171,7 +171,7 @@ onMounted(allUsers)
 
 <template>
   <main
-    class="flex-1 lg:ml-64 p-4 lg:p-8 transition-all duration-300 w-full bg-red-50 min-h-screen space-y-8"
+    class="flex-1 lg:ml-64 p-4 lg:p-8 transition-all duration-300 w-full bg-slate-50 min-h-screen space-y-8"
   >
     <div class="flex justify-between items-start mb-8">
       <div>
@@ -180,7 +180,7 @@ onMounted(allUsers)
       </div>
       <button
         @click="isModalOpen = true"
-        class="bg-slate-950 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 text-sm font-bold transition-all hover:bg-slate-800 active:scale-95 shadow-lg shadow-slate-200"
+        class="bg-blue-600 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 text-sm font-bold transition-all hover:bg-blue-500 active:scale-95 shadow-lg"
       >
         <Plus class="w-4 h-4" /> Créer Utilisateur
       </button>
@@ -292,7 +292,7 @@ onMounted(allUsers)
               </button>
               <button
                 type="submit"
-                class="flex-1 py-4 bg-slate-950 text-white text-sm font-bold rounded-2xl hover:bg-slate-800 transition-all shadow-lg shadow-slate-100 active:scale-95"
+                class="flex-1 py-4 bg-blue-600 text-white text-sm font-bold rounded-2xl hover:bg-blue-500 transition-all shadow-lg active:scale-95"
               >
                 Confirmer l'ajout
               </button>

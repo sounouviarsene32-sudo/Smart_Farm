@@ -107,7 +107,7 @@ async function deleteDepartement() {
       <button
         @click="deleteDepartement"
         :disabled="deleting"
-        class="py-3 px-4 bg-red-500 text-white text-xs font-bold rounded-xl hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
+        class="py-3 px-4 bg-blue-600 text-white text-xs font-bold rounded-xl hover:bg-blue-500 transition-all flex items-center justify-center gap-2"
       >
         {{ deleting ? 'Suppression...' : 'Supprimer' }}
       </button>

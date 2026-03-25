@@ -17,17 +17,17 @@ const campaignSchema = new mongoose.Schema({
   budget: { type: Number },
   animalsCount: { type: Number, default: 0 },
   manager: {
-    // responsable principal de la campagne
     type: mongoose.Schema.Types.ObjectId,
     ref: "Agent",
   },
+
   agents: [
-    // plusieurs agents assignés
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Agent",
-    },
+    }
   ],
+
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });

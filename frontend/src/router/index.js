@@ -30,7 +30,8 @@ import HealthDepartment from '@/views/Health/HealthDepartment.vue'
 import DepartementDetail from '@/views/Departments/DepartementDetail.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import CampaignForm from '@/views/Campaigns/CampaignForm.vue'
-
+import CampaignDetail from '@/views/Campaigns/CampaignDetail.vue'
+import AnimalForm from '@/views/Form/AnimalForm.vue'
 const routes = [
   {
     path: '/:pathMatch(.*)*',
@@ -114,6 +115,11 @@ const routes = [
         component: CampaignAdminView,
       },
       {
+        path: '/campaigns/:id',
+        name: 'campaigns-detail',
+        component: CampaignDetail,
+      },
+      {
         path: '/admin/campagnes/nouvelle',
         name: 'CampagneAdminForm',
         component: CampaignForm,
@@ -129,6 +135,11 @@ const routes = [
         component: AnimalList,
       },
       {
+        path: 'animals',
+        name: 'animals-form',
+        component: AnimalForm,
+      },
+      {
         path: 'rapports',
         name: 'rapports-admin',
         component: RapportsAdminView,
@@ -136,7 +147,7 @@ const routes = [
     ],
   },
   {
-    path: '/chefDepartment',
+    path: '/chef',
     name: 'chef',
     component: ChefLayout,
     meta: { requiresAuth: true, role: 'chef' },
@@ -243,30 +254,23 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
 })
-
 router.beforeEach((to, from, next) => {
   const loginStore = useLoginStore()
   const logged = loginStore.token
   const currentUser = loginStore.getDecodedToken
 
-  if (to.meta.requiresAuth && !logged) {
-    next({ name: 'login' })
-  } else if (to.name === 'login' && logged) {
-    if (currentUser.role === 'admin') {
-      next({ name: 'dashboard-admin' })
-    }
-    if (currentUser.role === 'agent') {
-      next({ name: 'dashboard-agent' })
-    }
-    if (currentUser.role === 'chef') {
-      next({ name: 'dashboard-chef' })
-    }
-  }
-  // if (to.meta.role && to.meta.role !== currentUser.role) {
-  //   return next({ name: 'unauthorized' })
-  // }
-  else {
-    next()
-  }
+  // 1. Protection des routes privées
+ if (to.meta.requiresAuth && !logged) {
+  return next({ name: 'login' }) // 👈 AJOUTE CETTE LIGNE
+}
+
+  // 2. Redirection si déjà connecté
+if (to.name === 'login' && logged && currentUser) { // 👈 AJOUTE "&& currentUser"
+  if (currentUser.role === 'admin') return next({ name: 'dashboard-admin' })
+  if (currentUser.role === 'agent') return next({ name: 'dashboard-agent' })
+  if (currentUser.role === 'chef') return next({ name: 'dashboard-chef' })
+}
+  // 3. Cas par défaut (IMPORTANT : toujours appeler next() ici)
+  next()
 })
 export default router
