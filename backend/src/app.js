@@ -16,7 +16,7 @@ app.use(cors({
 // JSON
 app.use(express.json());
 
-// 🔥 BRANCHEMENT DES ROUTES
+//  BRANCHEMENT DES ROUTES
 app.use("/api", router);
 
 // Route test

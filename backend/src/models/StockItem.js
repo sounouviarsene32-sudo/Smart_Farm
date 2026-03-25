@@ -8,6 +8,7 @@ const stockItemSchema = new mongoose.Schema({
     unit: { type: String, required: true },
     threshold: { type: Number, default: 10 }, // Seuil d'alerte
     unitCost: { type: Number, default: 0 },
+    supplier: { type: String, default: 'Non spécifié' }, // <--- Ajouté
     lastUpdated: { type: Date, default: Date.now }
 });
 

@@ -2,6 +2,10 @@
 import { ref, computed } from 'vue';
 import { Search, PlusCircle, Users, Activity, Target, BrainCircuit, PawPrint } from 'lucide-vue-next';
 import ChefCard from '../../components/ChefCard.vue'; // Import du composant enfant
+import { useToast } from 'vue-toastification';
+import Swal from 'sweetalert2';
+
+const toast = useToast();
 
 // --- 1. Données simulées (Stats globales) ---
 const stats = ref([
@@ -34,11 +38,25 @@ const filteredChefs = computed(() => {
 });
 
 // --- 4. Logique des Actions ---
-const handleAddChef = () => alert('Ajouter un nouveau chef...');
-const handleEditChef = (id) => alert(`Modifier le chef avec l'ID : ${id}`);
-const handleDeleteChef = (id) => {
-  if (confirm('Êtes-vous sûr de vouloir supprimer ce responsable ?')) {
+const handleAddChef = () => toast.info('Fonctionnalité d\'ajout bientôt disponible');
+const handleEditChef = (id) => toast.info(`Modification du chef ${id} bientôt disponible`);
+
+const handleDeleteChef = async (id) => {
+  const result = await Swal.fire({
+    title: 'Supprimer ce responsable ?',
+    text: "Cette action est irréversible !",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#0f172a',
+    cancelButtonColor: '#f1f5f9',
+    confirmButtonText: 'Oui, supprimer',
+    cancelButtonText: 'Annuler',
+    customClass: { cancelButton: 'text-slate-700' }
+  });
+
+  if (result.isConfirmed) {
     allChefs.value = allChefs.value.filter(chef => chef.id !== id);
+    toast.success('Responsable supprimé');
   }
 };
 

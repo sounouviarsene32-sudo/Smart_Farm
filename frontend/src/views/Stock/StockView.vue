@@ -1,124 +1,94 @@
 <script setup>
-import { 
-  Plus, Box, AlertTriangle, TrendingDown, 
-  ShoppingCart, Search, ShieldAlert, X 
+import { ref, onMounted, computed } from 'vue';
+import {
+  Plus, Box, AlertTriangle, TrendingDown,
+  ShoppingCart, Search, UserCircle, ShieldAlert
 } from 'lucide-vue-next';
-
 import api from '@/api/axios.config.js';
-import { ref, computed, onMounted } from 'vue';
+import NewStockModal from '@/components/NewStockModal.vue';
+import StockDetailModal from '@/components/StockDetailModal.vue';
 
-// --- DATA DYNAMIQUE ---
-const stockStats = ref([]);
-const stockAlerts = ref([]);
-
-// Load dashboard data
-const loadDashboard = async () => {
-  try {
-    const [statsRes, alertsRes] = await Promise.all([
-      api.get('/stock/stats'),
-      api.get('/stock/alerts')
-    ]);
-    
-    const rawStats = statsRes.data;
-    stockStats.value = [
-      { label: 'Total Articles', value: rawStats.total.toString(), icon: Box, color: 'text-blue-500' },
-      { label: 'Stock Critique', value: rawStats.critical.toString(), icon: ShieldAlert, color: 'text-rose-500' },
-      { label: 'Stock Faible', value: rawStats.low.toString(), icon: TrendingDown, color: 'text-orange-500' },
-      { label: 'Alertes Actives', value: rawStats.alerts.toString(), icon: ShoppingCart, color: 'text-purple-500' }
-    ];
-    
-    stockAlerts.value = alertsRes.data;
-  } catch (error) {
-    console.error('Erreur load dashboard:', error);
-  }
-};
-
-
-// --- LOGIQUE D'INVENTAIRE ---
+const isModalOpen = ref(false);
+const isDetailModalOpen = ref(false);
+const selectedItem = ref(null);
 const inventory = ref([]);
+const searchQuery = ref('');
 
-// Load dynamic data
-const loadInventory = async () => {
-  try {
-    const response = await api.get('/stock');
-    inventory.value = response.data.map(item => ({
-      ...item,
-      minStock: item.threshold,
-      percent: (item.quantity / item.threshold * 100) || 100,
-      statusClass: (item.quantity / item.threshold * 100) < 30 ? 'bg-rose-500 text-white' : 
-                   (item.quantity / item.threshold * 100) < 70 ? 'bg-orange-500 text-white' : 'bg-emerald-500 text-white',
-      progressColor: (item.quantity / item.threshold * 100) < 30 ? 'bg-rose-500' : 
-                     (item.quantity / item.threshold * 100) < 70 ? 'bg-orange-500' : 'bg-emerald-500'
-    }));
-  } catch (error) {
-    console.error('Erreur load inventory:', error);
-  }
-};
+// Statistiques réelles
+const stockStats = computed(() => {
+  const total = inventory.value.length;
+  const critique = inventory.value.filter(item => item.quantity <= item.threshold).length;
+  const faible = inventory.value.filter(item => item.quantity > item.threshold && item.quantity <= item.threshold * 2).length;
 
-onMounted(async () => {
-  await Promise.all([loadInventory(), loadDashboard()]);
+  return [
+    { label: 'Total Articles', value: total, icon: Box, color: 'text-blue-500' },
+    { label: 'Stock Critique', value: critique, icon: ShieldAlert, color: 'text-rose-500' },
+    { label: 'Stock Faible', value: faible, icon: TrendingDown, color: 'text-orange-500' },
+    { label: 'Alertes Actives', value: critique + faible, icon: ShoppingCart, color: 'text-purple-500' },
+  ];
 });
 
-// --- RECHERCHE ---
-const searchQuery = ref('');
+// Alertes de stock
+const stockAlerts = computed(() => {
+  return inventory.value
+    .filter(item => item.quantity <= item.threshold)
+    .map(item => ({
+      name: item.name,
+      message: `Stock critique (${item.quantity} ${item.unit}) - Réapprovisionnement urgent`,
+      type: 'critique'
+    }))
+    .slice(0, 3); // Limiter à 3 alertes
+});
+
+// Récupération des données
+const fetchStock = async () => {
+  try {
+    const res = await api.get('/stock');
+    inventory.value = res.data;
+  } catch (error) {
+    console.error("Erreur lors du chargement du stock :", error);
+  }
+};
+
+onMounted(fetchStock);
+
+const onStockAdded = (newStock) => {
+  inventory.value.unshift(newStock);
+};
+
+const onStockDeleted = (id) => {
+  inventory.value = inventory.value.filter(item => item._id !== id);
+};
+
+const onStockUpdated = (updatedStock) => {
+  const index = inventory.value.findIndex(item => item._id === updatedStock._id);
+  if (index !== -1) {
+    inventory.value[index] = updatedStock;
+  }
+};
+
+const openDetails = (item) => {
+  selectedItem.value = item;
+  isDetailModalOpen.value = true;
+};
+
+// Filtrage pour la recherche
 const filteredInventory = computed(() => {
-  if (!searchQuery.value) return inventory.value;
-  const query = searchQuery.value.toLowerCase();
-  return inventory.value.filter(item => 
-    item.name.toLowerCase().includes(query) || item.supplier.toLowerCase().includes(query)
+  const query = searchQuery.value.toLowerCase().trim();
+  if (!query) return inventory.value;
+  return inventory.value.filter(item =>
+    item.name.toLowerCase().includes(query) ||
+    item.category.toLowerCase().includes(query) ||
+    item.supplier?.toLowerCase().includes(query)
   );
 });
 
-// --- GESTION DU MODAL ---
-const showModal = ref(false);
-const newItem = ref({
-  name: '',
-  quantity: '',
-  minStock: '',
-  status: 'Normal',
-  supplier: '',
-  lastUpdate: new Date().toISOString().split('T')[0],
-  unit: ''
-});
-
-const resetForm = () => {
-  newItem.value = { name: '', quantity: '', minStock: '', status: 'Normal', supplier: '', lastUpdate: new Date().toISOString().split('T')[0], unit: '' };
-};
-
-const messageStatus = ref('');
-const isLoading = ref(false);
-
-const addItem = async () => {
-  if (!newItem.value.name || !newItem.value.quantity || !newItem.value.unit || !newItem.value.minStock) {
-    messageStatus.value = 'Veuillez remplir tous les champs obligatoires.';
-    return;
-  }
-
-  isLoading.value = true;
-  messageStatus.value = '';
-
-  try {
-    const payload = {
-      name: newItem.value.name,
-      category: 'aliment',
-      quantity: parseFloat(newItem.value.quantity) || 0,
-      unit: newItem.value.unit,
-      threshold: parseFloat(newItem.value.minStock) || 0
-    };
-
-    await api.post('/stock', payload);
-    await Promise.all([loadInventory(), loadDashboard()]);
-    showModal.value = false;
-    resetForm();
-    messageStatus.value = 'Article ajouté avec succès!';
-    setTimeout(() => messageStatus.value = '', 3000);
-  } catch (error) {
-    console.error('Erreur ajout:', error);
-    messageStatus.value = error.response?.data?.message || 'Erreur lors de l\'ajout.';
-    setTimeout(() => messageStatus.value = '', 5000);
-  } finally {
-    isLoading.value = false;
-  }
+// Helper pour le statut
+const getStatusInfo = (item) => {
+  const ratio = item.quantity / item.threshold;
+  if (ratio <= 1) return { label: 'Critique', class: 'bg-rose-500 text-white', progress: 'bg-rose-500', percent: Math.min(100, (item.quantity / item.threshold) * 100) };
+  if (ratio <= 2) return { label: 'Faible', class: 'bg-orange-500 text-white', progress: 'bg-orange-500', percent: 50 };
+  return { label: 'Normal', class: 'bg-emerald-500 text-white', progress: 'bg-emerald-500', percent: 100 };
 };
 </script>
 
@@ -130,14 +100,20 @@ const addItem = async () => {
         <h1 class="text-2xl font-black text-slate-900 tracking-tight">Gestion du Stock</h1>
         <p class="text-slate-500 text-sm font-medium">Suivi en temps réel • SmartFarm</p>
       </div>
-      <button @click="showModal = true"
-        class="bg-red-900 hover:bg-red-950 text-white px-5 py-3 rounded-2xl text-sm font-bold flex items-center gap-2 transition-all shadow-lg shadow-red-900/20 active:scale-95">
-        <Plus class="w-5 h-5" /> Ajouter un Article
+      <button @click="isModalOpen = true"
+        class="bg-slate-950 text-white px-4 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 transition-transform hover:scale-105 active:scale-95">
+        <Plus class="w-4 h-4" /> Ajouter un Article
       </button>
+
+      <NewStockModal :is-open="isModalOpen" @close="isModalOpen = false" @stock-added="onStockAdded" />
+
+      <StockDetailModal :is-open="isDetailModalOpen" :item="selectedItem" @close="isDetailModalOpen = false"
+        @stock-deleted="onStockDeleted" @stock-updated="onStockUpdated" />
     </header>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <div v-for="stat in stockStats" :key="stat.label" class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex justify-between items-center">
+      <div v-for="stat in stockStats" :key="stat.label"
+        class="bg-white p-6 rounded-lg  shadow-sm flex justify-between items-center">
         <div>
           <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">{{ stat.label }}</p>
           <p class="text-3xl font-black text-slate-900">{{ stat.value }}</p>
@@ -152,8 +128,13 @@ const addItem = async () => {
       <div class="flex items-center gap-2 text-orange-700 font-black text-xs uppercase tracking-widest">
         <AlertTriangle class="w-5 h-5" /> Alertes de Stock
       </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div v-for="alert in stockAlerts" :key="alert.name" class="bg-white p-4 rounded-2xl border border-orange-100 flex justify-between items-center shadow-sm">
+      <div class="space-y-3">
+        <div v-if="stockAlerts.length === 0"
+          class="text-slate-400 text-sm py-4 text-center italic bg-white/50 rounded-xl">
+          Aucune alerte de stock en cours.
+        </div>
+        <div v-for="alert in stockAlerts" :key="alert.name"
+          class="bg-white p-4 rounded-xl border border-[#FFE7D3] flex justify-between items-center shadow-sm">
           <div>
             <h4 class="font-bold text-slate-900 text-sm">{{ alert.name }}</h4>
             <p :class="['text-xs font-bold uppercase mt-1', alert.type === 'critique' ? 'text-rose-500' : 'text-orange-500']">
@@ -167,59 +148,70 @@ const addItem = async () => {
       </div>
     </div>
 
-    <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-      <div class="p-6 border-b border-slate-50 flex flex-col md:flex-row justify-between items-center gap-4">
-        <h2 class="font-black text-slate-800 uppercase tracking-tight">Inventaire Global</h2>
-        <div class="relative w-full md:w-72">
-          <Search class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input v-model="searchQuery" type="text" placeholder="Rechercher un article..." 
-            class="w-full pl-11 pr-4 py-3 bg-slate-50 border-none rounded-2xl text-sm focus:ring-2 focus:ring-red-900/20 transition-all outline-none" />
+    <div class="bg-white shadow-sm overflow-hidden rounded-2xl border border-slate-100">
+      <div class="p-6 border-b border-slate-50 flex justify-between items-center">
+        <h2 class="font-bold text-slate-800">Inventaire</h2>
+        <div class="relative">
+          <Search class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input v-model="searchQuery" type="text" placeholder="Rechercher..."
+            class="pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-950 w-64" />
         </div>
       </div>
-      
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-sm">
-          <thead class="bg-slate-50/50 text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em]">
-            <tr>
-              <th class="px-8 py-4">Article</th>
-              <th class="px-6 py-4">Quantité</th>
-              <th class="px-6 py-4">Stock Min</th>
-              <th class="px-6 py-4">Statut</th>
-              <th class="px-6 py-4 text-center">Actions</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-50">
-            <tr v-for="item in filteredInventory" :key="item.name" class="hover:bg-slate-50/50 transition-colors">
-              <td class="px-8 py-5">
-                <div class="flex items-center gap-3">
-                  <div class="p-2 bg-slate-100 rounded-lg"><Box class="w-4 h-4 text-slate-400" /></div>
-                  <div>
-                    <p class="font-bold text-slate-800">{{ item.name }}</p>
-                    <p class="text-[10px] text-slate-400 font-medium uppercase">{{ item.supplier }}</p>
-                  </div>
-                </div>
-              </td>
-              <td class="px-6 py-5 font-black text-slate-900">{{ item.quantity }} <span class="text-slate-400 font-medium text-xs">{{ item.unit }}</span></td>
-              <td class="px-6 py-5 text-slate-400 font-bold">{{ item.minStock }} {{ item.unit }}</td>
-              <td class="px-6 py-5">
-                <div class="w-28">
-                  <div :class="['text-[9px] font-black uppercase px-2 py-0.5 rounded-md inline-block mb-1.5 shadow-sm', item.statusClass]">
-                    {{ item.status }}
-                  </div>
-                  <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                    <div :class="['h-full rounded-full transition-all duration-500', item.progressColor]" :style="{ width: item.percent + '%' }"></div>
-                  </div>
-                </div>
-              </td>
-              <td class="px-6 py-5 text-center">
-                <button class="text-slate-400 hover:text-red-900 font-bold text-xs uppercase transition-colors">Détails</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
 
+      <table class="w-full text-left text-sm border-collapse">
+        <thead class="bg-slate-50/50 text-slate-400 font-semibold text-xs uppercase tracking-wider">
+          <tr>
+            <th class="px-6 py-4">Article</th>
+            <th class="px-6 py-4">Quantité</th>
+            <th class="px-6 py-4">Stock Min</th>
+            <th class="px-6 py-4">Statut</th>
+            <th class="px-6 py-4">Fournisseur</th>
+            <th class="px-6 py-4">Dernière MAJ</th>
+            <th class="px-6 py-4 text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50">
+          <tr v-for="item in filteredInventory" :key="item._id" class="hover:bg-slate-50/30 transition-colors">
+            <td class="px-6 py-4 flex items-center gap-3">
+              <Box class="w-4 h-4 text-slate-300" />
+              <div class="flex flex-col">
+                <span class="font-bold text-slate-800">{{ item.name }}</span>
+                <span class="text-[10px] text-slate-400 uppercase tracking-tighter">{{ item.category }}</span>
+              </div>
+            </td>
+            <td class="px-6 py-4 font-bold text-slate-900">{{ item.quantity }} {{ item.unit }}</td>
+            <td class="px-6 py-4 text-slate-400">{{ item.threshold }} {{ item.unit }}</td>
+            <td class="px-6 py-4">
+              <div class="w-24">
+                <div
+                  :class="['text-[10px] font-bold uppercase px-2 py-0.5 rounded inline-block mb-1', getStatusInfo(item).class]">
+                  {{ getStatusInfo(item).label }}
+                </div>
+                <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div :class="['h-full rounded-full', getStatusInfo(item).progress]"
+                    :style="{ width: getStatusInfo(item).percent + '%' }"></div>
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-4 text-slate-500 font-medium">{{ item.supplier || 'N/A' }}</td>
+            <td class="px-6 py-4 text-slate-500">{{ new Date(item.lastUpdated).toLocaleDateString('fr-FR') }}</td>
+            <td class="px-6 py-4 text-center">
+              <button @click="openDetails(item)"
+                class="text-slate-700 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-md text-[11px] font-bold hover:bg-slate-100 transition-all">
+                Détails
+              </button>
+            </td>
+          </tr>
+          <tr v-if="filteredInventory.length === 0">
+            <td colspan="7" class="px-6 py-12 text-center text-slate-400 italic">
+              Aucun article trouvé dans l'inventaire.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+<main>
     <div v-if="showModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-md transition-opacity" @click="showModal = false"></div>
 
@@ -236,6 +228,7 @@ const addItem = async () => {
             </button>
           </div>
         </div>
+        
 
         <div class="p-8 grid grid-cols-2 gap-6">
           <div class="col-span-2 space-y-1">
@@ -290,6 +283,4 @@ const addItem = async () => {
   </main>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>
