@@ -3,6 +3,7 @@ import DepartementService from "../services/Departement.service.js";
 const DepartementController = {
 
   async create(req, res) {
+    console.log("donnée reçu", req.body);
     try {
       const departement = await DepartementService.createDepartement(req.body);
       res.status(201).json(departement);
@@ -33,6 +34,7 @@ const DepartementController = {
   async update(req, res) {
     try {
       const departement = await DepartementService.updateDepartement(req.params.id, req.body);
+      if (!departement) return res.status(404).json({ error: "Département introuvable" });
       res.json(departement);
     } catch (err) {
       res.status(400).json({ error: err.message });
@@ -42,6 +44,7 @@ const DepartementController = {
   async delete(req, res) {
     try {
       const departement = await DepartementService.deleteDepartement(req.params.id);
+      if (!departement) return res.status(404).json({ error: "Département introuvable" });
       res.json({ message: "Département supprimé", departement });
     } catch (err) {
       res.status(500).json({ error: err.message });

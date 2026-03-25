@@ -23,12 +23,13 @@ export const register = async ({ name, email, password, role, dept, num }) => {
 };
 
 export const login = async ({ email, password }) => {
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email }).select('+password');
   if (!user) throw new Error("Utilisateur non trouvé");
-
-  const isMatch = await bcrypt.compare(password, user.password);
+console.log({ email, password })
+console.log(user)
+  // Utilise la méthode définie dans ton schéma !
+  const isMatch = await user.comparePassword(password);
   if (!isMatch) throw new Error("Identifiants invalides");
-
   const token = jwt.sign(
     {
       sub: user._id.toString(),
@@ -63,6 +64,7 @@ export const getAllUsers = async ({ page = 1, limit = 10, search, role }) => {
       .sort({ createdAt: -1 }) // <-- Corrigé : createdAt au lieu de creatAt
       .skip((safePage - 1) * safeLimit)
       .limit(safeLimit)
+      .populate("dept") // Populate the 'dept' field with only the 'name' property
       .exec(), // Optionnel : améliore les perfs si tu ne modifies pas les objets après
     User.countDocuments(filter),
     User.distinct("role"),

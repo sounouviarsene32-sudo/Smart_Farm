@@ -1,35 +1,50 @@
 <script setup>
-import { useRouter } from 'vue-router'
-const router = useRouter()
+import { ref, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import campaignService from '@/services/campaign.js';
 import {
-  Building2,
-  UserCircle,
-  Mail,
-  Phone,
-  ChevronLeft,
-  Users,
-  Beef,
-  TrendingUp,
-  Target,
-  DollarSign
-} from 'lucide-vue-next'
+  Users, Beef, UserCircle, Mail, Phone, ChevronLeft, Target
+} from 'lucide-vue-next';
 
-// Utilisation des props pour rendre le composant dynamique
-const props = defineProps({
-  dept: { 
-    type: Object, 
-    default: () => ({
-      name: 'Vaccination des Bovins',
-      agents: 452,
-      animals: 96325,
-      chef: 'Jean Dupont',
-      email: 'jean.dupont@elevage.com',
-      phone: '+221 77 123 45 67',
-      perf: '40%',
-      revenus: '12%'
-    })
-  },
-})
+const router = useRouter();
+const route = useRoute();
+const campaignId = route.params.id;
+
+const dept = ref({
+  name: '',
+  agents: 0,
+  animals: 0,
+  chef: '',
+  email: '',
+  phone: '',
+  perf: '0%',
+  revenus: 0
+});
+
+const loading = ref(true);
+
+async function loadCampaign() {
+  try {
+    loading.value = true;
+    const data = await campaignService.getCampaignById(campaignId);
+    dept.value = {
+      name: data.titre,
+      agents: data.stats?.agents || 0,
+      animals: data.stats?.animals || 0,
+      chef: data.manager?.name || 'Non assigné',
+      email: data.manager?.email || '',
+      phone: data.manager?.phone || '',
+      perf: data.stats?.perf || '0%',
+      revenus: data.stats?.revenus || 0
+    };
+  } catch (err) {
+    console.error('Erreur chargement campagne:', err);
+  } finally {
+    loading.value = false;
+  }
+}
+
+onMounted(() => loadCampaign());
 </script>
 
 <template>
