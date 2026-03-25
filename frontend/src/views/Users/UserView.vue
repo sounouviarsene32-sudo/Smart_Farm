@@ -1,6 +1,8 @@
 <script setup>
 import userService from '@/services/users.js'
 import { ref, reactive, onMounted, watch } from 'vue'
+import departementService from '@/services/departement.js'
+
 import {
   Users,
   ShieldCheck,
@@ -19,6 +21,8 @@ const users = ref()
 const allRoles = ref()
 const role = ref('')
 const search = ref('')
+const departments = ref([])
+
 // Statistiques du haut
 const stats = ref()
 async function allUsers() {
@@ -32,6 +36,8 @@ async function allUsers() {
       search: search.value, 
       role: selectedRole 
     })
+    const departmentsData = await departementService.getDepartements()
+    departments.value = departmentsData.data || departmentsData
     users.value = res.data.items
     allRoles.value = res.data.allRoles
     const admin = users.value.filter((u) => u.role === 'admin').length
@@ -271,7 +277,7 @@ onMounted(allUsers)
                   v-model="newUser.dept"
                   class="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm outline-none appearance-none focus:bg-white focus:border-slate-950 transition-all cursor-pointer"
                 >
-                  <option v-for="d in départements" :key="d" :value="d">{{ d }}</option>
+                  <option v-for="d in departments" :key="d" :value="d.id">{{ d.name }}</option>
                 </select>
               </div>
             </div>
