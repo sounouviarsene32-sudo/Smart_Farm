@@ -1,6 +1,8 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useLoginStore } from '../../stores/login.store.js';
+import { useToast } from 'vue-toastification';
+import Swal from 'sweetalert2';
 import { 
   FileText, 
   Users, 
@@ -36,6 +38,7 @@ const transferMessage = ref('');
 
 // Utiliser le store de connexion
 const loginStore = useLoginStore();
+const toast = useToast();
 
 // Charger les rapports soumis par les agents
 const loadReports = async () => {
@@ -91,10 +94,29 @@ const openValidationModal = (report) => {
 const validateReport = async () => {
   if (!selectedReport.value) return;
 
+  // Confirmation avec SweetAlert2
+  const actionText = validationData.value.action === 'validate' ? 'valider' : 'rejeter';
+  const actionIcon = validationData.value.action === 'validate' ? 'success' : 'warning';
+  
+  const result = await Swal.fire({
+    title: `Confirmer la ${actionText}?`,
+    text: `Êtes-vous sûr de vouloir ${actionText} ce rapport?${validationData.value.comment ? '\n\nCommentaire: ' + validationData.value.comment : ''}`,
+    icon: actionIcon,
+    showCancelButton: true,
+    confirmButtonColor: validationData.value.action === 'validate' ? '#16a34a' : '#dc2626',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: `Oui, ${actionText}`,
+    cancelButtonText: 'Annuler'
+  });
+
+  if (!result.isConfirmed) {
+    return;
+  }
+
   try {
     const token = loginStore.token;
     if (!token) {
-      alert('Vous devez être connecté pour valider un rapport');
+      toast.error('Vous devez être connecté pour valider un rapport');
       return;
     }
     
@@ -114,13 +136,13 @@ const validateReport = async () => {
 
     if (res.ok) {
       const data = await res.json();
-      alert(data.message);
+      toast.success(data.message);
       showValidationModal.value = false;
       loadReports(); // Recharger les rapports
     }
   } catch (error) {
     console.error('Erreur validation rapport:', error);
-    alert('Erreur lors de la validation');
+    toast.error('Erreur lors de la validation');
   }
 };
 
@@ -129,7 +151,7 @@ const downloadReport = async (reportId) => {
   try {
     const token = loginStore.token;
     if (!token) {
-      alert('Vous devez être connecté pour télécharger un rapport');
+      toast.error('Vous devez être connecté pour télécharger un rapport');
       return;
     }
     
@@ -151,10 +173,11 @@ const downloadReport = async (reportId) => {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
+      toast.success('Téléchargement réussi');
     }
   } catch (error) {
     console.error('Erreur téléchargement rapport:', error);
-    alert('Erreur lors du téléchargement');
+    toast.error('Erreur lors du téléchargement');
   }
 };
 
@@ -169,10 +192,26 @@ const openTransferToAdminModal = (report) => {
 const transferToAdmin = async () => {
   if (!selectedReport.value) return;
 
+  // Confirmation avec SweetAlert2
+  const result = await Swal.fire({
+    title: 'Confirmer le transfert à l\'admin?',
+    text: `Êtes-vous sûr de vouloir transférer ce rapport validé à l'administrateur?${transferMessage.value ? '\n\nMessage: ' + transferMessage.value : ''}`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#750505',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: 'Oui, transférer',
+    cancelButtonText: 'Annuler'
+  });
+
+  if (!result.isConfirmed) {
+    return;
+  }
+
   try {
     const token = loginStore.token;
     if (!token) {
-      alert('Vous devez être connecté pour transférer un rapport');
+      toast.error('Vous devez être connecté pour transférer un rapport');
       return;
     }
     
@@ -192,13 +231,13 @@ const transferToAdmin = async () => {
 
     if (res.ok) {
       const data = await res.json();
-      alert(data.message);
+      toast.success(data.message);
       showTransferToAdminModal.value = false;
       loadReports(); // Recharger les rapports
     }
   } catch (error) {
     console.error('Erreur transfert admin:', error);
-    alert('Erreur lors du transfert');
+    toast.error('Erreur lors du transfert');
   }
 };
 

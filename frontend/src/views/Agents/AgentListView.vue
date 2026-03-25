@@ -1,9 +1,11 @@
 <script setup>
-import { ref, computed, onMounted, reactive, watch } from 'vue'
-import agentService from '@/services/agent.js'
-import campaignService from '@/services/campaign.js'
-import departementService from '@/services/departement.js'
+import { ref, onMounted, computed, reactive, watch } from 'vue'
+import { useToast } from 'vue-toastification'
+import Swal from 'sweetalert2'
+import agentService, { addAgent, updateAgent, deleteAgent, getAllAgents } from '@/services/agent.js'
 import todoService from '@/services/todo.js'
+import departementService from '@/services/departement.js'
+import campaignService from '@/services/campaign.js'
 import { useLoginStore } from '@/stores/login.store'
 
 import {
@@ -28,6 +30,7 @@ const loginStore = useLoginStore()
 const currentUser = ref(loginStore.getDecodedToken)
 const isChef = computed(() => currentUser.value?.role === 'chef')
 const isAdmin = computed(() => currentUser.value?.role === 'admin')
+const toast = useToast()
 
 // ================= STATES =================
 const isModalOpen = ref(false)
@@ -91,7 +94,7 @@ async function initData() {
 
 async function fetchAgents() {
   try {
-    const res = await agentService.getAllAgents({
+    const res = await getAllAgents({
       page: 1,
       limit: 50,
       search: search.value,
@@ -153,7 +156,18 @@ async function toggleTodoStatus(todo) {
 }
 
 async function deleteTodo(todoId) {
-  if(confirm("Supprimer cette tâche ?")) {
+  const result = await Swal.fire({
+    title: 'Supprimer cette tâche?',
+    text: 'Êtes-vous sûr de vouloir supprimer cette tâche?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#dc2626',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: 'Oui, supprimer',
+    cancelButtonText: 'Annuler'
+  });
+
+  if (result.isConfirmed) {
     await todoService.deleteTodo(todoId)
     await fetchAgentTodos(selectedAgent.value._id)
   }
@@ -197,9 +211,9 @@ const resetForm = () => {
 const handleSubmit = async () => {
   try {
     if (toUpdate.value) {
-      await agentService.updateAgent(toUpdate.value._id, newAgent)
+      await updateAgent(toUpdate.value._id, newAgent)
     } else {
-      await agentService.addAgent(newAgent)
+      await addAgent(newAgent)
     }
     await fetchAgents()
     resetForm()
@@ -218,9 +232,20 @@ function editing(user) {
 }
 
 const handleDelete = async (userId) => {
-  if (confirm("Supprimer cet agent ?")) {
+  const result = await Swal.fire({
+    title: 'Supprimer cet agent?',
+    text: 'Êtes-vous sûr de vouloir supprimer cet agent? Cette action est irréversible.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#dc2626',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: 'Oui, supprimer',
+    cancelButtonText: 'Annuler'
+  });
+
+  if (result.isConfirmed) {
     try {
-      await agentService.deleteAgent(userId)
+      await deleteAgent(userId)
       await fetchAgents()
     } catch (error) { console.error(error) }
   }
@@ -334,11 +359,11 @@ onMounted(initData)
             <div class="grid grid-cols-2 gap-5">
               <select v-model="newAgent.dept" :disabled="isChef" class="custom-select" required>
                 <option value="">Secteur</option>
-                <option v-for="d in departments" :key="d.id" :value="d.id">{{ d.name }}</option>
+                <option v-for="d in departments" :key="d.id || d._id" :value="d.id || d._id">{{ d.name }}</option>
               </select>
               <select v-model="newAgent.camp" class="custom-select">
                 <option value="">Campagne</option>
-                <option v-for="c in campaigns" :key="c._id" :value="c._id">{{ c.name }}</option>
+                <option v-for="c in campaigns" :key="c._id || c.id" :value="c._id || c.id">{{ c.name }}</option>
               </select>
             </div>
             <div v-if="!isChef" class="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl">
@@ -431,14 +456,41 @@ onMounted(initData)
 </template>
 
 <style scoped>
-@reference "@/assets/base.css"; 
+@import "@/assets/base.css";
 
 .custom-input {
-  @apply w-full px-5 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm outline-none focus:ring-4 focus:ring-slate-950/5 focus:bg-white focus:border-slate-950 transition-all;
+  width: 100%;
+  padding: 0.75rem 1.25rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.custom-input:focus {
+  box-shadow: 0 0 0 4px rgb(30 41 59 / 0.1);
+  background: white;
+  border-color: rgb(30 41 59);
 }
 
 .custom-select {
-  @apply w-full px-5 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm outline-none appearance-none focus:bg-white focus:border-slate-950 transition-all cursor-pointer;
+  width: 100%;
+  padding: 0.75rem 1.25rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  outline: none;
+  appearance: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.custom-select:focus {
+  background: white;
+  border-color: rgb(30 41 59);
 }
 
 .fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }

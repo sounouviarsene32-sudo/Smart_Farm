@@ -3,6 +3,7 @@ import { useRouter } from 'vue-router'
 import { ref } from 'vue'
 import { Building2, UserCircle, Mail, Phone } from 'lucide-vue-next'
 import departementService from '@/services/departement.js'
+import Swal from 'sweetalert2'
 
 // Props reçues du parent
 const props = defineProps({
@@ -25,16 +26,28 @@ function viewDetails() {
 
 // ✅ Suppression du département
 async function deleteDepartement() {
-  if (!confirm(`Voulez-vous vraiment supprimer le département "${props.dept.name}" ?`)) return
+  const result = await Swal.fire({
+    title: 'Supprimer ce département?',
+    text: `Voulez-vous vraiment supprimer le département "${props.dept.name}"? Cette action est irréversible.`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#dc2626',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: 'Oui, supprimer',
+    cancelButtonText: 'Annuler'
+  });
+
+  if (!result.isConfirmed) return;
+
   try {
     deleting.value = true
     const deptId = props.dept._id || props.dept.id
     await departementService.deleteDepartement(deptId)
-    alert(`Département "${props.dept.name}" supprimé avec succès !`)
+    Swal.fire('Succès!', `Département "${props.dept.name}" supprimé avec succès!`, 'success')
     if (props.onDeleted) props.onDeleted(deptId)
   } catch (err) {
     console.error(err)
-    alert('Erreur lors de la suppression du département.')
+    Swal.fire('Erreur', 'Erreur lors de la suppression du département.', 'error')
   } finally {
     deleting.value = false
   }
