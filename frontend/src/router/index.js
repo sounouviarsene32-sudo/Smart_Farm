@@ -31,6 +31,7 @@ import DepartementDetail from '@/views/Departments/DepartementDetail.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import CampaignForm from '@/views/Campaigns/CampaignForm.vue'
 import CampaignDetail from '@/views/Campaigns/CampaignDetail.vue'
+import AnimalForm from '@/views/Form/AnimalForm.vue'
 const routes = [
   {
     path: '/:pathMatch(.*)*',
@@ -132,6 +133,11 @@ const routes = [
         path: 'animals',
         name: 'animals-admin',
         component: AnimalList,
+      },
+      {
+        path: 'animals',
+        name: 'animals-form',
+        component: AnimalForm,
       },
       {
         path: 'rapports',
