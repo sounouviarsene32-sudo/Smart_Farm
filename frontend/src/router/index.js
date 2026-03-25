@@ -260,16 +260,16 @@ router.beforeEach((to, from, next) => {
   const currentUser = loginStore.getDecodedToken
 
   // 1. Protection des routes privées
-  if (to.meta.requiresAuth && !logged) {
-  }
+ if (to.meta.requiresAuth && !logged) {
+  return next({ name: 'login' }) // 👈 AJOUTE CETTE LIGNE
+}
 
   // 2. Redirection si déjà connecté
-  if (to.name === 'login' && logged) {
-    if (currentUser.role === 'admin') return next({ name: 'dashboard-admin' })
-    if (currentUser.role === 'agent') return next({ name: 'dashboard-agent' })
-    if (currentUser.role === 'chef') return next({ name: 'dashboard-chef' })
-  }
-
+if (to.name === 'login' && logged && currentUser) { // 👈 AJOUTE "&& currentUser"
+  if (currentUser.role === 'admin') return next({ name: 'dashboard-admin' })
+  if (currentUser.role === 'agent') return next({ name: 'dashboard-agent' })
+  if (currentUser.role === 'chef') return next({ name: 'dashboard-chef' })
+}
   // 3. Cas par défaut (IMPORTANT : toujours appeler next() ici)
   next()
 })
