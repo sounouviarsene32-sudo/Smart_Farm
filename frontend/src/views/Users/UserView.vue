@@ -77,16 +77,28 @@ const resetForm = () => {
 }
 
 // Logique d'ajout
+// users.vue
+
 function handleCreateUser() {
+  // Créer une copie pour ne pas polluer l'objet réactif
+  const dataToSend = { ...newUser };
+  
+  // Si le mot de passe est vide, on laisse le backend gérer le défaut
+  if (!dataToSend.password) {
+    delete dataToSend.password;
+  }
+
   userService
-    .register(newUser)
-    .then((response) => {
-      allUsers()
+    .register(dataToSend)
+    .then(() => {
+      allUsers();
+      resetForm(); // Ferme la modale et reset
     })
     .catch((error) => {
-      console.error("Erreur lors de la création de l'utilisateur:", error)
-    })
-  resetForm()
+      // Affiche l'erreur réelle renvoyée par ton API
+      alert(error.response?.data?.message || "Erreur de création");
+      console.error(error);
+    });
 }
 
 // modifier
@@ -365,7 +377,7 @@ onMounted(allUsers)
                 v-if="user.dept"
                 class="px-3 py-1 bg-white border border-slate-200 text-slate-600 rounded-lg text-[11px] font-bold"
               >
-                {{ user.dept }}
+                {{ user.dept.name }}
               </span>
               <span v-else class="text-slate-300">-</span>
             </td>

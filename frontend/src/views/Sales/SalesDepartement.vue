@@ -60,8 +60,8 @@ const recentTransactions = ref([
 const filteredTransactions = computed(() => {
   const query = searchQuery.value.toLowerCase().trim();
   if (!query) return recentTransactions.value;
-  return recentTransactions.value.filter(tx => 
-    tx.client.toLowerCase().includes(query) || 
+  return recentTransactions.value.filter(tx =>
+    tx.client.toLowerCase().includes(query) ||
     tx.product.toLowerCase().includes(query)
   );
 });
@@ -75,17 +75,20 @@ const filteredTransactions = computed(() => {
         <p class="text-slate-500 text-sm">Gestion des transactions et clients</p>
       </div>
       <div class="flex items-center gap-3">
-        <button class="bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 hover:bg-slate-50">
+        <button
+          class="bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 hover:bg-slate-50">
           <Download class="w-4 h-4" /> Exporter
         </button>
-        <button class="bg-slate-950 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 hover:bg-slate-800">
+        <button
+          class="bg-slate-950 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 hover:bg-slate-800">
           <Plus class="w-4 h-4" /> Nouvelle Vente
         </button>
       </div>
     </header>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <div v-for="stat in salesStats" :key="stat.label" class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex justify-between items-center hover:shadow-md transition-shadow">
+      <div v-for="stat in salesStats" :key="stat.label"
+        class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex justify-between items-center hover:shadow-md transition-shadow">
         <div>
           <p class="text-xs font-medium text-slate-400 mb-1.5">{{ stat.label }}</p>
           <p class="text-2xl font-bold text-slate-900">{{ stat.value }}</p>
@@ -101,7 +104,8 @@ const filteredTransactions = computed(() => {
         <div class="space-y-5">
           <div v-for="(client, index) in topClients" :key="client.id" class="flex items-center justify-between gap-4">
             <div class="flex items-center gap-4 flex-1">
-              <div class="bg-blue-50 text-blue-600 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm">
+              <div
+                class="bg-blue-50 text-blue-600 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm">
                 {{ index + 1 }}
               </div>
               <div class="min-w-0 flex-1">
@@ -124,15 +128,11 @@ const filteredTransactions = computed(() => {
         <h2 class="font-bold text-slate-800">Transactions Récentes</h2>
         <div class="relative w-full max-w-xs">
           <Search class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <input 
-            v-model="searchQuery"
-            type="search"
-            placeholder="Rechercher un client ou un produit..." 
-            class="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-slate-950 focus:border-slate-950 outline-none transition-all"
-          />
+          <input v-model="searchQuery" type="search" placeholder="Rechercher un client ou un produit..."
+            class="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-slate-950 focus:border-slate-950 outline-none transition-all" />
         </div>
       </div>
-      
+
       <table class="w-full text-left text-sm border-collapse">
         <thead class="bg-slate-50/50 text-slate-400 font-semibold text-xs uppercase tracking-wider">
           <tr>
@@ -149,13 +149,14 @@ const filteredTransactions = computed(() => {
           <tr v-for="tx in filteredTransactions" :key="tx.id" class="hover:bg-slate-50/30 transition-colors">
             <td class="px-6 py-4 text-slate-500">{{ tx.date }}</td>
             <td class="px-6 py-4 font-bold text-slate-950">{{ tx.client }}</td>
-            
+
             <td class="px-6 py-4 text-slate-500">{{ tx.product }}</td>
             <td class="px-6 py-4 text-center font-bold text-slate-900">{{ tx.quantity }}</td>
             <td class="px-6 py-4 text-right text-slate-500">{{ tx.unitPrice }} FCFA</td>
             <td class="px-6 py-4 text-right font-bold text-emerald-500">{{ tx.total }} FCFA</td>
             <td class="px-6 py-4 text-center">
-              <span :class="[tx.status === 'Payé' ? 'bg-emerald-500 text-white' : 'bg-orange-500 text-white', 'px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-tight']">
+              <span
+                :class="[tx.status === 'Payé' ? 'bg-emerald-500 text-white' : 'bg-orange-500 text-white', 'px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-tight']">
                 {{ tx.status }}
               </span>
             </td>
@@ -163,5 +164,5 @@ const filteredTransactions = computed(() => {
         </tbody>
       </table>
     </div>
-</main>
+  </main>
 </template>

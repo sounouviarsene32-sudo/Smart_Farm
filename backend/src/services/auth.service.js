@@ -63,6 +63,7 @@ export const getAllUsers = async ({ page = 1, limit = 10, search, role }) => {
       .sort({ createdAt: -1 }) // <-- Corrigé : createdAt au lieu de creatAt
       .skip((safePage - 1) * safeLimit)
       .limit(safeLimit)
+      .populate("dept") // Populate the 'dept' field with only the 'name' property
       .exec(), // Optionnel : améliore les perfs si tu ne modifies pas les objets après
     User.countDocuments(filter),
     User.distinct("role"),

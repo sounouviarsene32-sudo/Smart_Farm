@@ -1,7 +1,8 @@
 import api from '../api/axios.config.js'
 
-export const addAgent = async ({ name, email, password, role, dept, num }) => {
-  const response = await api.post('/agents', { name, email, password, role, dept, num })
+export const addAgent = async (agentData) => {
+  // On envoie tout l'objet agentData directement
+  const response = await api.post('/agents', agentData)
   return response
 }
 export const getUserById = async (userId) => {

@@ -1,7 +1,6 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import authService from '../services/auth.js'
 import api from '../api/axios.config.js'
 import { useLoginStore } from '../stores/login.store.js'
 const router = useRouter()
@@ -17,8 +16,8 @@ const handleLogin = async () => {
     const response = await api.post('/auth/login', { email: email.value, password: password.value })
     const token = response.data
     loginStore.login(token) // Stocke le token dans le store
-    const currentUser = loginStore.getDecodedToken
-    router.push({ name: `dashboard-${currentUser.role}` })
+    const currentUser = loginStore.getDecodedToken    
+    router.push({name: `dashboard-${currentUser.role}` })
   } catch (err) {
     console.error('Login failed:', err)
   }
@@ -130,3 +129,5 @@ const handleLogin = async () => {
     </div>
   </div>
 </template>
+
+
