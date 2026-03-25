@@ -6,7 +6,7 @@ import {
   Users, Beef, TrendingUp, Download, ShieldCheck
 } from 'lucide-vue-next'
 import departementService from '@/services/departement.js'
-import html2pdf from 'html2pdf.js'
+
 
 const router = useRouter()
 const route = useRoute()

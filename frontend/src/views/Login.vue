@@ -4,9 +4,10 @@ import { useRouter } from 'vue-router'
 import authService from '../services/auth.js'
 import api from '../api/axios.config.js'
 import { useLoginStore } from '../stores/login.store.js'
+import { LayoutGrid, Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-vue-next'
+
 const router = useRouter()
 const loginStore = useLoginStore()
-import { LayoutGrid, Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-vue-next'
 
 const email = ref('')
 const password = ref('')

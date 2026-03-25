@@ -25,42 +25,12 @@ const stats = ref({
 const loadReports = async () => {
   loading.value = true;
   try {
-    // Simuler des rapports soumis
-    const mockReports = [
-      {
-        id: 1,
-        title: 'Rapport Mensuel - Production Volaille',
-        author: 'Jean Agent',
-        department: 'Volaille',
-        date: '2024-03-20',
-        status: 'pending',
-        type: 'production',
-        summary: { totalAnimals: 1500, mortality: 2, production: 1480 }
-      },
-      {
-        id: 2,
-        title: 'Rapport Financier Q1',
-        author: 'Marie Agent',
-        department: 'Finance',
-        date: '2024-03-19',
-        status: 'pending',
-        type: 'financial',
-        summary: { revenue: 45000, expenses: 12000, profit: 33000 }
-      },
-      {
-        id: 3,
-        title: 'Rapport Stock Aliments',
-        author: 'Pierre Agent',
-        department: 'Stock',
-        date: '2024-03-18',
-        status: 'validated',
-        type: 'stock',
-        summary: { totalItems: 45, criticalItems: 3, totalValue: 15000 }
-      }
-    ];
-    
-    reports.value = mockReports;
-    updateStats();
+    const res = await fetch('http://localhost:8080/api/reports/pending?role=chef');
+    if (res.ok) {
+      const data = await res.json();
+      reports.value = data.reports || [];
+      updateStats();
+    }
   } catch (error) {
     console.error('Erreur chargement rapports:', error);
   } finally {
@@ -81,11 +51,19 @@ const updateStats = () => {
 // Valider un rapport
 const validateReport = async (reportId) => {
   try {
-    const report = reports.value.find(r => r.id === reportId);
-    if (report) {
-      report.status = 'validated';
-      report.validatedAt = new Date();
-      updateStats();
+    const res = await fetch(`http://localhost:8080/api/reports/${reportId}/validate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'approve' })
+    });
+
+    if (res.ok) {
+      const report = reports.value.find(r => r._id === reportId);
+      if (report) {
+        report.status = 'validated';
+        report.validatedAt = new Date();
+        updateStats();
+      }
     }
   } catch (error) {
     console.error('Erreur validation rapport:', error);
@@ -95,11 +73,19 @@ const validateReport = async (reportId) => {
 // Rejeter un rapport
 const rejectReport = async (reportId) => {
   try {
-    const report = reports.value.find(r => r.id === reportId);
-    if (report) {
-      report.status = 'rejected';
-      report.rejectedAt = new Date();
-      updateStats();
+    const res = await fetch(`http://localhost:8080/api/reports/${reportId}/validate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'reject', rejectionReason: 'Non conforme' })
+    });
+
+    if (res.ok) {
+      const report = reports.value.find(r => r._id === reportId);
+      if (report) {
+        report.status = 'rejected';
+        report.rejectedAt = new Date();
+        updateStats();
+      }
     }
   } catch (error) {
     console.error('Erreur rejet rapport:', error);
@@ -203,7 +189,7 @@ onMounted(() => {
       <div v-else class="divide-y divide-gray-200">
         <div 
           v-for="report in reports" 
-          :key="report.id"
+          :key="report._id"
           class="p-6 hover:bg-gray-50 transition-colors"
         >
           <div class="flex items-start justify-between">
@@ -218,7 +204,7 @@ onMounted(() => {
                 <div>
                   <h3 class="text-lg font-medium text-gray-900">{{ report.title }}</h3>
                   <p class="text-sm text-gray-500">
-                    Par {{ report.author }} • {{ report.department }} • {{ report.date }}
+                    Par {{ report.authorName }} • {{ report.department }} • {{ new Date(report.submittedAt).toLocaleDateString('fr-FR') }}
                   </p>
                 </div>
               </div>
@@ -239,7 +225,7 @@ onMounted(() => {
             <div class="flex items-center gap-2 ml-4">
               <button
                 v-if="report.status === 'pending'"
-                @click="validateReport(report.id)"
+                @click="validateReport(report._id)"
                 class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
               >
                 <CheckCircle class="w-4 h-4" />
@@ -248,7 +234,7 @@ onMounted(() => {
               
               <button
                 v-if="report.status === 'pending'"
-                @click="rejectReport(report.id)"
+                @click="rejectReport(report._id)"
                 class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-2"
               >
                 <AlertTriangle class="w-4 h-4" />
