@@ -40,7 +40,16 @@ export const login = async ({ email, password }) => {
     { expiresIn: "7d" },
   );
 
-  return token;
+  return {
+    token,
+    user: {
+      id: user._id,
+      email: user.email,
+      role: user.role,
+      name: user.name,
+      dept: user.dept
+    }
+  };
 };
 
 export const getUserById = async (userId) => {

@@ -248,30 +248,23 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
 })
-
 router.beforeEach((to, from, next) => {
   const loginStore = useLoginStore()
   const logged = loginStore.token
   const currentUser = loginStore.getDecodedToken
 
+  // 1. Protection des routes privées
   if (to.meta.requiresAuth && !logged) {
-    next({ name: 'login' })
-  } else if (to.name === 'login' && logged) {
-    if (currentUser.role === 'admin') {
-      next({ name: 'dashboard-admin' })
-    }
-    if (currentUser.role === 'agent') {
-      next({ name: 'dashboard-agent' })
-    }
-    if (currentUser.role === 'chef') {
-      next({ name: 'dashboard-chef' })
-    }
   }
-  // if (to.meta.role && to.meta.role !== currentUser.role) {
-  //   return next({ name: 'unauthorized' })
-  // }
-  else {
-    next()
+
+  // 2. Redirection si déjà connecté
+  if (to.name === 'login' && logged) {
+    if (currentUser.role === 'admin') return next({ name: 'dashboard-admin' })
+    if (currentUser.role === 'agent') return next({ name: 'dashboard-agent' })
+    if (currentUser.role === 'chef') return next({ name: 'dashboard-chef' })
   }
+
+  // 3. Cas par défaut (IMPORTANT : toujours appeler next() ici)
+  next()
 })
 export default router
