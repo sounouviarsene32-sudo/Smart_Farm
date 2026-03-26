@@ -52,6 +52,8 @@ const fetchData = async () => {
   }
 }
 
+// console.log(overviewData.value.departmentStats.reduce((accu, curr) => accu, curr))
+
 // --- Configuration Graphique 1 : Revenu par Département (Pie) ---
 const pieData = computed(() => {
   if (!overviewData.value) return null
@@ -117,7 +119,7 @@ const dynamicStats = computed(() => {
     // On peut ajouter une stat fixe ou calculée ici
     {
       title: 'Performance',
-      value: '92%',
+      value: overviewData.value.performance || 0,
       subText: 'Estimation globale',
       colorClass: 'text-orange-500',
       icon: Users,
@@ -142,8 +144,9 @@ onMounted(fetchData)
 
 <template>
   <main class="flex-1 lg:ml-64 p-4 lg:p-8 bg-slate-50 min-h-screen space-y-8">
-    <div v-if="loading" class="flex justify-center items-center h-64">
-      <p class="text-slate-500 font-bold animate-pulse">Chargement des données...</p>
+    <div v-if="loading" class="flex flex-col justify-center items-center h-64 space-y-4">
+      <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-emerald-500"></div>
+      <p class="text-slate-500 font-bold animate-pulse">Récupération des données...</p>
     </div>
 
     <template v-else>
@@ -154,21 +157,25 @@ onMounted(fetchData)
         </div>
       </header>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div v-if="dynamicStats && dynamicStats.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StardCard v-for="stat in dynamicStats" :key="stat.title" v-bind="stat" />
       </div>
 
       <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+        <div  class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
           <h3 class="font-bold text-slate-800 mb-6">Effectif par Département</h3>
-          <div v-if="pieData && pieData.labels" class="h-[300px]">
+          <div v-if="pieData?.labels?.length > 0" class="h-[300px]">
             <Pie :data="pieData" :options="pieOptions" />
           </div>
+          <div v-else class="text-center py-8 text-slate-400 text-sm italic pt-6">
+            <p>Silence Radio</p>
+          </div>
+        
         </div>
 
-        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+        <div v-if="lineData?.labels?.length > 0" class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
           <h3 class="font-bold text-slate-800 mb-6">Évolution des Dépenses (FCFA)</h3>
-          <div v-if="lineData && lineData.labels" class="h-[300px]">
+          <div class="h-[300px]">
             <Line :data="lineData" :options="{ responsive: true, maintainAspectRatio: false }" />
           </div>
         </div>
@@ -177,7 +184,7 @@ onMounted(fetchData)
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
           <h3 class="font-bold text-slate-800 mb-6">Ventes Récentes</h3>
-          <div class="space-y-6">
+          <div v-if="recentActivities && recentActivities.length > 0" class="space-y-6">
             <div
               v-for="act in recentActivities"
               :key="act.id"
@@ -188,128 +195,38 @@ onMounted(fetchData)
                 <p class="text-sm font-bold text-slate-800">{{ act.desc }}</p>
                 <p class="text-xs text-slate-400">{{ act.user }} • {{ act.time }}</p>
               </div>
-              <span
-                class="text-[10px] bg-slate-100 px-2 py-1 rounded text-slate-500 uppercase font-bold"
-              >
+              <span v-if="act.cat" class="text-[10px] bg-slate-100 px-2 py-1 rounded text-slate-500 uppercase font-bold">
                 {{ act.cat }}
               </span>
             </div>
+          </div>
+          <div v-else class="text-center py-8 text-slate-400 text-sm italic">
+            Aucune vente enregistrée récemment.
           </div>
         </div>
 
         <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
           <h3 class="font-bold text-slate-800 mb-6">Dernières Campagnes</h3>
-          <div class="space-y-4">
+          <div v-if="overviewData?.campaigns?.length > 0" class="space-y-4">
             <div
-              v-for="camp in overviewData?.campaigns"
+              v-for="camp in overviewData.campaigns"
               :key="camp._id"
-              class="flex justify-between items-center"
+              class="flex justify-between items-center p-2 hover:bg-slate-50 rounded-lg transition-colors"
             >
               <span class="text-slate-600 font-medium">{{ camp.name }}</span>
               <span
-                :class="camp.status === 'actif' ? 'text-emerald-600' : 'text-slate-400'"
-                class="text-xs font-bold uppercase"
+                :class="camp.status === 'actif' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-400'"
+                class="text-[10px] px-2 py-1 rounded font-bold uppercase"
               >
                 {{ camp.status }}
               </span>
             </div>
+          </div>
+          <div v-else class="text-center py-8 text-slate-400 text-sm italic">
+            Aucune campagne disponible.
           </div>
         </div>
       </div>
     </template>
   </main>
 </template>
-
-<!-- <script setup>
-import { ref, computed, onMounted } from 'vue'
-import StardCard from './StardCard.vue'
-import { Users, Activity, Target, PawPrint } from 'lucide-vue-next'
-import dashboardService from '@/services/dashboard.js'
-
-// --- Imports Chart.js ---
-import { Pie, Line } from 'vue-chartjs'
-import {
-  Chart as ChartJS, ArcElement, Tooltip, Legend,
-  CategoryScale, LinearScale, PointElement, LineElement, Title
-} from 'chart.js'
-
-ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement, Title)
-
-const statsData = ref(null)
-const overviewData = ref(null)
-const loading = ref(true)
-
-// --- Logique de récupération ---
-const fetchData = async () => {
-  try {
-    loading.value = true
-    const [stats, overview] = await Promise.all([
-      dashboardService.getStats(),
-      dashboardService.getOverview()
-    ])
-    statsData.value = stats
-    overviewData.value = overview
-  } catch (error) {
-    console.error("Erreur chargement", error)
-  } finally {
-    loading.value = false
-  }
-}
-
-
-
-onMounted(fetchData)
-</script>
-
-<template>
-  <main class="flex-1 lg:ml-64 p-4 lg:p-8 bg-slate-50 min-h-screen space-y-8">
-    
-    <header v-if="!loading" class="mb-8">
-      <h2 class="text-2xl font-bold text-slate-800">Tableau de Bord Stratégique</h2>
-      <p class="text-slate-500 text-sm">Analyse financière et opérationnelle</p>
-    </header>
-
-    <div v-if="loading" class="h-64 flex items-center justify-center">
-        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
-    </div>
-
-    <template v-else>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StardCard v-for="stat in dynamicStats" :key="stat.title" v-bind="stat" />
-      </div>
-
-      <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        
-        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-          <h3 class="font-bold text-slate-800 mb-6">Revenu par Département</h3>
-          <div class="h-[300px]">
-            <Pie :data="pieData" :options="pieOptions" />
-          </div>
-        </div>
-
-        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-          <h3 class="font-bold text-slate-800 mb-6">Évolution des Dépenses (FCFA)</h3>
-          <div class="h-[300px]">
-            <Line :data="lineData" :options="{ responsive: true, maintainAspectRatio: false }" />
-          </div>
-        </div>
-      </div>
-
-      <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm mt-8">
-        <h3 class="font-bold text-slate-800 mb-6">Ventes Récentes</h3>
-        <div class="space-y-4">
-          <div v-for="act in recentActivities" :key="act.id" class="flex justify-between items-center pb-4 border-b last:border-0">
-            <div class="flex items-center gap-3">
-              <div class="p-2 bg-blue-50 rounded-lg"><Activity class="w-4 h-4 text-blue-500" /></div>
-              <div>
-                <p class="text-sm font-bold text-slate-800">{{ act.desc }}</p>
-                <p class="text-xs text-slate-400">{{ act.user }} • {{ act.time }}</p>
-              </div>
-            </div>
-            <span class="font-bold text-slate-700 text-sm">{{ act.cat }}</span>
-          </div>
-        </div>
-      </div>
-    </template>
-  </main>
-</template> -->
