@@ -69,6 +69,8 @@ const fetchData = async () => {
     statsData.value = stats
     overviewData.value = overview
     console.log('Données chargées pour le Chef:', { stats, overview, deptId })
+    console.log('Campaigns in overview:', overview?.campaigns)
+    console.log('My campaigns after filtering:', myCampaigns.value)
   } catch (error) {
     console.error('Erreur chargement chef', error)
   } finally {
@@ -144,17 +146,44 @@ const myCampaigns = computed(() => {
 
 // --- Graphique Pie (Utilise maintenant myCampaigns) ---
 const pieData = computed(() => {
-  if (myCampaigns.value.length === 0) return null
-  return {
-    labels: myCampaigns.value.map((c) => c.name),
+  console.log('pieData computed - myCampaigns:', myCampaigns.value)
+  console.log('pieData computed - overviewData:', overviewData.value)
+
+  if (!myCampaigns.value || myCampaigns.value.length === 0) {
+    console.log('pieData: No campaigns found')
+    return null
+  }
+
+  // Filtrer les campagnes qui ont des animaux (pour éviter les 0)
+  const campaignsWithAnimals = myCampaigns.value.filter(c => (c.animalsCount || 0) > 0)
+
+  if (campaignsWithAnimals.length === 0) {
+    console.log('pieData: No campaigns with animals')
+    return null
+  }
+
+  const data = {
+    labels: campaignsWithAnimals.map((c) => c.name),
     datasets: [
       {
-        data: myCampaigns.value.map((c) => c.animalsCount || 0),
+        data: campaignsWithAnimals.map((c) => {
+          const count = c.animalsCount || 0
+          console.log(`Campaign ${c.name}: animalsCount = ${count}`)
+          return count
+        }),
         backgroundColor: ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6'],
         borderWidth: 0,
       },
     ],
   }
+
+  console.log('pieData final:', data)
+  return data
+})
+
+// Key pour forcer le re-render du graphique quand les données changent
+const pieChartKey = computed(() => {
+  return pieData.value ? JSON.stringify(pieData.value) : 'no-data'
 })
 
 
@@ -209,17 +238,23 @@ const lineOptions = {
 // --- Stats Cards adaptées au Chef ---
 const dynamicStats = computed(() => {
   if (!statsData.value) return []
+
+  // Calculer le nombre total d'animaux dans les campagnes du chef
+  const totalAnimalsInDept = myCampaigns.value.reduce((total, campaign) => {
+    return total + (campaign.animalsCount || 0)
+  }, 0)
+
   return [
     {
       title: 'Animaux (Dépt)',
-      value: statsData.value.totalAnimals || 0,
+      value: totalAnimalsInDept,
       subText: chefDept.value,
       colorClass: 'text-emerald-500',
       icon: PawPrint,
     },
     {
       title: 'Mes Campagnes',
-      value: myCampaigns.value.length, // Plus besoin de .length sur une ref() ici car c'est une computed
+      value: myCampaigns.value.length,
       subText: 'En cours / Planifiées',
       colorClass: 'text-purple-500',
       icon: Target,
@@ -285,8 +320,15 @@ onMounted(fetchData)
         <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
           <h3 class="font-bold text-slate-800 mb-6">Répartition Animaux par Campagne</h3>
           <div class="h-[300px]">
-            <Pie v-if="pieData" :data="pieData" :options="pieOptions" />
-            <p v-else class="text-center text-slate-400 mt-20">Aucune campagne active</p>
+            <Pie
+              v-if="pieData && pieData.datasets && pieData.datasets[0] && pieData.datasets[0].data.length > 0"
+              :key="pieChartKey"
+              :data="pieData"
+              :options="pieOptions"
+            />
+            <p v-else class="text-center text-slate-400 mt-20">
+              {{ myCampaigns.length > 0 ? 'Chargement des données...' : 'Aucune campagne avec animaux' }}
+            </p>
           </div>
         </div>
 

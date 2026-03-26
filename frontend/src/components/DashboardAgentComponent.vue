@@ -135,10 +135,7 @@ onMounted(fetchData)
           <h2 class="text-2xl font-bold text-slate-800">Mon Espace Agent</h2>
           <p class="text-slate-500 text-sm">Suivi de mes tâches et animaux assignés</p>
         </div>
-        <div class="hidden sm:block text-right text-sm text-slate-400">
-          <p>Agent: <span class="text-slate-900 font-semibold">{{ currentUser?.name || 'Non défini' }}</span></p>
-          <p>Date: <span class="text-slate-900 font-semibold">{{ new Date().toLocaleDateString() }}</span></p>
-        </div>
+      
       </header>
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
