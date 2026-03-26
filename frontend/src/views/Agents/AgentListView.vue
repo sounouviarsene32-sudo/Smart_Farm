@@ -361,31 +361,11 @@ onMounted(initData)
             <div class="grid grid-cols-2 gap-5">
               <select v-model="newAgent.dept" :disabled="isChef" class="custom-select" required>
                 <option value="">Secteur</option>
-<<<<<<< HEAD
-                <option
-                  v-for="d in departments"
-                  :key="d.id || d._id"
-                  :value="d.id || d._id"
-                >
-                  {{ d.name }}
-                </option>
-              </select>
-              <select v-model="newAgent.camp" class="custom-select">
-                <option value="">Campagne</option>
-                <option
-                  v-for="c in campaigns"
-                  :key="c._id || c.id"
-                  :value="c._id || c.id"
-                >
-                  {{ c.name }}
-                </option>
-=======
                 <option v-for="d in departments" :key="d.id || d._id" :value="d.id || d._id">{{ d.name }}</option>
               </select>
               <select v-model="newAgent.camp" class="custom-select">
                 <option value="">Campagne</option>
                 <option v-for="c in campaigns" :key="c._id || c.id" :value="c._id || c.id">{{ c.name }}</option>
->>>>>>> 8098768fa70ae2d39087e15b402f077e897048db
               </select>
             </div>
             <div v-if="!isChef" class="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl">

@@ -5,7 +5,7 @@ const agentSchema = new Schema({
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     num: { type: String },
-    poste: { type: String, required: true },  
+    poste: { type: String, },  
     dept: { type: Schema.Types.ObjectId, ref: "Departement", required: true },
     camp: { type: Schema.Types.ObjectId, ref: "Campaign"},
     haveCount: { type: Boolean, default: false },

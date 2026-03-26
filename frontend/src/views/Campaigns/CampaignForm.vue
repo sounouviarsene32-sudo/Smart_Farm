@@ -90,6 +90,35 @@ onMounted(() => {
   loadDepartements();
   loadCampaign();
 });
+
+
+const handleSubmit = async () => {
+  try {
+    const payload = {
+      name: form.value.name,
+      departement: form.value.departement,
+      description: form.value.description,
+
+      startDate: new Date(form.value.startDate),
+      endDate: form.value.endDate ? new Date(form.value.endDate) : null,
+
+      status: form.value.status,
+      budget: Number(form.value.budget) || 0,
+
+      manager: form.value.manager || null,
+      agents: form.value.agents.filter(a => a)
+    }
+
+    console.log('Payload envoyé:', payload)
+
+    await campaignService.createCampaign(payload)
+
+    emit('close')
+  } catch (err) {
+    console.error('Erreur création campagne:', err.response?.data || err)
+  }
+}
+
 </script>
 
 <template>
@@ -217,11 +246,11 @@ onMounted(() => {
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
+          <!-- <div>
             <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider"
               >Manager Principal</label
             >
-            <!-- <select
+            <select
               v-model="form.manager"
               class="w-full bg-slate-50 border border-slate-200 focus:border-[#1E8E6E] focus:bg-white rounded-xl px-4 py-3 text-sm font-semibold text-slate-800 outline-none appearance-none"
             >
@@ -229,8 +258,8 @@ onMounted(() => {
               <option v-for="agent in agents" :key="agent._id" :value="agent._id">
                 {{ agent.firstName }} {{ agent.lastName }}
               </option>
-            </select> -->
-          </div>
+            </select>
+          </div> -->
           <!-- <div>
             <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider"
               >Équipe assignée</label
