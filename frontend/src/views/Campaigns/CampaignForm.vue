@@ -221,7 +221,7 @@ onMounted(() => {
             <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider"
               >Manager Principal</label
             >
-            <select
+            <!-- <select
               v-model="form.manager"
               class="w-full bg-slate-50 border border-slate-200 focus:border-[#1E8E6E] focus:bg-white rounded-xl px-4 py-3 text-sm font-semibold text-slate-800 outline-none appearance-none"
             >
@@ -229,9 +229,9 @@ onMounted(() => {
               <option v-for="agent in agents" :key="agent._id" :value="agent._id">
                 {{ agent.firstName }} {{ agent.lastName }}
               </option>
-            </select>
+            </select> -->
           </div>
-          <div>
+          <!-- <div>
             <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider"
               >Équipe assignée</label
             >
@@ -249,7 +249,7 @@ onMounted(() => {
             >
               Maintenez Ctrl pour sélection multiple
             </p>
-          </div>
+          </div> -->
         </div>
 
         <div>
