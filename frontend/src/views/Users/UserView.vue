@@ -2,6 +2,7 @@
 import userService from '@/services/users.js'
 import { ref, reactive, onMounted, watch } from 'vue'
 import departementService from '@/services/departement.js'
+import { useToast } from 'vue-toastification'
 
 import {
   Users,
@@ -18,6 +19,7 @@ import {
 } from 'lucide-vue-next'
 
 const users = ref()
+const toast = useToast()
 const allRoles = ref()
 const role = ref('')
 const search = ref('')
@@ -102,7 +104,7 @@ function handleCreateUser() {
     })
     .catch((error) => {
       // Affiche l'erreur réelle renvoyée par ton API
-      alert(error.response?.data?.message || "Erreur de création");
+      toast.error(error.response?.data?.message || "Erreur de création");
       console.error(error);
     });
 }

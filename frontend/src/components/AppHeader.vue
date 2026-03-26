@@ -5,11 +5,29 @@ const router = useRouter()
 import { useLoginStore } from '@/stores/login.store'
 const loginStore = useLoginStore()
 const currentUser = ref(loginStore.getDecodedToken)
-import { UserCircle, LogOut } from 'lucide-vue-next'
+import Swal from 'sweetalert2'
+import {
+  UserCircle,
+  LogOut,
+} from 'lucide-vue-next'
 
-const handleLogout = () => {
-  loginStore.logout()
-  router.push('/login')
+const handleLogout = async () => {
+  // Confirmation avec SweetAlert2
+  const result = await Swal.fire({
+    title: 'Confirmer la déconnexion?',
+    text: 'Êtes-vous sûr de vouloir vous déconnecter?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#dc2626',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: 'Oui, me déconnecter',
+    cancelButtonText: 'Annuler'
+  });
+
+  if (result.isConfirmed) {
+    loginStore.logout()
+    router.push('/login')
+  }
 }
 </script>
 

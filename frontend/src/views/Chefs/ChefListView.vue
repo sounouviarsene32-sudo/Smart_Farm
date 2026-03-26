@@ -2,6 +2,8 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import chefService from '@/services/chef.js'
 import departementService from '@/services/departement.js'
+import Swal from 'sweetalert2'
+import { useToast } from 'vue-toastification'
 import {
   Users,
   CheckCircle2,
@@ -23,6 +25,7 @@ const departments = ref([])
 const toUpdate = ref(null)
 const search = ref('')
 const stats = ref([])
+const toast = useToast()
 
 // --- Formulaire Réactif ---
 const newChef = reactive({
@@ -101,8 +104,7 @@ const handleSubmit = async () => {
     await fetchData()
     resetForm()
   } catch (error) {
-    console.error('Erreur lors de l\'enregistrement Chef :', error)
-    alert(`Erreur lors de l'enregistrement : ${error?.response?.data?.message || error.message}`)
+    toast.error("Erreur lors de l'enregistrement")
   }
 }
 
@@ -117,10 +119,21 @@ const openEditModal = (chef) => {
 }
 
 const handleDelete = async (id) => {
-  // if (confirm('Supprimer ce responsable ?')) {
-  await chefService.deleteChef(id)
-  fetchData()
-  // }
+  const result = await Swal.fire({
+    title: 'Supprimer ce responsable?',
+    text: 'Êtes-vous sûr de vouloir supprimer ce responsable de département?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#dc2626',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: 'Oui, supprimer',
+    cancelButtonText: 'Annuler'
+  });
+
+  if (result.isConfirmed) {
+    await chefService.deleteChef(id)
+    fetchData()
+  }
 }
 
 const availableDepartments = computed(() => {

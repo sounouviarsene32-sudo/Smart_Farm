@@ -3,10 +3,12 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../api/axios.config.js'
 import { useLoginStore } from '../stores/login.store.js'
+import { useToast } from 'vue-toastification'
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-vue-next'
 
 const router = useRouter()
 const loginStore = useLoginStore()
+const toast = useToast()
 
 const email = ref('')
 const password = ref('')
@@ -25,11 +27,13 @@ const handleLogin = async () => {
     const currentUser = loginStore.getDecodedToken
     if (currentUser && currentUser.role) {
       router.push({ name: `dashboard-${currentUser.role}` })
+    } else {
+      toast.error('Erreur de connexion')
     }
   } catch (err) {
     console.error('Login failed:', err)
     const errorMessage = err.response?.data?.message || 'Erreur de connexion'
-    alert(errorMessage)
+    toast.error(errorMessage)
   }
 }
 </script>

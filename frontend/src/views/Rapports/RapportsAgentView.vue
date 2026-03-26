@@ -1,6 +1,8 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useLoginStore } from '../../stores/login.store.js';
+import { useToast } from 'vue-toastification';
+import Swal from 'sweetalert2';
 import { 
   FileText, 
   Download, 
@@ -32,6 +34,7 @@ const transferData = ref({
 
 // Utiliser le store de connexion
 const loginStore = useLoginStore();
+const toast = useToast();
 
 const reportTypes = [
   { value: 'financier', label: 'Rapport Financier', icon: DollarSign, color: 'text-green-600' },
@@ -53,7 +56,7 @@ const loadCampaigns = async () => {
 // Générer un rapport
 const generateReport = async () => {
   if (!selectedCampaign.value || !startDate.value || !endDate.value) {
-    alert('Veuillez remplir tous les champs');
+    toast.error('Veuillez remplir tous les champs');
     return;
   }
 
@@ -72,7 +75,7 @@ const generateReport = async () => {
     // Récupérer le token depuis le store
     const token = loginStore.token;
     if (!token) {
-      alert('Vous devez être connecté pour générer un rapport');
+      toast.error('Vous devez être connecté pour générer un rapport');
       return;
     }
     
@@ -90,14 +93,14 @@ const generateReport = async () => {
     if (res.ok) {
       const data = await res.json();
       reports.value.unshift(data.report);
-      alert('Rapport généré avec succès!');
+      toast.success('Rapport généré avec succès!');
     } else {
       const errorData = await res.json();
-      alert(errorData.message || 'Erreur lors de la génération du rapport');
+      toast.error(errorData.message || 'Erreur lors de la génération du rapport');
     }
   } catch (error) {
     console.error('Erreur génération rapport:', error);
-    alert('Erreur lors de la génération du rapport');
+    toast.error('Erreur lors de la génération du rapport');
   } finally {
     loading.value = false;
   }
@@ -108,7 +111,7 @@ const downloadReport = async (reportId) => {
   try {
     const token = loginStore.token;
     if (!token) {
-      alert('Vous devez être connecté pour télécharger un rapport');
+      toast.error('Vous devez être connecté pour télécharger un rapport');
       return;
     }
     
@@ -130,12 +133,13 @@ const downloadReport = async (reportId) => {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
+      toast.success('Téléchargement réussi');
     } else {
-      alert('Erreur lors du téléchargement');
+      toast.error('Erreur lors du téléchargement');
     }
   } catch (error) {
     console.error('Erreur téléchargement rapport:', error);
-    alert('Erreur lors du téléchargement');
+    toast.error('Erreur lors du téléchargement');
   }
 };
 
@@ -153,14 +157,30 @@ const openTransferModal = (report) => {
 // Transférer un rapport
 const transferReport = async () => {
   if (!selectedReport.value || !transferData.value.recipientId) {
-    alert('Veuillez sélectionner un destinataire');
+      toast.error('Veuillez sélectionner un destinataire');
+      return;
+    }
+
+  // Confirmation avec SweetAlert2
+  const result = await Swal.fire({
+    title: 'Confirmer le transfert?',
+    text: `Êtes-vous sûr de vouloir transférer ce rapport au ${transferData.value.recipientType === 'chef' ? 'chef de département' : 'administrateur'}?`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#750505',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: 'Oui, transférer',
+    cancelButtonText: 'Annuler'
+  });
+
+  if (!result.isConfirmed) {
     return;
   }
 
   try {
     const token = loginStore.token;
     if (!token) {
-      alert('Vous devez être connecté pour transférer un rapport');
+      toast.error('Vous devez être connecté pour transférer un rapport');
       return;
     }
     
@@ -182,7 +202,7 @@ const transferReport = async () => {
 
     if (res.ok) {
       const data = await res.json();
-      alert(data.message);
+      toast.success(data.message);
       showTransferModal.value = false;
       // Mettre à jour le statut du rapport
       const reportIndex = reports.value.findIndex(r => r._id === selectedReport.value._id);
@@ -191,11 +211,11 @@ const transferReport = async () => {
       }
     } else {
       const errorData = await res.json();
-      alert(errorData.message || 'Erreur lors du transfert');
+      toast.error(errorData.message || 'Erreur lors du transfert');
     }
   } catch (error) {
     console.error('Erreur transfert rapport:', error);
-    alert('Erreur lors du transfert');
+    toast.error('Erreur lors du transfert');
   }
 };
 

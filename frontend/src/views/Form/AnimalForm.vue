@@ -89,8 +89,10 @@
 import { ref, onMounted, watch } from "vue";
 import AnimalService from "@/services/animals.js";
 import DepartementService from "@/services/departement.js";
+import { useToast } from 'vue-toastification';
 
 const emit = defineEmits(["close", "created"]);
+const toast = useToast();
 
 const mode = ref("single"); // single | batch
 
@@ -117,7 +119,7 @@ async function loadDepartments() {
     departments.value = data;
   } catch (err) {
     console.error("Erreur chargement départements:", err);
-    alert("Impossible de charger les départements et campagnes");
+    toast.error("Impossible de charger les départements et campagnes");
   }
 }
 
@@ -166,7 +168,7 @@ async function handleSubmit() {
     emit("close");
   } catch (err) {
     console.error("Erreur création animal:", err);
-    alert("Une erreur est survenue lors de l'enregistrement.");
+    toast.error("Une erreur est survenue lors de l'enregistrement.");
   }
 }
 </script>
