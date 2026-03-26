@@ -11,6 +11,7 @@ defineProps({
 
 // Événements émis pour les actions de modification et suppression
 const emit = defineEmits(['edit', 'delete']);
+const deptName = computed(() => chef.dept?.name || 'Non assigné')
 
 // Fonction utilitaire pour gérer les couleurs de performance
 const getPerformanceClass = (perf) => {

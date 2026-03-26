@@ -26,6 +26,22 @@ const DashboardService = {
     async getOverview() {
         try {
             const campaigns = await Campaign.find().limit(15).sort({ createdAt: -1 }).populate('departement');
+            console.log('DashboardService.getOverview - Found campaigns:', campaigns.length);
+            
+            // Calculer le nombre d'animaux pour chaque campagne
+            const campaignsWithCount = await Promise.all(
+                campaigns.map(async (campaign) => {
+                    const animalsCount = await Animal.countDocuments({ campaignId: campaign._id });
+                    console.log(`Campaign ${campaign.name} (${campaign._id}): animalsCount = ${animalsCount}`);
+                    return {
+                        ...campaign.toObject(),
+                        animalsCount
+                    };
+                })
+            );
+
+            console.log('DashboardService.getOverview - campaignsWithCount:', campaignsWithCount.map(c => ({ name: c.name, animalsCount: c.animalsCount })));
+
             const recentSales = await Sale.find().limit(15).sort({ createdAt: -1 }).populate('campaignId').populate('animalIds');
             const animals = await Animal.find().limit(15);
             const departmentStats = await Departement.find().lean().exec();
@@ -33,7 +49,7 @@ const DashboardService = {
                 { $group: { _id: "$dept", count: { $sum: 1 } } }
             ]);
             return {
-                campaigns,
+                campaigns: campaignsWithCount,
                 recentSales,
                 animals,
                 departmentStats,
@@ -46,10 +62,22 @@ const DashboardService = {
 
     async getOverviewByDept(deptId) {
         try {
-            const campaigns = await Campaign.find({ departement: deptId })
+            // Recherche les campagnes où le département est dans le tableau departement
+            const campaigns = await Campaign.find({ departement: { $in: [deptId] } })
                 .limit(15)
                 .sort({ createdAt: -1 })
                 .populate('departement');
+
+            // Calculer le nombre d'animaux pour chaque campagne
+            const campaignsWithCount = await Promise.all(
+                campaigns.map(async (campaign) => {
+                    const animalsCount = await Animal.countDocuments({ campaignId: campaign._id });
+                    return {
+                        ...campaign.toObject(),
+                        animalsCount
+                    };
+                })
+            );
 
             const recentSales = await Sale.find({ dept: deptId })
                 .limit(15)
@@ -57,7 +85,10 @@ const DashboardService = {
                 .populate('campaignId')
                 .populate('animalIds');
 
-            const animals = await Animal.find({ dept: deptId }).limit(15);
+            // Recherche les animaux dans les campagnes de ce département
+            const deptCampaigns = await Campaign.find({ departement: { $in: [deptId] } }).select('_id');
+            const campaignIds = deptCampaigns.map(c => c._id);
+            const animals = await Animal.find({ campaignId: { $in: campaignIds } }).limit(15);
 
             const departmentStats = await Departement.find().lean().exec();
 
@@ -67,7 +98,7 @@ const DashboardService = {
             ]);
 
             return {
-                campaigns,
+                campaigns: campaignsWithCount,
                 recentSales,
                 animals,
                 departmentStats,
