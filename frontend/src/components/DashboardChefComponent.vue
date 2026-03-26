@@ -181,6 +181,11 @@ const pieData = computed(() => {
   return data
 })
 
+// Key pour forcer le re-render du graphique quand les données changent
+const pieChartKey = computed(() => {
+  return pieData.value ? JSON.stringify(pieData.value) : 'no-data'
+})
+
 
 const lineData = computed(() => {
   return {
@@ -315,8 +320,15 @@ onMounted(fetchData)
         <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
           <h3 class="font-bold text-slate-800 mb-6">Répartition Animaux par Campagne</h3>
           <div class="h-[300px]">
-            <Pie v-if="pieData" :data="pieData" :options="pieOptions" />
-            <p v-else class="text-center text-slate-400 mt-20">Aucune campagne active</p>
+            <Pie
+              v-if="pieData && pieData.datasets && pieData.datasets[0] && pieData.datasets[0].data.length > 0"
+              :key="pieChartKey"
+              :data="pieData"
+              :options="pieOptions"
+            />
+            <p v-else class="text-center text-slate-400 mt-20">
+              {{ myCampaigns.length > 0 ? 'Chargement des données...' : 'Aucune campagne avec animaux' }}
+            </p>
           </div>
         </div>
 
