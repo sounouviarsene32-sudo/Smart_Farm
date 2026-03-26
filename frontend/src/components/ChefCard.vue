@@ -1,4 +1,5 @@
 <script setup>
+import { ref, computed } from 'vue'
 import { Mail, Phone, CalendarDays, UserCircle, Edit2, Trash2, PawPrint } from 'lucide-vue-next';
 
 // Définition des props pour recevoir les données du chef
@@ -28,14 +29,14 @@ const getPerformanceClass = (perf) => {
       <div class="flex items-center gap-4">
         <UserCircle class="w-14 h-14 text-slate-300" stroke-width="1" />
         <div>
-          <h3 class="text-xl font-bold text-slate-950">{{ chef.name }}</h3>
+          <h3 class="text-xl font-bold text-slate-950">{{ chef.name || 'Chef inconnu' }}</h3>
           <span class="text-xs font-medium text-slate-500 uppercase tracking-wider">
-            {{ chef.dept.name }}
+            {{ chef.dept?.name || 'Non assigné' }}
           </span>
         </div>
       </div>
       <span :class="['px-3 py-1 text-xs font-bold rounded-full border', getPerformanceClass(chef.performance)]">
-        {{ chef.isActive? 'Actif': 'Inactif' }}
+        {{ chef.isActive ? 'Actif' : 'Inactif' }}
       </span>
     </div>
 

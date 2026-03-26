@@ -22,6 +22,8 @@ export const getAllChefs = async ({ page = 1, limit = 10, search, dept }) => {
 };
 
 export const addChef = async (chefData) => {
+  console.log(chefData);
+  
   const chef = new Chef(chefData);
   return await chef.save(); // Le middleware 'post save' créera l'User si haveCount est true
 };

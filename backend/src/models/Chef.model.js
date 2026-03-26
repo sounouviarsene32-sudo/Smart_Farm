@@ -3,13 +3,13 @@ import mongoose from 'mongoose';
 const { Schema } = mongoose;
 
 const chefSchema = new Schema({
-    name: { type: String, required: true },
+    name: { type: String, },
     email: { type: String, required: true, unique: true },
     num: { type: String },
     // On définit le poste par défaut comme "Chef de Département"
     poste: { type: String, default: "Chef de Département" }, 
     // Relation vers le département qu'il dirige
-    dept: { type: Schema.Types.ObjectId, ref: "Departement", required: true },
+    dept: { type: Schema.Types.ObjectId, ref: "Departement",},
     haveCount: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true },
     createdAt: { type: Date, default: Date.now }

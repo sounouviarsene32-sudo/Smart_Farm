@@ -91,6 +91,8 @@ const resetForm = () => {
 
 const handleSubmit = async () => {
   try {
+    console.log('Chef submit payload:', JSON.stringify(newChef))
+
     if (toUpdate.value) {
       await chefService.updateChef(toUpdate.value._id, newChef)
     } else {
@@ -99,7 +101,8 @@ const handleSubmit = async () => {
     await fetchData()
     resetForm()
   } catch (error) {
-    alert("Erreur lors de l'enregistrement")
+    console.error('Erreur lors de l\'enregistrement Chef :', error)
+    alert(`Erreur lors de l'enregistrement : ${error?.response?.data?.message || error.message}`)
   }
 }
 
@@ -127,11 +130,14 @@ const availableDepartments = computed(() => {
 
   const editingDeptId = (toUpdate.value?.dept?._id || toUpdate.value?.dept || toUpdate.value?.dept?.id)?.toString()
 
-  return departments.value.filter((dept) => {
+  const filtered = departments.value.filter((dept) => {
     const deptId = (dept._id || dept.id || dept).toString()
     if (editingDeptId && deptId === editingDeptId) return true
     return !assignedDeptIds.includes(deptId)
   })
+
+  // Si aucune dept n'est libre, on propose toutes les départements afin de ne pas bloquer la création.
+  return filtered.length > 0 ? filtered : departments.value
 })
 
 onMounted(fetchData)

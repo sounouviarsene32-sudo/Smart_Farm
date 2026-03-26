@@ -2,6 +2,7 @@ import api from '../api/axios.config.js'
 
 export const addChef = async (chefData) => {
   // Envoie les données : name, email, num, dept, haveCount
+  console.log(chefData)
   const response = await api.post('/chefs', chefData)
   return response
 }
