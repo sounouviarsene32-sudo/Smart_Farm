@@ -212,14 +212,35 @@ const resetForm = () => {
 
 const handleSubmit = async () => {
   try {
-    if (toUpdate.value) {
-      await updateAgent(toUpdate.value._id, newAgent)
-    } else {
-      await addAgent(newAgent)
+    const payload = {
+      ...newAgent,
+      dept: newAgent.dept || undefined,
+      camp: newAgent.camp || undefined,
+      haveCount: Boolean(newAgent.haveCount)
     }
+
+    // Normalize objectId values when received from objects
+    if (payload.dept && typeof payload.dept === 'object') {
+      payload.dept = payload.dept._id || payload.dept.id || payload.dept
+    }
+    if (payload.camp && typeof payload.camp === 'object') {
+      payload.camp = payload.camp._id || payload.camp.id || payload.camp
+    }
+
+    if (toUpdate.value) {
+      await updateAgent(toUpdate.value._id, payload)
+      toast.success('Agent mis à jour avec succès.')
+    } else {
+      await addAgent(payload)
+      toast.success('Agent ajouté avec succès.')
+    }
+
     await fetchAgents()
     resetForm()
-  } catch (error) { console.error(error) }
+  } catch (error) {
+    console.error(error)
+    toast.error(error.response?.data?.error || error.message || 'Échec lors de l’enregistrement de l’agent.')
+  }
 }
 
 function editing(user) {

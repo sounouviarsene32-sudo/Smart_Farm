@@ -4,6 +4,7 @@ import { useRouter, useRoute } from 'vue-router';
 import campaignService from '@/services/campaign.js';
 import departementService from '@/services/departement.js';
 
+const emit = defineEmits(['close'])
 const router = useRouter();
 const route = useRoute();
 const campaignId = route.params.id || null;
@@ -20,7 +21,9 @@ const form = reactive({
   startDate: '',
   endDate: '',
   status: 'planifié',
-  budget: ''
+  budget: '',
+  manager: null,
+  agents: []
 });
 
 const departements = ref([]);
@@ -39,7 +42,9 @@ async function loadCampaign() {
   loading.value = true;
   try {
     const data = await campaignService.getCampaignById(campaignId);
-    form.departement = data.departement?.id || '';
+    form.departement = Array.isArray(data.departement) && data.departement.length > 0
+      ? (data.departement[0]._id || data.departement[0].id || data.departement[0])
+      : '';
     form.name = data.name;
     form.description = data.description || '';
     form.startDate = data.startDate ? data.startDate.split('T')[0] : '';
@@ -53,20 +58,27 @@ async function loadCampaign() {
   }
 }
 
-async function submitForm() {
+onMounted(() => {
+  loadDepartements();
+  loadCampaign();
+});
+
+const handleSubmit = async () => {
   submitting.value = true;
   error.value = null;
   success.value = null;
 
   try {
     const payload = {
-      departement: form.departement,
-      name: form.name,
+      departement: form.departement ? [form.departement] : [],
+      name: form.name.trim(),
       description: form.description,
-      startDate: form.startDate,
-      endDate: form.endDate || null,
+      startDate: form.startDate ? new Date(form.startDate) : null,
+      endDate: form.endDate ? new Date(form.endDate) : null,
       status: form.status,
-      budget: form.budget ? Number(form.budget) : 0
+      budget: Number(form.budget) || 0,
+      manager: form.manager || null,
+      agents: Array.isArray(form.agents) ? form.agents.filter(a => a) : []
     };
 
     if (campaignId) {
@@ -76,46 +88,13 @@ async function submitForm() {
       await campaignService.createCampaign(payload);
       success.value = 'Campagne créée avec succès !';
     }
-    
-    setTimeout(() => router.back(), 1500);
+
+    emit('close');
   } catch (err) {
-    console.error(err);
+    console.error('Erreur création campagne:', err.response?.data || err);
     error.value = 'Une erreur est survenue lors de la sauvegarde.';
   } finally {
     submitting.value = false;
-  }
-}
-
-onMounted(() => {
-  loadDepartements();
-  loadCampaign();
-});
-
-
-const handleSubmit = async () => {
-  try {
-    const payload = {
-      name: form.value.name,
-      departement: form.value.departement,
-      description: form.value.description,
-
-      startDate: new Date(form.value.startDate),
-      endDate: form.value.endDate ? new Date(form.value.endDate) : null,
-
-      status: form.value.status,
-      budget: Number(form.value.budget) || 0,
-
-      manager: form.value.manager || null,
-      agents: form.value.agents.filter(a => a)
-    }
-
-    console.log('Payload envoyé:', payload)
-
-    await campaignService.createCampaign(payload)
-
-    emit('close')
-  } catch (err) {
-    console.error('Erreur création campagne:', err.response?.data || err)
   }
 }
 
@@ -187,9 +166,9 @@ const handleSubmit = async () => {
             <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider"
               >Unité / Département</label
             >
-            <select name="departement" id="departement" v-model="form.departement">
+            <select name="departement" id="departement" v-model="form.departement" required class="w-full bg-slate-50 border border-slate-200 focus:border-[#1E8E6E] focus:bg-white rounded-xl px-4 py-3 text-sm font-semibold text-slate-800 outline-none transition-all">
               <option value="" disabled>Sélectionner une unité</option>
-              <option v-for="d in departements" :key="d.id" :value="d.id">{{ d.name }}</option>
+              <option v-for="d in departements" :key="d.id || d._id" :value="d.id || d._id">{{ d.name }}</option>
             </select>
           </div>
 

@@ -9,7 +9,7 @@ const chefSchema = new Schema({
     // On définit le poste par défaut comme "Chef de Département"
     poste: { type: String, default: "Chef de Département" }, 
     // Relation vers le département qu'il dirige
-    dept: { type: Schema.Types.ObjectId, ref: "Departement",},
+    dept: { type: Schema.Types.ObjectId, ref: "Departement"},
     haveCount: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true },
     createdAt: { type: Date, default: Date.now }
