@@ -46,14 +46,15 @@ const chefDept = computed(() => {
   )
 })
 
+
 const fetchData = async () => {
   try {
     loading.value = true
     const deptId =
-      currentUser?.dept ||
-      currentUser?.deptId ||
       currentUser?.dept?._id ||
       currentUser?.dept?.id ||
+      currentUser?.deptId ||
+      currentUser?.dept ||
       null
 
     console.log('Dashboard fetchData currentUser:', currentUser)
@@ -81,8 +82,13 @@ const fetchData = async () => {
 
 // --- FILTRAGE RÉACTIF DES CAMPAGNES ---
 const chefDeptId = computed(() => {
-  const dept = currentUser?.dept || {}
-  return dept?._id || dept?.id || dept || null
+  return (
+    currentUser?.dept?._id ||
+    currentUser?.dept?.id ||
+    currentUser?.deptId ||
+    currentUser?.dept ||
+    null
+  )
 })
 
 const chefDeptName = computed(() => {
@@ -248,7 +254,7 @@ const dynamicStats = computed(() => {
     {
       title: 'Animaux (Dépt)',
       value: totalAnimalsInDept,
-      subText: chefDept.value,
+      subText: chefDeptName.value || 'Département inconnu',
       colorClass: 'text-emerald-500',
       icon: PawPrint,
     },
@@ -267,9 +273,9 @@ const dynamicStats = computed(() => {
       icon: Activity,
     },
     {
-      title: 'Budget Consommé',
-      value: '65%',
-      subText: 'Sur le total alloué',
+      title: 'Performance',
+      value: `${overviewData.value?.performance || 0}%`,
+      subText: 'En bon état',
       colorClass: 'text-orange-500',
       icon: TrendingUp,
     },
@@ -279,8 +285,20 @@ const dynamicStats = computed(() => {
 // --- Filtrage des ventes pour ne voir que celles de son département ---
 const recentActivities = computed(() => {
   if (!overviewData.value?.recentSales) return []
+
+  const deptId = chefDeptId.value
+  const deptName = chefDeptName.value
+
   return overviewData.value.recentSales
-    .filter((s) => s.dept === chefDept.value) // Filtrage important
+    .filter((s) => {
+      if (!s.dept) return false
+      if (typeof s.dept === 'string') {
+        return s.dept === deptId || s.dept === deptName
+      }
+      const saleDeptId = s.dept._id || s.dept.id || s.dept
+      const saleDeptName = s.dept.name
+      return saleDeptId === deptId || saleDeptName === deptName
+    })
     .map((sale) => ({
       id: sale._id,
       desc: `Vente : ${sale.product}`,
@@ -302,7 +320,7 @@ onMounted(fetchData)
     <template v-else>
       <header class="flex justify-between items-end mb-8">
         <div>
-          <h2 class="text-2xl font-bold text-slate-800">Espace Chef : {{ chefDept }}</h2>
+          <h2 class="text-2xl font-bold text-slate-800">Espace Chef : {{ chefDeptName || 'Département inconnu' }}</h2>
           <p class="text-slate-500 text-sm">Gestion des campagnes et objectifs du département</p>
         </div>
         <div
@@ -346,7 +364,7 @@ onMounted(fetchData)
 
       <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
   <div class="flex items-center justify-between mb-6">
-    <h3 class="font-bold text-slate-800">Suivi des Campagnes {{ chefDept }}</h3>
+    <h3 class="font-bold text-slate-800">Suivi des Campagnes {{ chefDeptName || 'Département' }}</h3>
     <span v-if="myCampaigns?.length" class="text-xs font-medium text-slate-400">
       {{ myCampaigns.length }} campagne(s) trouvée(s)
     </span>

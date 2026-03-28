@@ -261,11 +261,11 @@ router.beforeEach((to, from, next) => {
 
   // 1. Protection des routes privées
  if (to.meta.requiresAuth && !logged) {
-  return next({ name: 'login' }) // 👈 AJOUTE CETTE LIGNE
+  return next({ name: 'login' })  
 }
 
   // 2. Redirection si déjà connecté
-if (to.name === 'login' && logged && currentUser) { // 👈 AJOUTE "&& currentUser"
+if (to.name === 'login' && logged && currentUser) {  
   if (currentUser.role === 'admin') return next({ name: 'dashboard-admin' })
   if (currentUser.role === 'agent') return next({ name: 'dashboard-agent' })
   if (currentUser.role === 'chef') return next({ name: 'dashboard-chef' })

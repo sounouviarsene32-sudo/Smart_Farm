@@ -45,6 +45,7 @@ const fetchData = async () => {
     const overview = await dashboardService.getOverview()
     statsData.value = stats
     overviewData.value = overview
+
   } catch (error) {
     console.error('Erreur de chargement du dashboard', error)
   } finally {
@@ -90,7 +91,6 @@ const lineData = computed(() => ({
     },
   ],
 }))
-
 // --- Mapping dynamique des Stats Cards ---
 const dynamicStats = computed(() => {
   if (!statsData.value) return []
@@ -119,7 +119,7 @@ const dynamicStats = computed(() => {
     // On peut ajouter une stat fixe ou calculée ici
     {
       title: 'Performance',
-      value: overviewData.value.performance || 0,
+      value: `${statsData.value.performance || 0}%`,
       subText: 'Estimation globale',
       colorClass: 'text-orange-500',
       icon: Users,

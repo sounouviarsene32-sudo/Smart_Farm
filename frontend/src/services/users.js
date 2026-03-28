@@ -8,7 +8,7 @@ export const getUserById = async (userId) => {
   const response = await api.get(`/auth/${userId}`);
   return response;
 };
-export const updateUserProfile = async (userId, updateData) => {
+export const updateUser = async (userId, updateData) => {
   const response = await api.put(`/auth/${userId}`, updateData);
   return response;
 };
@@ -25,7 +25,7 @@ export const getAllUsers = async () => {
 const userService = {
   register,
   getUserById,
-  updateUserProfile,
+  updateUser,
   deleteUser,
   getAllUsers
 };

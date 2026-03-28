@@ -12,6 +12,16 @@ import { useLoginStore } from '@/stores/login.store'
 const loginStore = useLoginStore()
 const currentUser = loginStore.getDecodedToken
 
+const currentUserId = computed(() => {
+  if (!currentUser) return null
+  return currentUser._id || currentUser.sub || currentUser.id || null
+})
+
+const currentUserDept = computed(() => {
+  if (!currentUser) return null
+  return currentUser.dept.id || currentUser.deptId || currentUser.deptName || null
+})
+
 const statsData = ref(null)
 const overviewData = ref(null)
 const agentTodos = ref([])
@@ -24,21 +34,32 @@ const fetchData = async () => {
   try {
     loading.value = true
 
+    const userId = currentUserId.value
+    console.log(currentUserDept.value)
+    if (!userId) {
+      console.warn('Dashboard agent : userId introuvable, impossible de charger les tâches / campagnes de l agent')
+    }
+
     // Récupération parallèle des données
     const [stats, overview, todos, campaigns] = await Promise.all([
       dashboardService.getStats(),
-      dashboardService.getOverview(),
-      todoService.getAgentTodos(currentUser._id),
+      currentUserDept.value
+        ? dashboardService.getOverviewByDept(currentUserDept.value)
+        : dashboardService.getOverview(),
+      userId ? todoService.getAgentTodos(userId) : { data: [] },
       campaignService.getCampaigns()
     ])
 
     statsData.value = stats
     overviewData.value = overview
-    agentTodos.value = todos.data || todos
+    agentTodos.value = (todos?.data || todos) || []
 
     // Filtrer les campagnes de l'agent
     agentCampaigns.value = campaigns.filter(campaign =>
-      campaign.agents?.some(agent => agent._id === currentUser._id || agent === currentUser._id)
+      campaign.agents?.some(agent => {
+        const agentId = agent?._id || agent?.id || agent
+        return userId && agentId?.toString() === userId.toString()
+      })
     )
 
     // Récupérer les animaux des campagnes de l'agent

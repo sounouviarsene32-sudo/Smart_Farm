@@ -16,9 +16,14 @@ const departementSchema = new mongoose.Schema({
     type: String,
     required: true, // ex: "Volaille"
   },
-  managerName: String,
-  managerEmail: String,
-  managerPhone: String,
+  chef: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Chef", // Assure-toi que c'est le nom exact du modèle Chef
+    default: null
+  },
+  // managerName: String,
+  // managerEmail: String,
+  // managerPhone: String,
 
   description: String,
 
@@ -53,7 +58,6 @@ const departementSchema = new mongoose.Schema({
   },
   agentsCount: Number,
   animalsCount: Number,
-  performance: Number,
 
   // 📈 Configuration des modules activés
   features: {
@@ -72,11 +76,6 @@ const departementSchema = new mongoose.Schema({
       default: true,
     },
   },
-
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
+}, { timestamps: true });
 
 export default mongoose.model("Departement", departementSchema);

@@ -1,5 +1,6 @@
 import express from "express";
-
+import { requiresAuth } from '../middlewares/auth.js';
+import { authorize } from '../middlewares/requiredRole.js';
 import animalRoutes from "./animals.routes.js";
 import departementRoutes from "./departement.routes.js";
 import alertRoutes from "./alert.routes.js";
@@ -18,14 +19,14 @@ import reportRoutes from "./report.routes.js"; // Import des routes de rapports
 
 
 const router = express.Router();
-
+router.use("/auth", authRoutes);
+router.use(requiresAuth);
 router.use("/departements", departementRoutes);
 router.use("/alerts", alertRoutes);
 router.use("/health", healthRoutes);
-router.use("/auth", authRoutes);
 router.use("/stock", stockRoutes);
 router.use("/ventes", salesRoutes);
-router.use("/finance", financeRoutes);
+router.use("/finance", authorize("admin", "chef"), financeRoutes);
 router.use("/animals", animalRoutes);
 router.use("/campaigns", campaignRoutes);
 router.use("/dashboard", dashboardRoutes);

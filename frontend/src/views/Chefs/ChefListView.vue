@@ -32,7 +32,7 @@ const newChef = reactive({
   name: '',
   email: '',
   num: '',
-  dept: '',
+  dept:'',
   haveCount: false,
   role: 'chef', // Fixé pour le backend
 })
@@ -43,7 +43,6 @@ async function fetchData() {
     const resChefs = await chefService.getAllChefs({ page: 1, limit: 12, search: search.value })
 
     chefs.value = resChefs.data.items || resChefs.items || []
-    console.log(chefs.value)
     const departmentsData = await departementService.getDepartements()
     departments.value = departmentsData.data || departmentsData
 
@@ -85,6 +84,28 @@ async function fetchData() {
   }
 }
 
+
+const availableDepartments = computed(() => {
+  const assignedDeptIds = chefs.value
+    .map((chef) => (chef.dept?._id || chef.dept?.id || chef.dept)?.toString())
+    .filter(Boolean)
+
+  const editingDeptId = (
+    toUpdate.value?.dept?._id ||
+    toUpdate.value?.dept?.id ||
+    toUpdate.value?.dept
+  )?.toString()
+
+  const filtered = departments.value.filter((dept) => {
+    const deptId = (dept._id || dept.id || dept).toString()
+    if (editingDeptId && deptId === editingDeptId) return true
+    return !assignedDeptIds.includes(deptId)
+  })
+
+  // Si aucune dept n'est libre, on propose toutes les départements afin de ne pas bloquer la création.
+  return filtered.length > 0 ? filtered : departments.value
+})
+
 // --- Logique du Formulaire ---
 const resetForm = () => {
   Object.assign(newChef, { name: '', email: '', num: '', dept: '', haveCount: false })
@@ -93,18 +114,33 @@ const resetForm = () => {
 }
 
 const handleSubmit = async () => {
+  console.log('-Chef tout cru',newChef)
+  // console.log(availableDepartments.value)
+  // if (!newChef.dept) {
+  //   toast.error("Choisis un département")
+  //   return
+  // }
+
   try {
-    console.log('Chef submit payload:', JSON.stringify(newChef))
+    const payload = {
+      ...newChef,
+      dept: newChef.dept || undefined,
+      haveCount: Boolean(newChef.haveCount),
+    };
 
     if (toUpdate.value) {
-      await chefService.updateChef(toUpdate.value._id, newChef)
+      await chefService.updateChef(toUpdate.value._id, payload)
+      toast.success('Chef mis à jour avec succès')
     } else {
-      await chefService.addChef(newChef)
+      console.log('-----Avant ajout',payload)
+      await chefService.addChef(payload)
+      toast.success('Chef ajouté avec succès')
     }
     await fetchData()
     resetForm()
   } catch (error) {
-    toast.error("Erreur lors de l'enregistrement")
+    console.log(error.response?.data?.message || error.message)
+    toast.error("Erreur lors de l'enregistrement: " + (error.response?.data?.message || error.message))
   }
 }
 
@@ -113,7 +149,7 @@ const openEditModal = (chef) => {
   newChef.name = chef.name
   newChef.email = chef.email
   newChef.num = chef.num
-  newChef.dept = chef.dept?._id || chef.dept
+  newChef.dept = chef.dept?._id || chef.dept?.id || chef.dept || ''
   newChef.haveCount = chef.haveCount
   isModalOpen.value = true
 }
@@ -127,8 +163,8 @@ const handleDelete = async (id) => {
     confirmButtonColor: '#dc2626',
     cancelButtonColor: '#6b7280',
     confirmButtonText: 'Oui, supprimer',
-    cancelButtonText: 'Annuler'
-  });
+    cancelButtonText: 'Annuler',
+  })
 
   if (result.isConfirmed) {
     await chefService.deleteChef(id)
@@ -136,30 +172,16 @@ const handleDelete = async (id) => {
   }
 }
 
-const availableDepartments = computed(() => {
-  const assignedDeptIds = chefs.value
-    .map((chef) => (chef.dept?._id || chef.dept || chef.dept?.id)?.toString())
-    .filter(Boolean)
 
-  const editingDeptId = (toUpdate.value?.dept?._id || toUpdate.value?.dept || toUpdate.value?.dept?.id)?.toString()
 
-  const filtered = departments.value.filter((dept) => {
-    const deptId = (dept._id || dept.id || dept).toString()
-    if (editingDeptId && deptId === editingDeptId) return true
-    return !assignedDeptIds.includes(deptId)
-  })
 
-  // Si aucune dept n'est libre, on propose toutes les départements afin de ne pas bloquer la création.
-  return filtered.length > 0 ? filtered : departments.value
-})
 
 onMounted(fetchData)
 </script>
 
 <template>
   <main
-    class="flex-1 lg:ml-64 p-6 lg:p-10 w-full min-h-screen space-y-10 
-           bg-slate-50 text-slate-800"
+    class="flex-1 lg:ml-64 p-6 lg:p-10 w-full min-h-screen space-y-10 bg-slate-50 text-slate-800"
   >
     <!-- HEADER -->
     <header class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
@@ -174,9 +196,7 @@ onMounted(fetchData)
 
       <button
         @click="isModalOpen = true"
-        class="flex items-center gap-2 px-5 py-3 bg-blue-600 hover:bg-blue-500 
-               text-white rounded-xl text-sm font-semibold shadow-md 
-               hover:shadow-lg transition-all active:scale-95"
+        class="flex items-center gap-2 px-5 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-semibold shadow-md hover:shadow-lg transition-all active:scale-95"
       >
         <Plus class="w-5 h-5" /> Nouveau Chef
       </button>
@@ -208,9 +228,7 @@ onMounted(fetchData)
           @input="fetchData"
           type="search"
           placeholder="Rechercher un chef..."
-          class="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 
-                 rounded-xl text-sm text-slate-700 placeholder:text-slate-400
-                 focus:ring-2 focus:ring-blue-500 outline-none transition"
+          class="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-500 outline-none transition"
         />
       </div>
     </section>
@@ -238,17 +256,11 @@ onMounted(fetchData)
     <!-- MODAL -->
     <Transition name="fade">
       <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-        
         <!-- backdrop -->
-        <div
-          class="absolute inset-0 bg-black/30 backdrop-blur-sm"
-          @click="resetForm"
-        ></div>
+        <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" @click="resetForm"></div>
 
         <!-- modal -->
-        <div
-          class="relative w-full max-w-lg bg-white rounded-2xl shadow-xl overflow-hidden"
-        >
+        <div class="relative w-full max-w-lg bg-white rounded-2xl shadow-xl overflow-hidden">
           <!-- header -->
           <div class="p-6 border-b flex justify-between items-center">
             <h2 class="text-lg font-bold text-slate-800">
@@ -261,14 +273,12 @@ onMounted(fetchData)
 
           <!-- form -->
           <form @submit.prevent="handleSubmit" class="p-6 space-y-5">
-            
             <input
               v-model="newChef.name"
               type="text"
               placeholder="Nom complet"
               required
-              class="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-200
-                     focus:ring-2 focus:ring-blue-500 outline-none"
+              class="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none"
             />
 
             <input
@@ -276,8 +286,7 @@ onMounted(fetchData)
               type="email"
               placeholder="Email"
               required
-              class="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-200
-                     focus:ring-2 focus:ring-blue-500 outline-none"
+              class="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none"
             />
 
             <div class="grid grid-cols-2 gap-4">
@@ -294,11 +303,7 @@ onMounted(fetchData)
                 class="px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 outline-none"
               >
                 <option value="">Département</option>
-                <option
-                  v-for="dept in availableDepartments"
-                  :key="dept._id"
-                  :value="dept._id"
-                >
+                <option v-for="dept in availableDepartments" :key="dept.id" :value="dept.id">
                   {{ dept.name }}
                 </option>
               </select>
@@ -306,29 +311,24 @@ onMounted(fetchData)
 
             <div class="flex items-center gap-3">
               <input v-model="newChef.haveCount" type="checkbox" />
-              <span class="text-sm text-slate-600">
-                Créer un accès système
-              </span>
+              <span class="text-sm text-slate-600"> Créer un accès système </span>
             </div>
 
             <div class="flex gap-3 pt-4">
               <button
                 type="button"
                 @click="resetForm"
-                class="flex-1 py-3 text-sm font-semibold text-slate-500 
-                       hover:bg-slate-100 rounded-xl"
+                class="flex-1 py-3 text-sm font-semibold text-slate-500 hover:bg-slate-100 rounded-xl"
               >
                 Annuler
               </button>
               <button
                 type="submit"
-                class="flex-1 py-3 bg-blue-600 text-white rounded-xl 
-                       font-semibold hover:bg-blue-500 transition"
+                class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-500 transition"
               >
                 {{ toUpdate ? 'Modifier' : 'Créer' }}
               </button>
             </div>
-
           </form>
         </div>
       </div>

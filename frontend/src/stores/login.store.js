@@ -1,7 +1,7 @@
 import { jwtDecode } from 'jwt-decode'
 import { defineStore } from 'pinia'
 
-export const useLoginStore = defineStore('login', {
+export const useLoginStore = defineStore('token', {
   state: () => ({
     token: null,
   }),

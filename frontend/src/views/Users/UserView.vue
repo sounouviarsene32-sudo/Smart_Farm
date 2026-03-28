@@ -29,14 +29,14 @@ const departments = ref([])
 const stats = ref()
 async function allUsers() {
   try {
-   // Si role === 'Tous les rôles', on envoie une chaîne vide
+    // Si role === 'Tous les rôles', on envoie une chaîne vide
     const selectedRole = role.value === 'Tous les rôles' ? '' : role.value
-    
-    const res = await userService.getAllUsers({ 
-      page: 1, 
-      limit: 10, 
-      search: search.value, 
-      role: selectedRole 
+
+    const res = await userService.getAllUsers({
+      page: 1,
+      limit: 10,
+      search: search.value,
+      role: selectedRole,
     })
     const departmentsData = await departementService.getDepartements()
     departments.value = departmentsData.data || departmentsData
@@ -89,24 +89,24 @@ const resetForm = () => {
 
 function handleCreateUser() {
   // Créer une copie pour ne pas polluer l'objet réactif
-  const dataToSend = { ...newUser };
-  
+  const dataToSend = { ...newUser }
+
   // Si le mot de passe est vide, on laisse le backend gérer le défaut
   if (!dataToSend.password) {
-    delete dataToSend.password;
+    delete dataToSend.password
   }
 
   userService
     .register(dataToSend)
     .then(() => {
-      allUsers();
-      resetForm(); // Ferme la modale et reset
+      allUsers()
+      resetForm() // Ferme la modale et reset
     })
     .catch((error) => {
       // Affiche l'erreur réelle renvoyée par ton API
-      toast.error(error.response?.data?.message || "Erreur de création");
-      console.error(error);
-    });
+      toast.error(error.response?.data?.message || 'Erreur de création')
+      console.error(error)
+    })
 }
 
 // modifier
@@ -164,6 +164,26 @@ const getRoleIcon = (role) => {
   return UserCog
 }
 
+async function handleAgentDigital(id, toggle) {
+  try {
+    // if (!selectedAgentForCamp.value) return
+
+    // On envoie le tableau complet des IDs sélectionnés
+    await userService.updateUser(id, {
+      isActive: toggle,
+    })
+    if(toggle==true){
+      toast.success("Accès digital octoyé")
+    } else {
+      toast.success("Accès digital restreint")
+
+    }
+    await allUsers()
+  } catch (error) {
+    toast.error("Erreur lors de l'assignation")
+  }
+}
+
 watch([search, role], () => {
   allUsers()
 })
@@ -180,12 +200,6 @@ onMounted(allUsers)
         <h1 class="text-2xl font-bold text-slate-900">Utilisateurs</h1>
         <p class="text-slate-500 text-sm">Gestion des comptes et addmissions</p>
       </div>
-      <button
-        @click="isModalOpen = true"
-        class="bg-blue-600 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 text-sm font-bold transition-all hover:bg-blue-500 active:scale-95 shadow-lg"
-      >
-        <Plus class="w-4 h-4" /> Créer Utilisateur
-      </button>
     </div>
 
     <Transition name="fade">
@@ -355,7 +369,6 @@ onMounted(allUsers)
             <th class="px-6 py-4">Email</th>
             <th class="px-6 py-4 text-center">Rôle</th>
             <th class="px-6 py-4">Département</th>
-            <th class="px-6 py-4">Date de Création</th>
             <th class="px-6 py-4 text-center">Statut</th>
             <th class="px-6 py-4 text-right">Actions</th>
           </tr>
@@ -389,11 +402,11 @@ onMounted(allUsers)
               </span>
               <span v-else class="text-slate-300">-</span>
             </td>
-            <td class="px-6 py-4 text-sm text-slate-500">{{ user.createdAt }}</td>
             <td class="px-6 py-4">
               <div class="flex justify-center">
                 <span
-                  class="bg-emerald-500 text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase"
+                  class="text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase"
+                  :class="user.isActive ? 'bg-emerald-500' : 'bg-red-500'"
                 >
                   {{ user.isActive ? 'Actif' : 'Inactif' }}
                 </span>
@@ -408,22 +421,40 @@ onMounted(allUsers)
                   <Edit2 class="w-4 h-4" />
                 </button>
                 <button
-                  class="p-2 border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-500 transition-colors"
+                  @click="handleAgentDigital(user._id, user.isActive = !user.isActive)"
+                  class="p-2 border border-slate-200 rounded-lg transition-colors"
+                  :class="
+                    user.isActive
+                      ? 'hover:bg-amber-50 text-slate-400'
+                      : 'hover:bg-emerald-50 text-emerald-600'
+                  "
                 >
-                  <Lock class="w-4 h-4" />
+                  <component :is="user.isActive ? 'Lock' : 'Unlock'" class="w-4 h-4" />
+                  <!-- <span v-if="user.isActive " class="w-4 h-4" >Lock</span> -->
                 </button>
-                <button
+                <!-- <button
                   @click="handleDelete(user._id)"
                   class="p-2 border border-rose-100 rounded-lg hover:bg-rose-50 text-rose-500 transition-colors"
                 >
                   <Trash2 class="w-4 h-4" />
-                </button>
+                </button> -->
               </div>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
+    <button
+      @click="isModalOpen = true"
+      class="fixed bottom-8 right-8 z-40 bg-blue-600 text-white px-5 py-3 rounded-2xl flex items-center gap-3 text-sm font-black transition-all hover:bg-blue-500 hover:shadow-2xl hover:-translate-y-1 active:scale-95 shadow-xl shadow-blue-200/50 group"
+    >
+      <div
+        class="bg-white/20 p-1 rounded-lg group-hover:rotate-90 transition-transform duration-300"
+      >
+        <Plus class="w-5 h-5" />
+      </div>
+      <span>CRÉER UTILISATEUR</span>
+    </button>
   </main>
 </template>
 

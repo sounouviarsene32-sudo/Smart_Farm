@@ -12,7 +12,6 @@ export const register = async ({ name, email, password, role, dept, num }) => {
 
     const existingUser = await User.findOne({ email });
     if (existingUser) throw new Error("Email déjà utilisé");
-    console.log({ name, email, password, role, dept, num });
     const user = new User({ name, email, password, role, dept, num });
     await user.save(); // 🔥 le hash se fait ici automatiquement
     return { user };
@@ -27,7 +26,7 @@ export const login = async ({ email, password }) => {
   if (!user) throw new Error("Utilisateur non trouvé");
   // Utilise la méthode définie dans ton schéma !
   const isMatch = await user.comparePassword(password);
-  if (!isMatch) throw new Error("Identifiants invalides");
+  if (!isMatch || !user.isActive) throw new Error("Identifiants invalides");
 
   const deptId = user.dept?._id?.toString() || user.dept?.toString() || null;
   const deptName = user.dept?.name || null;
@@ -37,7 +36,7 @@ export const login = async ({ email, password }) => {
     role: user.role,
     email: user.email,
     userName: user.name,
-    dept: deptId,
+    dept: user.dept,
     deptName,
   };
 

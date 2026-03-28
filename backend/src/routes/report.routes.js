@@ -5,7 +5,7 @@ import reportController from '../controllers/reportController.js';
 const router = express.Router();
 
 // Toutes les routes nécessitent une authentification
-router.use(requiresAuth);
+// router.use(requiresAuth);
 
 // Routes pour les agents
 router.post('/generate/:type', reportController.generateReport);

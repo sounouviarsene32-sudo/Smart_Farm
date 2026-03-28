@@ -15,6 +15,7 @@ const userSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId, 
         ref: "Departement" 
     },
+    
     isActive: { type: Boolean, default: true },
     createdAt: { type: Date, default: Date.now }
 });
@@ -72,19 +73,19 @@ userSchema.post('save', async function (doc) {
 });
 
 // --- Middleware Post-delete : Synchronisation Suppression ---
-userSchema.post('findOneAndDelete', async function (doc) {
-    if (!doc) return;
-    try {
-        if (doc.role === 'chef') {
-            await mongoose.model('Chef').findOneAndDelete({ email: doc.email });
-        } 
-        else if (doc.role === 'agent') {
-            await mongoose.model('Agent').findOneAndDelete({ email: doc.email });
-        }
-    } catch (err) {
-        console.error("Erreur de synchronisation post-delete:", err);
-    }
-});
+// userSchema.post('findOneAndDelete', async function (doc) {
+//     if (!doc) return;
+//     try {
+//         if (doc.role === 'chef') {
+//             await mongoose.model('Chef').findOneAndDelete({ email: doc.email });
+//         } 
+//         else if (doc.role === 'agent') {
+//             await mongoose.model('Agent').findOneAndDelete({ email: doc.email });
+//         }
+//     } catch (err) {
+//         console.error("Erreur de synchronisation post-delete:", err);
+//     }
+// });
 
 userSchema.methods.comparePassword = async function (candidatePassword) {
     return await bcrypt.compare(candidatePassword, this.password);

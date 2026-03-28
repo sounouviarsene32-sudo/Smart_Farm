@@ -18,6 +18,7 @@ export const getAllAgents = async ({ page = 1, limit = 10, search }) => {
       Agent.find(filter) // ✅ Utilise Agent au lieu de User
         .populate('dept') // Pour récupérer le nom du département au lieu de l'ID
         .populate('todo')
+        .populate('campaigns')
         .sort({ createdAt: -1 })
         .skip((safePage - 1) * safeLimit)
         .limit(safeLimit)

@@ -65,7 +65,7 @@ const DashboardService = {
         .sort({ createdAt: -1 })
         .populate("campaignId")
         .populate("animalIds");
-      const animals = await Animal.find().limit(15);
+        const animals = await Animal.find().limit();
       const departmentStats = await Departement.find().lean().exec();
       const transactionCounts = await Transaction.aggregate([
         { $group: { _id: "$dept", count: { $sum: 1 } } },
@@ -76,6 +76,7 @@ const DashboardService = {
         animals,
         departmentStats,
         transactionCounts,
+        performance
       };
     } catch (error) {
       throw new Error(
@@ -120,6 +121,10 @@ const DashboardService = {
         campaignId: { $in: campaignIds },
       }).limit(15);
 
+      const sainAnimal = await Animal.countDocuments({ status: "actif" });
+      const totalAnimal = await Animal.countDocuments();
+      const performance = (sainAnimal * 100) / totalAnimal;
+
       const departmentStats = await Departement.find().lean().exec();
 
       const transactionCounts = await Transaction.aggregate([
@@ -133,6 +138,7 @@ const DashboardService = {
         animals,
         departmentStats,
         transactionCounts,
+        performance
       };
     } catch (error) {
       throw new Error(

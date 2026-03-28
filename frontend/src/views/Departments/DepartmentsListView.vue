@@ -102,7 +102,7 @@ function handleDeleted(deptId) {
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
       <DepartmentsCard
         v-for="dept in departments"
-        :key="dept._id || dept.id"
+        :key="dept.id || dept.id"
         :dept="dept"
         :onDeleted="handleDeleted"
       />

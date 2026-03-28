@@ -22,14 +22,43 @@ export const getAllChefs = async ({ page = 1, limit = 10, search, dept }) => {
 };
 
 export const addChef = async (chefData) => {
-  console.log(chefData);
+  console.log('Données reçues dans addChef:', chefData);
+  
+  // Nettoyer les données avant sauvegarde
+  // const cleanedData = {
+  //   ...chefData,
+  //   // Convertir dept vide en undefined pour éviter les problèmes de cast ObjectId
+  //   dept: chefData.dept
+  // ? chefData.dept
+  // : undefined,
+  //   // S'assurer que haveCount est un boolean
+  //   haveCount: Boolean(chefData.haveCount)
+  // };
+  
+  console.log('Données nettoyées:', chefData);
   
   const chef = new Chef(chefData);
-  return await chef.save(); // Le middleware 'post save' créera l'User si haveCount est true
+  const savedChef = await chef.save();
+  
+  console.log('Chef sauvegardé:', savedChef);
+  return savedChef;
 };
 
 export const updateChef = async (id, updateData) => {
-  return await Chef.findByIdAndUpdate(id, updateData, { new: true });
+  console.log('Mise à jour chef - données reçues:', updateData);
+  
+  // Nettoyer les données avant mise à jour
+  const cleanedData = {
+    ...updateData,
+    // Convertir dept vide en undefined
+    dept: updateData.dept && updateData.dept !== '' ? updateData.dept : undefined,
+    // S'assurer que haveCount est un boolean
+    haveCount: updateData.haveCount !== undefined ? Boolean(updateData.haveCount) : undefined
+  };
+  
+  console.log('Mise à jour chef - données nettoyées:', cleanedData);
+  
+  return await Chef.findByIdAndUpdate(id, cleanedData, { new: true }).populate('dept');
 };
 
 export const deleteChef = async (id) => {

@@ -1,106 +1,84 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
-import { Target, CheckCircle2, TrendingUp, DollarSign, Plus } from 'lucide-vue-next'
+import { ref, onMounted, computed, watch } from 'vue'
+import { Target, CheckCircle2, TrendingUp, DollarSign, Plus, Search } from 'lucide-vue-next'
 import CampaignCard from '../../components/CampaignCard.vue'
 import { useLoginStore } from '@/stores/login.store'
 import campaignService from '@/services/campaign.js'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
+
 const router = useRouter()
 const loginStore = useLoginStore()
-const currentUser = loginStore.getDecodedToken
-const chefDept = ref(currentUser.dept?.name) // Par défaut à 'Bovins' si non défini
 
-const stats = ref([
-  { title: 'Campagnes Actives', value: 0, icon: Target, color: 'text-blue-600', bg: 'bg-blue-50' },
-  {
-    title: 'Total Campagnes',
-    value: 0,
-    icon: CheckCircle2,
-    color: 'text-emerald-500',
-    bg: 'bg-emerald-50',
-  },
-  {
-    title: 'Progression Moy.',
-    value: '0%',
-    icon: TrendingUp,
-    color: 'text-purple-600',
-    bg: 'bg-purple-50',
-  },
-  {
-    title: 'Budget Total',
-    value: '0 FCFA',
-    icon: DollarSign,
-    color: 'text-orange-500',
-    bg: 'bg-orange-50',
-  },
-])
+// 1. Rendre le user réactif pour éviter les erreurs au chargement
+const currentUser = computed(() => loginStore.getDecodedToken)
+
+// 2. Simplification du nom du département (utilisé pour le titre)
+const chefDeptName = computed(() => {
+  return currentUser.value?.dept?.name || currentUser.value?.deptName || 'Tableau de bord'
+})
 
 const myCampaigns = ref([])
 const loading = ref(true)
+const stats = ref([])
 
 async function loadCampaigns() {
   try {
     loading.value = true
-    const data = await campaignService.getCampaigns()
+    const res = await campaignService.getCampaigns()
+    // On extrait les données si le service renvoie un objet { data: [...] }
+    const allData = res.data || res 
 
-    // --- FILTRAGE RÉACTIF DES CAMPAGNES SELON LE RÔLE ---//
-    let filteredCampaigns = []
+    let filtered = []
 
-    if (currentUser.role === 'chef') {
-      // Filtrage par département pour les chefs
-      filteredCampaigns = data.filter(
-        (c) => c.departement?.name === chefDept.value || c.dept?.name === chefDept.value,
-      )
-    } else if (currentUser.role === 'agent') {
-      // Filtrage par agent pour les agents - ne montrer que les campagnes où l'agent est assigné
-      filteredCampaigns = data.filter((c) => {
-        const agentIds = c.agents?.map(agent => agent._id || agent) || []
-        return agentIds.includes(currentUser._id)
+    if (currentUser.value?.role === 'chef') {
+      // Filtrage par ID de département (plus fiable que le nom)
+      const myDeptId = currentUser.value.dept?._id || currentUser.value.dept?.id || currentUser.value.dept
+      
+      filtered = allData.filter(c => {
+        // On vérifie si le département de la campagne correspond à celui du chef
+        // Note: 'departement' peut être un tableau ou un objet selon ton schéma
+        if (Array.isArray(c.departement)) {
+          return c.departement.some(d => (d._id || d.id || d) === myDeptId)
+        }
+        return (c.departement?._id || c.departement?.id || c.departement) === myDeptId
       })
+    } 
+    else if (currentUser.value?.role === 'agent') {
+      // Filtrage par ID d'agent
+      filtered = allData.filter(c => {
+        const agentIds = c.agents?.map(a => a._id || a.id || a) || []
+        return agentIds.includes(currentUser.value._id)
+      })
+    } 
+    else {
+      // Admin ou autre : voit tout
+      filtered = allData
     }
 
-    myCampaigns.value = filteredCampaigns
-
-    // Calcul rapide des stats
-    const actives = myCampaigns.value.filter((c) => c.progression < 100).length
-    const totalBudget = myCampaigns.value.reduce((acc, c) => acc + (c.budgetTotal || 0), 0)
-    const agents = myCampaigns.value.reduce((acc, c) => acc + (c.agents?.length || 0), 0)
-
-    stats.value = [
-      {
-        title: 'Campagnes Actives',
-        value: actives,
-        icon: Target,
-        color: 'text-blue-600',
-        bg: 'bg-blue-50',
-      },
-      {
-        title: 'Total Campagnes',
-        value: myCampaigns.value.length,
-        icon: CheckCircle2,
-        color: 'text-emerald-500',
-        bg: 'bg-emerald-50',
-      },
-      {
-        title: 'Total agents',
-        value: `${agents}`,
-        icon: TrendingUp,
-        color: 'text-purple-600',
-        bg: 'bg-purple-50',
-      },
-      {
-        title: 'Budget Total',
-        value: `${totalBudget.toLocaleString()} FCFA`,
-        icon: DollarSign,
-        color: 'text-orange-500',
-        bg: 'bg-orange-50',
-      },
-    ]
+    myCampaigns.value = filtered
+    calculateStats()
   } catch (err) {
     console.error('Erreur chargement campagnes:', err)
   } finally {
     loading.value = false
   }
+}
+
+function calculateStats() {
+  const actives = myCampaigns.value.filter(c => c.status !== 'Terminée' && c.progression < 100).length
+  const totalBudget = myCampaigns.value.reduce((acc, c) => acc + (Number(c.budgetTotal) || 0), 0)
+  
+  // Calcul de la progression moyenne
+  const avgProg = myCampaigns.value.length 
+    ? Math.round(myCampaigns.value.reduce((acc, c) => acc + (c.progression || 0), 0) / myCampaigns.value.length)
+    : 0
+
+  stats.value = [
+    { title: 'Campagnes Actives', value: actives, icon: Target, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { title: 'Total Campagnes', value: myCampaigns.value.length, icon: CheckCircle2, color: 'text-emerald-500', bg: 'bg-emerald-50' },
+    { title: 'Progression Moy.', value: `${avgProg}%`, icon: TrendingUp, color: 'text-purple-600', bg: 'bg-purple-50' },
+    { title: 'Budget Total', value: `${totalBudget.toLocaleString()} FCFA`, icon: DollarSign, color: 'text-orange-500', bg: 'bg-orange-50' },
+  ]
 }
 
 onMounted(() => loadCampaigns())
@@ -111,30 +89,21 @@ onMounted(() => loadCampaigns())
   <main class="flex-1 lg:ml-64 p-6 lg:p-10 transition-all duration-300 w-full bg-slate-50 min-h-screen space-y-10">
     
     <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-      <div class="space-y-1">
-        <div class="flex items-center gap-3">
-          <h1 class="text-4xl font-black text-slate-900 tracking-tight">
-            {{ chefDept }}
-          </h1>
-          <span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase tracking-widest border border-emerald-200">
-            Live
-          </span>
-        </div>
-        <p class="text-slate-500 font-medium italic">
-          {{ currentUser.role == 'chef' ? 'Pilotage stratégique des campagnes' : 'Suivi opérationnel des projets' }}
-        </p>
-      </div>
-
-      <button
-        v-if="currentUser.role === 'chef'"
-        @click="router.push({ name: 'CampagneDepartmentForm' })"
-        class="group relative flex items-center gap-3 px-8 py-4 bg-blue-600 text-white rounded-2xl text-sm font-bold shadow-md hover:bg-blue-500 hover:shadow-lg transition-all active:scale-95"
-      >
-        <div class="absolute inset-0 rounded-2xl bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-        <Plus class="w-5 h-5 transition-transform group-hover:rotate-90" /> 
-        Nouvelle Campagne
-      </button>
-    </header>
+  <div class="space-y-1">
+    <div class="flex items-center gap-3">
+      <h1 class="text-4xl font-black text-slate-900 tracking-tight">
+        {{ chefDeptName }}
+      </h1>
+      <span v-if="loading" class="animate-pulse text-xs text-slate-400">Chargement...</span>
+      <span v-else class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase tracking-widest border border-emerald-200">
+        Live
+      </span>
+    </div>
+    <p class="text-slate-500 font-medium italic">
+      {{ currentUser?.role === 'chef' ? 'Pilotage stratégique des campagnes' : 'Suivi opérationnel des projets' }}
+    </p>
+  </div>
+  </header>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
       <div

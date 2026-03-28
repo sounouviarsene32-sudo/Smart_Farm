@@ -8,13 +8,11 @@ export const createAgent = async (req, res) => {
   
   try {
     // On récupère poste au lieu de role
-    const { name, email, poste, role, dept, num, camp, haveCount } = req.body;
-    console.log("Données reçues dans le controller:", { name, email, poste, role, dept, num, camp, haveCount });
+    const { name, email, poste, role, dept, num, campaigns, haveCount } = req.body;
+    // console.log("Données reçues dans le controller:", { name, email, poste, role, dept, num, campaigns, haveCount });
     
     // On passe tout au service
-    const agent = await agentService.create({ 
-      name, email, poste, role, dept, num, camp, haveCount 
-    });
+    const agent = await agentService.create(req.body);
     
     return res.status(201).json(agent);
   } catch (err) {
