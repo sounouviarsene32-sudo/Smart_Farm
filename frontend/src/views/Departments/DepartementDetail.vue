@@ -102,7 +102,7 @@ onMounted(() => loadDepartement())
 </script>
 
 <template>
-  <div class="flex-1 lg:ml-64 bg-[#F8FAFC] min-h-screen p-6 lg:p-10">
+  <div class="flex-1 min-h-screen p-6 lg:p-10">
     
     <div v-if="loading" class="h-[70vh] flex flex-col items-center justify-center">
       <div class="w-10 h-10 border-4 border-emerald-500/20 border-t-emerald-600 rounded-full animate-spin mb-4"></div>

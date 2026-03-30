@@ -31,5 +31,6 @@ export default {
   getCampaignById,
   createCampaign,
   updateCampaign,
-  deleteCampaign
+  deleteCampaign,
+  
 };

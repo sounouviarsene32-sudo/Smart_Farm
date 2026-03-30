@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 const JWT_SECRET = process.env.JWT_SECRET ?? "farm_123";
 export const register = async ({ name, email, password, role, dept, num }) => {
   try {
+    console.log('--user cru',{ name, email, password, role, dept, num })
     if (password?.length < 8)
       throw new Error("Password must be at least 8 characters");
     // if (!/\d/.test(password))
@@ -13,6 +14,7 @@ export const register = async ({ name, email, password, role, dept, num }) => {
     const existingUser = await User.findOne({ email });
     if (existingUser) throw new Error("Email déjà utilisé");
     const user = new User({ name, email, password, role, dept, num });
+    console.log('--user après',user)
     await user.save(); // 🔥 le hash se fait ici automatiquement
     return { user };
   } catch (error) {
@@ -22,7 +24,9 @@ export const register = async ({ name, email, password, role, dept, num }) => {
 };
 
 export const login = async ({ email, password }) => {
-  const user = await User.findOne({ email }).select("+password").populate("dept", "name");
+  const user = await User.findOne({ email })
+    .select("+password")
+    .populate("dept", "name");
   if (!user) throw new Error("Utilisateur non trouvé");
   // Utilise la méthode définie dans ton schéma !
   const isMatch = await user.comparePassword(password);
@@ -49,8 +53,8 @@ export const login = async ({ email, password }) => {
       email: user.email,
       role: user.role,
       name: user.name,
-      dept: user.dept
-    }
+      dept: user.dept,
+    },
   };
 };
 
@@ -58,15 +62,18 @@ export const getUserById = async (userId) => {
   return User.findById(userId).select("-password");
 };
 
-export const getAllUsers = async ({ page = 1, limit = 10, search, role }) => {
+export const getAllUsers = async ({ page, limit, search, role, dept }) => {
   const safePage = Math.max(Number(page) || 1, 1);
   const safeLimit = Math.min(Math.max(Number(limit) || 10, 1), 50);
   const filter = {};
   if (search) {
     filter.name = { $regex: search, $options: "i" };
   }
-  if (role) {
-    filter.role = { $regex: role, $options: "i" };
+  if (role && role !== "undefined" && role !== "") {
+    filter.role = role;
+  }
+  if (dept) {
+    filter.dept = dept;
   }
 
   const [items, total, allRoles] = await Promise.all([
@@ -75,11 +82,12 @@ export const getAllUsers = async ({ page = 1, limit = 10, search, role }) => {
       .skip((safePage - 1) * safeLimit)
       .limit(safeLimit)
       .populate("dept") // Populate the 'dept' field with only the 'name' property
+      .populate("todo")
+      .populate("campaigns")
       .exec(), // Optionnel : améliore les perfs si tu ne modifies pas les objets après
     User.countDocuments(filter),
     User.distinct("role"),
   ]);
-
   return {
     items,
     total,
@@ -87,7 +95,7 @@ export const getAllUsers = async ({ page = 1, limit = 10, search, role }) => {
   };
 };
 
-export const updateUserProfile = async (userId, updateData) => {
+export const updateUser = async (userId, updateData) => {
   if (updateData.password) {
     const salt = await bcrypt.genSalt(10);
     updateData.password = await bcrypt.hash(updateData.password, salt);
@@ -96,6 +104,7 @@ export const updateUserProfile = async (userId, updateData) => {
     "-password",
   );
 };
+
 export const deleteUser = async (userId) => {
   return User.findByIdAndDelete(userId);
 };
@@ -104,7 +113,7 @@ const authService = {
   register,
   login,
   getUserById,
-  updateUserProfile,
+  updateUser,
   deleteUser,
   getAllUsers,
 };

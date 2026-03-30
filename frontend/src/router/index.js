@@ -26,12 +26,19 @@ import SalesAdminView from '@/views/Sales/SalesAdminView.vue'
 import SalesDepartement from '@/views/Sales/SalesDepartement.vue'
 import StockView from '@/views/Stock/StockView.vue'
 import UserView from '@/views/Users/UserView.vue'
-import HealthDepartment from '@/views/Health/HealthDepartment.vue'
 import DepartementDetail from '@/views/Departments/DepartementDetail.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import CampaignForm from '@/views/Campaigns/CampaignForm.vue'
 import CampaignDetail from '@/views/Campaigns/CampaignDetail.vue'
 import AnimalForm from '@/views/Form/AnimalForm.vue'
+import DepartementView from '@/views/Departments/DepartementView.vue'
+import CampaignView from '@/views/Campaigns/CampaignView.vue'
+import HealthDepartment from '@/views/Health/HealthDepartment.vue'
+import AnimalComponent from '@/components/Animal/AnimalComponent.vue'
+import HealthComponent from '@/components/Health/HealthComponent.vue'
+import FoodComponent from '@/components/Food/FoodComponent.vue'
+import SaleComponent from '@/components/Sale/SaleComponent.vue'
+import StockComponent from '@/components/Stock/StockComponent.vue'
 const routes = [
   {
     path: '/:pathMatch(.*)*',
@@ -58,93 +65,124 @@ const routes = [
     component: AdminLayout,
     meta: { requiresAuth: true, role: 'admin' },
     children: [
+      { path: 'dashboard', name: 'dashboard-admin', component: DashboardAdminView },
+      { path: 'agents', name: 'agents', component: AgentListView },
+      { path: 'chefs', name: 'chefs', component: ChefListView },
+      { path: 'users', name: 'users', component: UserView },
+      { path: 'finances', name: 'finances-admin', component: FinanceAdminView },
       {
-        path: 'dashboard',
-        name: 'dashboard-admin',
-        component: DashboardAdminView,
-      },
-      {
-        path: 'agents',
-        name: 'agents',
-        component: AgentListView,
-      },
-      {
-        path: 'chefs',
-        name: 'chefs',
-        component: ChefListView,
-      },
-      {
-        path: 'users',
-        name: 'users',
-        component: UserView,
-      },
-      {
-        path: 'finances',
-        name: 'finances-admin',
-        component: FinanceAdminView,
-      },
-      {
-        path: 'health',
-        name: 'health-admin',
-        component: VaccineSchedule,
-      },
-      {
-        path: 'stock',
-        name: 'stock-admin',
-        component: StockView,
-      },
-      {
-        path: 'sales',
-        name: 'sales-admin',
-        component: SalesAdminView,
-      },
-      {
-        path: 'departments',
-        name: 'departments-admin',
-        component: DepartmentsListView,
-      },
-      {
-        path: 'departments/:id', // 👈 Route dynamique pour détails
-        name: 'departement-detail',
-        component: DepartementDetail,
-        meta: { requiresAuth: true, role: 'admin' },
-      },
-      {
-        path: 'campaigns',
-        name: 'campaigns-admin',
-        component: CampaignAdminView,
-      },
-      {
-        path: '/campaigns/:id',
-        name: 'campaigns-detail',
-        component: CampaignDetail,
-      },
-      {
-        path: '/admin/campagnes/nouvelle',
-        name: 'CampagneAdminForm',
-        component: CampaignForm,
-      },
-      {
-        path: 'foods',
-        name: 'foods-admin',
-        component: FoodAdminView,
-      },
-      {
-        path: 'animals',
-        name: 'animals-admin',
-        component: AnimalList,
-      },
-      {
-        path: 'animals',
-        name: 'animals-form',
-        component: AnimalForm,
+        path: 'departments', 
+        name: 'departments-home',
+        component: DepartmentsListView, // Ton composant qui affiche la liste de tous les depts
       },
       {
         path: 'rapports',
         name: 'rapports-admin',
         component: RapportsAdminView,
       },
+
+      // --- STRUCTURE IMBRIQUÉE ---
+      {
+        path: 'department/:id',
+        name: 'departments-admin',
+        component: DepartementView, // ❗ Doit contenir <router-view />
+        children: [
+          {
+            path: 'campaign/:campaignId',
+            name: 'campaign-admin',
+            component: CampaignView, // ❗ Doit aussi contenir <router-view />
+            children: [
+              {
+                path: 'animals',
+                name: 'animals-admin',
+                component: AnimalComponent,
+              },
+              {
+                path: 'health',
+                name: 'health-admin',
+                component: HealthComponent,
+              },
+              {
+                path: 'food',
+                name: 'food-admin',
+                component: FoodComponent,
+              },
+              {
+                path: 'sale',
+                name: 'sale-admin',
+                component: SaleComponent,
+              },
+              {
+                path: 'stock',
+                name: 'stock-admin', // ✅ Corrigé (était sale-admin)
+                component: StockComponent,
+              },
+            ],
+          },
+        ],
+      },
     ],
+    // {
+    //   path: 'health',
+    //   name: 'health-admin',
+    //   component: VaccineSchedule,
+    // },
+    // {
+    //   path: 'stock',
+    //   name: 'stock-admin',
+    //   component: StockView,
+    // },
+    // {
+    //   path: 'sales',
+    //   name: 'sales-admin',
+    //   component: SalesAdminView,
+    // },
+    // {
+    //   path: 'departments',
+    //   name: 'departments-admin',
+    //   component: DepartmentsListView,
+    // },
+    // {
+    //   path: 'departments/:id', // 👈 Route dynamique pour détails
+    //   name: 'departement-detail',
+    //   component: DepartementDetail,
+    //   meta: { requiresAuth: true, role: 'admin' },
+    // },
+    // {
+    //   path: 'campaigns',
+    //   name: 'campaigns-admin',
+    //   component: CampaignAdminView,
+    // },
+    // {
+    //   path: '/campaigns/:id',
+    //   name: 'campaigns-detail',
+    //   component: CampaignDetail,
+    // },
+    // {
+    //   path: '/admin/campagnes/nouvelle',
+    //   name: 'CampagneAdminForm',
+    //   component: CampaignForm,
+    // },
+    // {
+    //   path: 'foods',
+    //   name: 'foods-admin',
+    //   component: FoodAdminView,
+    // },
+    // {
+    //   path: 'animals',
+    //   name: 'animals-admin',
+    //   component: AnimalList,
+    // },
+    // {
+    //   path: 'animals',
+    //   name: 'animals-form',
+    //   component: AnimalForm,
+    // },
+    // {
+    //   path: 'rapports',
+    //   name: 'rapports-admin',
+    //   component: RapportsAdminView,
+    // },
   },
   {
     path: '/chef',
@@ -254,23 +292,21 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
 })
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, from) => {
   const loginStore = useLoginStore()
   const logged = loginStore.token
   const currentUser = loginStore.getDecodedToken
 
   // 1. Protection des routes privées
- if (to.meta.requiresAuth && !logged) {
-  return next({ name: 'login' })  
-}
+  if (to.meta.requiresAuth && !logged) {
+    return { name: 'login' }
+  }
 
   // 2. Redirection si déjà connecté
-if (to.name === 'login' && logged && currentUser) {  
-  if (currentUser.role === 'admin') return next({ name: 'dashboard-admin' })
-  if (currentUser.role === 'agent') return next({ name: 'dashboard-agent' })
-  if (currentUser.role === 'chef') return next({ name: 'dashboard-chef' })
-}
-  // 3. Cas par défaut (IMPORTANT : toujours appeler next() ici)
-  next()
+  if (to.name === 'login' && logged && currentUser) {
+    if (currentUser.role === 'admin') return { name: 'dashboard-admin' }
+    if (currentUser.role === 'agent') return { name: 'dashboard-agent' }
+    if (currentUser.role === 'chef') return { name: 'dashboard-chef' }
+  }
 })
 export default router

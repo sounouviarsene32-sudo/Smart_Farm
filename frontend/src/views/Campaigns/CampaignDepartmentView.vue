@@ -86,7 +86,7 @@ onMounted(() => loadCampaigns())
 
 
   <template>
-  <main class="flex-1 lg:ml-64 p-6 lg:p-10 transition-all duration-300 w-full bg-slate-50 min-h-screen space-y-10">
+  <main>
     
     <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
   <div class="space-y-1">

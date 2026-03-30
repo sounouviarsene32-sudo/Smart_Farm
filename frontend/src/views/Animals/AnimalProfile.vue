@@ -1,9 +1,6 @@
 <script setup></script>
 
 <template>
-  <main
-    class="flex-1 lg:ml-64 p-8 lg:p-8 transition-all duration-300 w-full bg-[#F8F9FA] min-h-screen space-y-8"
-  >
     <h1 class="text-3xl font-bold text-gray-900">Profil de l'animal: <span>#ID: 12345</span></h1>
     <div class="bg-white shadow-md rounded-lg p-6">
       <div class="flex items-center space-x-4 mb-6">
@@ -44,7 +41,6 @@
         <p class="text-gray-600">.....</p>
       </div>
     </div>
-  </main>
 </template>
 
 <style scoped></style>

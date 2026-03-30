@@ -1,8 +1,9 @@
 <script setup>
 import userService from '@/services/users.js'
-import { ref, reactive, onMounted, watch } from 'vue'
+import { ref, reactive, onMounted, watch, computed } from 'vue'
 import departementService from '@/services/departement.js'
 import { useToast } from 'vue-toastification'
+import Swal from 'sweetalert2'
 
 import {
   Users,
@@ -16,12 +17,16 @@ import {
   Trash2,
   Mail,
   X,
+  Unlock,
 } from 'lucide-vue-next'
+import departement from '@/services/departement.js'
 
 const users = ref()
 const toast = useToast()
 const allRoles = ref()
 const role = ref('')
+const page = ref(1)
+
 const search = ref('')
 const departments = ref([])
 
@@ -31,10 +36,11 @@ async function allUsers() {
   try {
     // Si role === 'Tous les rôles', on envoie une chaîne vide
     const selectedRole = role.value === 'Tous les rôles' ? '' : role.value
+    console.log()
 
-    const res = await userService.getAllUsers({
-      page: 1,
-      limit: 10,
+    const res = await userService.getUsers({
+      page: page.value,
+      limit: 15,
       search: search.value,
       role: selectedRole,
     })
@@ -72,7 +78,6 @@ const newUser = reactive({
 })
 
 const roles = ['admin', 'chef', 'agent']
-const départements = ['-', 'Volaille', 'Bovins', 'Caprins', 'Ovins']
 
 const resetForm = () => {
   newUser.name = ''
@@ -83,6 +88,8 @@ const resetForm = () => {
   newUser.password = ''
   isModalOpen.value = false
 }
+
+
 
 // Logique d'ajout
 // users.vue
@@ -95,6 +102,7 @@ function handleCreateUser() {
   if (!dataToSend.password) {
     delete dataToSend.password
   }
+
 
   userService
     .register(dataToSend)
@@ -122,7 +130,7 @@ function editing(user) {
 const handleEdit = async (user) => {
   // Logique de modification
   userService
-    .updateUserProfile(user._id, newUser)
+    .updateUser(user._id, newUser)
     .then((response) => {
       allUsers()
       isModalOpen.value = false
@@ -141,17 +149,6 @@ const handleSubmit = async () => {
   }
 }
 
-// delete user
-const handleDelete = async (userId) => {
-  try {
-    await userService.deleteUser(userId)
-    allUsers()
-  } catch (error) {
-    console.error("Erreur lors de la suppression de l'utilisateur:", error)
-  }
-}
-
-// Helpers pour les styles de badges
 const getRoleClass = (role) => {
   if (role === 'admin') return 'bg-purple-600 text-white'
   if (role === 'chef') return 'bg-blue-600 text-white'
@@ -164,28 +161,64 @@ const getRoleIcon = (role) => {
   return UserCog
 }
 
-async function handleAgentDigital(id, toggle) {
-  try {
-    // if (!selectedAgentForCamp.value) return
-
-    // On envoie le tableau complet des IDs sélectionnés
-    await userService.updateUser(id, {
-      isActive: toggle,
+async function handleDigital(id, toggle) {
+  // Si on essaie de RESTREINDRE (toggle === false)
+  if (!toggle) {
+    const result = await Swal.fire({
+      title: 'Restreindre cet accès ?',
+      text: "Attention : une fois le compte restreint, l'utilisateur ne pourra plus se connecter et ses accès seront suspendus. Cette action est réversible, mais impacte immédiatement ses campagnes en cours.",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#475569', // Slate 600
+      cancelButtonColor: '#cbd5e1', // Slate 300
+      confirmButtonText: 'Oui, restreindre',
+      cancelButtonText: 'Annuler',
+      reverseButtons: true,
     })
-    if(toggle==true){
-      toast.success("Accès digital octoyé")
-    } else {
-      toast.success("Accès digital restreint")
 
+    // Si l'admin annule, on arrête tout
+    if (!result.isConfirmed) return
+  }
+
+  // Exécution de l'appel API (si c'est un ajout d'accès ou si la restriction est confirmée)
+  try {
+    
+    
+    if (!toggle) {
+      toast.warning('Accès digital restreint')
+      await userService.updateUser(id, {
+        isActive: toggle,
+      })
+    } else {
+      toast.error("Impossible d'octoyer un accès digital")
     }
+
     await allUsers()
   } catch (error) {
-    toast.error("Erreur lors de l'assignation")
+    toast.error('Erreur lors de la modification du statut')
+    console.error(error)
   }
 }
 
-watch([search, role], () => {
+watch([search, role, ], () => {
   allUsers()
+})
+
+//  Ta liste filtrée pour le <select> de la modale
+const availableDepartments = computed(() => {
+  // Si on n'est pas en train de créer un chef, on montre tout
+  if (newUser.role !== 'chef') return departments.value
+  console.log(departments.value)
+
+  return departments.value.filter(d => {
+    // On garde le département si :
+    // - Il n'a pas de chef
+    // - OU si on est en train de MODIFIER un chef (il faut garder son propre département dans la liste)
+    const hasNoChef = !d.chef;
+    const isCurrentChefDept = toUpdate.value && d._id === (toUpdate.value.dept?._id || toUpdate.value.dept);
+    
+    return hasNoChef || isCurrentChefDept;
+  })
 })
 
 onMounted(allUsers)
@@ -193,7 +226,7 @@ onMounted(allUsers)
 
 <template>
   <main
-    class="flex-1 lg:ml-64 p-4 lg:p-8 transition-all duration-300 w-full bg-slate-50 min-h-screen space-y-8"
+    class="flex-1 p-4 lg:p-8 transition-all duration-300 w-full bg-slate-50 min-h-screen space-y-8"
   >
     <div class="flex justify-between items-start mb-8">
       <div>
@@ -293,7 +326,7 @@ onMounted(allUsers)
                   v-model="newUser.dept"
                   class="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm outline-none appearance-none focus:bg-white focus:border-slate-950 transition-all cursor-pointer"
                 >
-                  <option v-for="d in departments" :key="d" :value="d.id">{{ d.name }}</option>
+                  <option v-for="d in availableDepartments" :key="d" :value="d.id">{{ d.name }}</option>
                 </select>
               </div>
             </div>
@@ -350,7 +383,7 @@ onMounted(allUsers)
       >
         <option value="">Tous les rôles</option>
         <option v-for="r in allRoles" :key="r" :value="r">
-          {{ r.charAt(0).toUpperCase() + r.slice(1) }}
+          {{ r }}
         </option>
       </select>
     </div>
@@ -420,17 +453,18 @@ onMounted(allUsers)
                 >
                   <Edit2 class="w-4 h-4" />
                 </button>
-                <button
-                  @click="handleAgentDigital(user._id, user.isActive = !user.isActive)"
-                  class="p-2 border border-slate-200 rounded-lg transition-colors"
+                <button v-if="user.role!== 'admin'"
+                  @click="handleDigital(user._id, !user.isActive)"
+                  :title="user.isActive ? 'Restreindre l\'accès' : 'Activer l\'accès'"
+                  class="p-2 border border-slate-200 rounded-lg transition-colors group"
                   :class="
                     user.isActive
-                      ? 'hover:bg-amber-50 text-slate-400'
+                      ? 'hover:bg-rose-50 text-slate-400 hover:text-rose-600'
                       : 'hover:bg-emerald-50 text-emerald-600'
                   "
                 >
-                  <component :is="user.isActive ? 'Lock' : 'Unlock'" class="w-4 h-4" />
-                  <!-- <span v-if="user.isActive " class="w-4 h-4" >Lock</span> -->
+                  <Unlock v-if="user.isActive" class="w-4 h-4" />
+                  <Lock v-else class="w-4 h-4" />
                 </button>
                 <!-- <button
                   @click="handleDelete(user._id)"

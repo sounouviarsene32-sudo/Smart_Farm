@@ -102,10 +102,12 @@ async getAllDepartementsWithCampaigns() {
 },
 
   async getDepartementById(departementId) {
+    console.log(departementId)
     const dep = await Departement.findById(departementId);
     if (!dep) return null;
 
-    const campagnes = await Campaign.countDocuments({ departement: dep._id });
+    const campagnesCount = await Campaign.countDocuments({ departement: dep._id });
+    const campagnes = await Campaign.find({ departement: dep._id });
     const ventes = await Sale.find({ departement: dep._id });
     const revenus = ventes.reduce((sum, v) => sum + (v.totalAmount || 0), 0);
 
@@ -114,13 +116,14 @@ async getAllDepartementsWithCampaigns() {
       name: dep.name,
       status: dep.status,
       manager: {
-        name: dep.managerName,
-        email: dep.managerEmail,
-        phone: dep.managerPhone
+        name: dep.chef.name,
+        email: dep.chef.email,
+        phone: dep.chef.num
       },
       stats: {
         agents: dep.agentsCount || 0,
         animals: dep.animalsCount || 0,
+        campagnesCount,
         campagnes,
         revenus,
         perf: dep.performance || 0

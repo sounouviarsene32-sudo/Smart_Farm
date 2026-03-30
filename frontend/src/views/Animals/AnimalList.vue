@@ -111,9 +111,7 @@ const getStatusClass = (status) => {
 </script>
 
 <template>
-  <main
-    class="flex-1 lg:ml-64 p-4 lg:p-8 transition-all duration-300 w-full bg-slate-50 min-h-screen space-y-8"
-  >
+  
     <header class="flex justify-between items-start mb-10">
       <div>
         <h1 class="text-3xl font-extrabold text-slate-900">
@@ -269,7 +267,6 @@ const getStatusClass = (status) => {
         </div>
       </div>
     </div>
-  </main>
   <AnimalForm
     v-if="showForm"
     :campaign-id="props.campaignId"

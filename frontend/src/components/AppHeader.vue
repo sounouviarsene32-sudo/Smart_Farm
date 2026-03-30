@@ -33,15 +33,15 @@ const handleLogout = async () => {
 
 <template>
   <div
-    class="flex-1 lg:ml-64 p-4 lg:p-8 transition-all duration-300 w-full bg-[#0f172a] text-white space-y-8"
+    class="flex-1 p-4 lg:p-8 transition-all duration-300 w-full box-shadow-lg border-b text-white space-y-8"
   >
     <div class="flex items-center gap-10 absolute top-2 right-10">
       <div class="flex items-center gap-3 mb-3 px-2">
-        <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center">
+        <div class="w-9 h-9 rounded-full bg-gray-400 flex items-center justify-center">
           <UserCircle class="w-6 h-6 text-white" />
         </div>
         <div class="flex-1 min-w-0">
-          <p class="text-sm font-medium text-white truncate">
+          <p class="text-sm font-medium text-blue-500 truncate">
             {{ currentUser?.userName }}
           </p>
           <p class="text-xs text-gray-500">{{ currentUser?.role }}</p>
@@ -50,7 +50,7 @@ const handleLogout = async () => {
 
       <button
         @click="handleLogout"
-        class="cursor-pointer flex items-center text-blue-200 justify-center gap-2 rounded-md text-sm hover:text-blue-400"
+        class="cursor-pointer flex items-center text-red-500 justify-center gap-2 rounded-md text-sm hover:text-red-600"
       >
         <LogOut class="w-4 h-4" />
         Déconnexion

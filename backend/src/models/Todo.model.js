@@ -7,7 +7,7 @@ const todoSchema = new Schema({
     status: { 
         type: String, 
         enum: ['pending', 'in-progress', 'completed', 'cancelled'], 
-        default: 'pending' 
+        default: 'pending'
     },
     priority: { 
         type: String, 

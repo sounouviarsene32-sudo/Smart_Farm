@@ -1,94 +1,95 @@
-import mongoose from 'mongoose';
-import bcrypt from 'bcryptjs';
+import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
+const { Schema } = mongoose;
 
-const userSchema = new mongoose.Schema({
+const userSchema = new mongoose.Schema(
+  {
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, default: "password123", select: false },
     role: {
-        type: String,
-        enum: ['admin', 'chef', 'agent'],
-        default: 'agent'
+      type: String,
+      enum: ["admin", "chef", "agent"],
+      default: "agent",
     },
     num: { type: String },
-    dept: { 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: "Departement" 
+    dept: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Departement",
     },
-    
+    poste: { type: String },
+    todo: [{ type: Schema.Types.ObjectId, ref: "Todo" }],
+    campaigns: [{ type: Schema.Types.ObjectId, ref: "Campaign" }],
     isActive: { type: Boolean, default: true },
-    createdAt: { type: Date, default: Date.now }
-});
+  },
+  { timestamps: true },
+);
 
 // --- Middleware Pre-save : Hashage ---
-userSchema.pre('save', async function () {
-    // Pour nouvel user ou password modifié
-    if (!this.isNew && !this.isModified('password')) return;
+userSchema.pre("save", async function () {
+  // Pour nouvel user ou password modifié
+  if (!this.isNew && !this.isModified("password")) return;
 
-    // Force un mot de passe défaut si aucun mot de passe fourni
-    if (!this.password) {
-        this.password = 'password123';
-    }
-
-    try {
-        this.password = await bcrypt.hash(this.password, 10);
-    } catch (err) {
-       console.error("Erreur de hashage du mot de passe:", err);
-    }
+  console.log('----pw avant', this.password)
+  // Force un mot de passe défaut si aucun mot de passe fourni
+  if (!this.password) {
+    this.password = "password123";
+  }
+  
+  try {
+    this.password = await bcrypt.hash(this.password, 10);
+    console.log('----pw après', this.password)
+  } catch (err) {
+    console.error("Erreur de hashage du mot de passe:", err);
+  }
 });
 
 // --- Middleware Post-save : Synchronisation Création ---
-userSchema.post('save', async function (doc) {
-    try {
-        if (doc.role === 'chef') {
-            const Chef = mongoose.model('Chef');
-            const exists = await Chef.findOne({ email: doc.email });
-            if (!exists) {
-                await Chef.create({
-                    name: doc.name,
-                    email: doc.email,
-                    num: doc.num,
-                    dept: doc.dept,
-                    haveCount: true, // Indique que le compte User existe
-                    isActive: doc.isActive
-                });
-            }
-        } 
-        else if (doc.role === 'agent') {
-            const Agent = mongoose.model('Agent'); // Assure-toi d'avoir ce modèle
-            const exists = await Agent.findOne({ email: doc.email });
-            if (!exists) {
-                await Agent.create({
-                    name: doc.name,
-                    email: doc.email,
-                    num: doc.num,
-                    dept: doc.dept,
-                    isActive: doc.isActive
-                });
-            }
-        }
-    } catch (err) {
-        console.error("Erreur de synchronisation post-save:", err);
+userSchema.post("save", async function (doc) {
+  try {
+    const Departement = mongoose.model("Departement");
+    const Campaign = mongoose.model("Campaign");
+    if (doc.role === "chef" && doc.dept) {
+      await Departement.findByIdAndUpdate(doc.dept, {
+        chef: doc._id, // On assigne l'ID du Chef (le document actuel) au champ chef du département
+      });
+    } else if (doc.role === "agent") {
+      if (doc.role === "agent" && doc.campaigns?.length > 0) {
+        await Campaign.updateMany(
+          { _id: { $in: doc.campaigns } }, // Filtre : toutes les campagnes dont l'ID est dans le tableau de l'agent
+          { $addToSet: { agents: doc._id } }, // Action : Ajouter l'ID de l'agent sans doublon
+        );
+      }
     }
+  } catch (err) {
+    console.error("Erreur de synchronisation post-save:", err);
+  }
 });
 
-// --- Middleware Post-delete : Synchronisation Suppression ---
-// userSchema.post('findOneAndDelete', async function (doc) {
-//     if (!doc) return;
-//     try {
-//         if (doc.role === 'chef') {
-//             await mongoose.model('Chef').findOneAndDelete({ email: doc.email });
-//         } 
-//         else if (doc.role === 'agent') {
-//             await mongoose.model('Agent').findOneAndDelete({ email: doc.email });
-//         }
-//     } catch (err) {
-//         console.error("Erreur de synchronisation post-delete:", err);
-//     }
-// });
-
+userSchema.post("findOneAndUpdate", async function (doc) {
+  try {
+    const Departement = mongoose.model("Departement");
+    const Campaign = mongoose.model("Campaign");
+    const Todo = mongoose.model("Todo");
+    if (!doc.isActive) {
+      if (doc.role === "chef") {
+        await Departement.findByIdAndUpdate(doc.dept, {
+          chef: null, // On desassigne l'ID du Chef (le document actuel) au champ chef du département
+        });
+      } else if (doc.role === "agent") {
+        await Campaign.updateMany(
+          { _id: { $in: doc.campaigns } },
+          { $pull: { agents: doc._id } },
+        );
+        await Todo.updateMany({ agent: doc._id }, { agent: null });
+      }
+    }
+  } catch (err) {
+    console.error("Erreur de synchronisation post-save:", err);
+  }
+});
 userSchema.methods.comparePassword = async function (candidatePassword) {
-    return await bcrypt.compare(candidatePassword, this.password);
+  return await bcrypt.compare(candidatePassword, this.password);
 };
 
-export default mongoose.model('User', userSchema);
+export default mongoose.model("User", userSchema);

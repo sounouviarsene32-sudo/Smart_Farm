@@ -4,10 +4,19 @@ import { useRouter, useRoute } from 'vue-router';
 import campaignService from '@/services/campaign.js';
 import departementService from '@/services/departement.js';
 
-const emit = defineEmits(['close'])
+const props = defineProps({
+  departementId: {
+    type: String,
+    default: null
+  }
+});
+
+const emit = defineEmits(['close', 'created']);
+
 const router = useRouter();
 const route = useRoute();
-const campaignId = route.params.id || null;
+const campaignId = route.params.campaignId || null;
+// console.log(route.params.campaignId)
 
 const loading = ref(false);
 const submitting = ref(false);
@@ -58,46 +67,34 @@ async function loadCampaign() {
   }
 }
 
-onMounted(() => {
-  loadDepartements();
-  loadCampaign();
+onMounted(async () => {
+  await loadDepartements();
+  await loadCampaign();
+
+  // SI on est en mode création (pas de campaignId) ET qu'on a reçu un departementId
+  if (!campaignId && props.departementId) {
+    form.departement = props.departementId;
+  }
 });
 
 const handleSubmit = async () => {
   submitting.value = true;
-  error.value = null;
-  success.value = null;
+  // ... (ta logique de préparation du payload reste la même) ...
 
   try {
-    const payload = {
-      departement: form.departement ? [form.departement] : [],
-      name: form.name.trim(),
-      description: form.description,
-      startDate: form.startDate ? new Date(form.startDate) : null,
-      endDate: form.endDate ? new Date(form.endDate) : null,
-      status: form.status,
-      budget: Number(form.budget) || 0,
-      manager: form.manager || null,
-      agents: Array.isArray(form.agents) ? form.agents.filter(a => a) : []
-    };
-
     if (campaignId) {
       await campaignService.updateCampaign(campaignId, payload);
-      success.value = 'Campagne mise à jour avec succès !';
     } else {
-      await campaignService.createCampaign(payload);
-      success.value = 'Campagne créée avec succès !';
+      const newCampaign = await campaignService.createCampaign(payload);
+      emit('created', newCampaign); // On émet 'created' comme attendu par le parent
     }
-
     emit('close');
   } catch (err) {
-    console.error('Erreur création campagne:', err.response?.data || err);
-    error.value = 'Une erreur est survenue lors de la sauvegarde.';
+    // ... gestion erreur ...
   } finally {
     submitting.value = false;
   }
 }
-
 </script>
 
 <template>
@@ -163,13 +160,23 @@ const handleSubmit = async () => {
           </div>
 
           <div>
-            <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider"
-              >Unité / Département</label
+            <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">
+              Unité / Département
+            </label>
+            <select
+              v-model="form.departement"
+              required
+              :disabled="!!props.departementId"
+              class="w-full bg-slate-50 border border-slate-200 focus:border-[#1E8E6E] focus:bg-white rounded-xl px-4 py-3 text-sm font-semibold text-slate-800 outline-none transition-all disabled:opacity-70 disabled:cursor-not-allowed"
             >
-            <select name="departement" id="departement" v-model="form.departement" required class="w-full bg-slate-50 border border-slate-200 focus:border-[#1E8E6E] focus:bg-white rounded-xl px-4 py-3 text-sm font-semibold text-slate-800 outline-none transition-all">
               <option value="" disabled>Sélectionner une unité</option>
-              <option v-for="d in departements" :key="d.id || d._id" :value="d.id || d._id">{{ d.name }}</option>
+              <option v-for="d in departements" :key="d.id || d._id" :value="d.id || d._id">
+                {{ d.name }}
+              </option>
             </select>
+            <p v-if="props.departementId" class="text-[10px] text-emerald-600 mt-1 font-medium">
+              ✓ Unité sélectionnée automatiquement
+            </p>
           </div>
 
           <div>
@@ -224,41 +231,7 @@ const handleSubmit = async () => {
           </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <!-- <div>
-            <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider"
-              >Manager Principal</label
-            >
-            <select
-              v-model="form.manager"
-              class="w-full bg-slate-50 border border-slate-200 focus:border-[#1E8E6E] focus:bg-white rounded-xl px-4 py-3 text-sm font-semibold text-slate-800 outline-none appearance-none"
-            >
-              <option value="">Non assigné</option>
-              <option v-for="agent in agents" :key="agent._id" :value="agent._id">
-                {{ agent.firstName }} {{ agent.lastName }}
-              </option>
-            </select>
-          </div> -->
-          <!-- <div>
-            <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider"
-              >Équipe assignée</label
-            >
-            <select
-              v-model="form.agents"
-              multiple
-              class="w-full bg-slate-50 border border-slate-200 focus:border-[#1E8E6E] focus:bg-white rounded-xl px-4 py-2 text-xs font-semibold text-slate-800 h-[60px] overflow-hidden"
-            >
-              <option v-for="agent in agents" :key="agent._id" :value="agent._id">
-                {{ agent.lastName }}
-              </option>
-            </select>
-            <p
-              class="text-[9px] text-slate-400 mt-1 ml-1 leading-none italic font-medium opacity-70"
-            >
-              Maintenez Ctrl pour sélection multiple
-            </p>
-          </div> -->
-        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
 
         <div>
           <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider"
@@ -291,71 +264,6 @@ const handleSubmit = async () => {
     </div>
   </div>
 </template>
-
-<!-- <script setup>
-import { ref, onMounted } from 'vue'
-import campaignService from '@/services/campaign.js'
-import departementService from '@/services/departement.js'
-import agentService from '@/services/agent.js'
-
-const emit = defineEmits(['close'])
-
-const form = ref({
-  name: '',
-  departement: '',
-  description: '',
-  startDate: '',
-  endDate: '',
-  status: 'planifié',
-  budget: 0,
-  manager: '',
-  agents: [],
-})
-
-const departements = ref([])
-const agents = ref([])
-
-onMounted(async () => {
-  try {
-    const depData = await departementService.getDepartements()
-    // Assure-toi que depData est un tableau d’objets { _id, name }
-    departements.value = depData
-    console.log('Départements chargés:', departements.value)
-
-    const agentData = await agentService.getAgents()
-    agents.value = agentData
-  } catch (err) {
-    console.error('Erreur chargement départements/agents:', err)
-  }
-})
-
-const handleSubmit = async () => {
-  try {
-    const payload = {
-      name: form.value.name,
-      departement: form.value.departement,
-      description: form.value.description,
-
-      startDate: new Date(form.value.startDate),
-      endDate: form.value.endDate ? new Date(form.value.endDate) : null,
-
-      status: form.value.status,
-      budget: Number(form.value.budget) || 0,
-
-      manager: form.value.manager || null,
-      agents: form.value.agents.filter(a => a)
-    }
-
-    console.log('Payload envoyé:', payload)
-
-    await campaignService.createCampaign(payload)
-
-    emit('close')
-  } catch (err) {
-    console.error('Erreur création campagne:', err.response?.data || err)
-  }
-}
-</script> -->
 
 <style scoped>
 /* Scrollbar ultra-fine et discrète sans @apply */

@@ -17,8 +17,8 @@ export const deleteUser = async (userId) => {
   return response;
 };
 
-export const getAllUsers = async () => {
-  const response = await api.get('/auth?page=1&limit=10');
+export const getUsers = async ({search, role, dept}) => {
+  const response = await api.get(`/auth?page=1&limit=10&search=${search}&role=${role}&${dept}`);
   return response;
 }
 
@@ -27,7 +27,7 @@ const userService = {
   getUserById,
   updateUser,
   deleteUser,
-  getAllUsers
+  getUsers
 };
 
 

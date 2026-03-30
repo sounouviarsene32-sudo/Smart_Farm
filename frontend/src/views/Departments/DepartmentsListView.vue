@@ -1,7 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue';
-import { LayoutGrid, Users2, UserSquare, Beef, Plus } from 'lucide-vue-next';
-import DepartmentsCard from '@/components/DepartmentsCard.vue';
+import { LayoutGrid, Users2, UserSquare, Beef, Plus, Trash2, Edit2 } from 'lucide-vue-next';
 import departementService from '@/services/departement.js';
 import DepartementForm from '../Form/DepartementForm.vue'; // import du formulaire modal
 
@@ -66,7 +65,7 @@ function handleDeleted(deptId) {
 </script>
 
 <template>
-  <main class="flex-1 lg:ml-64 p-4 lg:p-8 transition-all duration-300 w-full bg-slate-50 min-h-screen space-y-8">
+  <main class="flex-1 p-4 lg:p-10 transition-all duration-300 w-full bg-slate-50 min-h-screen space-y-8 lg:ml-16">
     
     <!-- Header -->
     <header class="flex justify-between items-start mb-10">
@@ -99,14 +98,85 @@ function handleDeleted(deptId) {
     </div>
 
     <!-- Liste des départements -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <DepartmentsCard
-        v-for="dept in departments"
-        :key="dept.id || dept.id"
-        :dept="dept"
-        :onDeleted="handleDeleted"
-      />
-    </div>
+    <section class="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50/50 border-b border-slate-100">
+              <th class="px-8 py-5 text-[11px] font-black text-slate-400 uppercase tracking-widest">Secteur / Nom</th>
+              <th class="px-6 py-5 text-[11px] font-black text-slate-400 uppercase tracking-widest">Responsable (Chef)</th>
+              <th class="px-6 py-5 text-[11px] font-black text-slate-400 uppercase tracking-widest text-center">Ressources</th>
+              <th class="px-6 py-5 text-[11px] font-black text-slate-400 uppercase tracking-widest text-center">Statut</th>
+              <th class="px-6 py-5 text-[11px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-50">
+            <tr v-for="dept in departments" :key="dept._id" class="hover:bg-slate-50/50 transition-colors group">
+              <td class="px-8 py-5">
+                <div class="flex items-center gap-4">
+                  <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 font-bold">
+                    {{ dept.name.substring(0, 2).toUpperCase() }}
+                  </div>
+                  <div>
+                    <div class="font-bold text-slate-900 text-sm">{{ dept.name }}</div>
+                    <div class="text-[10px] text-slate-400 font-medium">Créé le {{ new Date(dept.createdAt).toLocaleDateString() }}</div>
+                  </div>
+                </div>
+              </td>
+
+              <td class="px-6 py-5">
+                <div v-if="dept.chef" class="flex items-center gap-3">
+                   <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 text-xs">
+                     <User class="w-4 h-4" />
+                   </div>
+                   <span class="text-sm font-semibold text-slate-700">{{ dept.chef.name }}</span>
+                </div>
+                <span v-else class="text-xs font-medium text-slate-300 italic">Aucun chef assigné</span>
+              </td>
+
+              <td class="px-6 py-5 text-center">
+                <div class="flex items-center justify-center gap-4">
+                  <div class="flex flex-col items-center">
+                    <span class="text-sm font-black text-emerald-600">{{ dept.agentsCount || 0 }}</span>
+                    <span class="text-[9px] font-bold text-slate-400 uppercase">Agents</span>
+                  </div>
+                  <div class="w-px h-6 bg-slate-100"></div>
+                  <div class="flex flex-col items-center">
+                    <span class="text-sm font-black text-orange-500">{{ dept.animalsCount || 0 }}</span>
+                    <span class="text-[9px] font-bold text-slate-400 uppercase">Têtes</span>
+                  </div>
+                </div>
+              </td>
+
+              <td class="px-6 py-5 text-center">
+                <span :class="[
+                  'px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter border',
+                  dept.isActive ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-600 border-rose-100'
+                ]">
+                  {{ dept.isActive ? 'Opérationnel' : 'En Pause' }}
+                </span>
+              </td>
+
+              <td class="px-8 py-5 text-right">
+                <div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button @click="editDept(dept)" class="p-2 border border-slate-200 rounded-xl hover:bg-slate-50 text-slate-500 transition-all">
+                    <Edit2 class="w-4 h-4" />
+                  </button>
+                  <button @click="handleDeleted(dept._id)" class="p-2 border border-slate-100 rounded-xl hover:bg-rose-50 text-rose-500 transition-all">
+                    <Trash2 class="w-4 h-4" />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div v-if="departments.length === 0" class="text-center py-20">
+        <LayoutGrid class="w-16 h-16 text-slate-100 mx-auto mb-4" />
+        <p class="text-slate-400 font-bold uppercase tracking-widest text-xs">Aucun département configuré</p>
+      </div>
+    </section>
 
     <!-- Modal création département -->
     <DepartementForm

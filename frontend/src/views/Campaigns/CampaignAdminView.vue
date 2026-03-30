@@ -46,9 +46,10 @@ const handleFormClose = () => {
 </script>
 
 <template>
-  <main class="flex-1 lg:ml-64 p-4 lg:p-8 w-full bg-slate-50 min-h-screen space-y-8">
+  
     
-    <header class="flex justify-between items-start mb-8">
+    <div>
+      <header class="flex justify-between items-start mb-8">
       <div>
         <h1 class="text-3xl font-extrabold text-slate-900">Campagnes</h1>
         <p class="text-slate-500 mt-1">Gestion des campagnes et projets</p>
@@ -84,5 +85,5 @@ const handleFormClose = () => {
 
     <!-- Popup Form -->
     <CampaignForm v-if="showForm" @close="handleFormClose" />
-  </main>
+    </div>
 </template>

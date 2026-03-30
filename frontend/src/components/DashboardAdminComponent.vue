@@ -143,7 +143,6 @@ onMounted(fetchData)
 </script>
 
 <template>
-  <main class="flex-1 lg:ml-64 p-4 lg:p-8 bg-slate-50 min-h-screen space-y-8">
     <div v-if="loading" class="flex flex-col justify-center items-center h-64 space-y-4">
       <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-emerald-500"></div>
       <p class="text-slate-500 font-bold animate-pulse">Récupération des données...</p>
@@ -228,5 +227,5 @@ onMounted(fetchData)
         </div>
       </div>
     </template>
-  </main>
+
 </template>
