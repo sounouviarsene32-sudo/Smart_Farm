@@ -56,8 +56,9 @@ async function loadAnimals() {
 
     animals.value = data.map((a) => ({
       id: a._id,
-      identificationNumber: a.identificationNumber,
-      name: `${a.species} #${a.identificationNumber}`,
+      qrCodeUrl: a.qrCodeUrl,
+      identificationNumber: a._id,
+      name: `${a.species} #${a.id}`,
       dept: a.campaignId && a.campaignId.departement ? a.campaignId.departement.name : 'Libre',
       breed: a.breed,
       weight: a.weight ? `${a.weight} kg` : '-',
@@ -77,6 +78,8 @@ async function loadAnimals() {
       { label: 'Sous Traitement', value: traitement, icon: HeartPulse, color: 'text-blue-500' },
       { label: 'Alertes Vitales', value: critique, icon: AlertCircle, color: 'text-rose-500' },
     ]
+
+    console.log(animals)
   } catch (err) {
     console.error('Erreur chargement animaux:', err)
   }
@@ -108,6 +111,21 @@ const getStatusClass = (status) => {
       return 'bg-slate-400 text-white'
   }
 }
+
+// Modal QR Code
+const showQRModal = ref(false)
+const selectedAnimal = ref(null)
+
+const openQRModal = (animal) => {
+  selectedAnimal.value = animal
+  showQRModal.value = true
+}
+
+const closeQRModal = () => {
+  showQRModal.value = false
+  selectedAnimal.value = null
+}
+
 </script>
 
 <template>
@@ -182,6 +200,7 @@ const getStatusClass = (status) => {
                 >
                   <td class="px-6 py-4">
                     <div class="flex items-center gap-3">
+                      <img v-if="animal.qrCodeUrl" :src="animal.qrCodeUrl" alt="QR Code" class="w-12 h-12 border rounded-lg cursor-pointer hover:scale-110 transition-transform" @click="openQRModal(animal)" />
                       <div class="p-2 bg-slate-100 rounded-lg text-slate-400">
                         <component :is="animal.typeIcon" class="w-4 h-4" />
                       </div>
@@ -273,4 +292,39 @@ const getStatusClass = (status) => {
     @close="showForm = false"
     @created="handleCreated"
   />
+
+  <!-- Modal QR Code -->
+  <div v-if="showQRModal && selectedAnimal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" @click="closeQRModal">
+    <div class="bg-white p-8 rounded-3xl shadow-xl max-w-md w-full mx-4" @click.stop>
+      <div class="flex justify-between items-start mb-6">
+        <div>
+          <h3 class="text-xl font-bold text-slate-900">QR Code Animal</h3>
+          <p class="text-slate-500 text-sm mt-1">{{ selectedAnimal.name }}</p>
+        </div>
+        <button @click="closeQRModal" class="p-2 hover:bg-slate-100 rounded-lg transition-colors">
+          <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      
+      <div class="flex flex-col items-center space-y-4">
+        <img :src="selectedAnimal.qrCodeUrl" alt="QR Code" class="w-64 h-64 border-2 border-slate-200 rounded-xl" />
+        
+        <div class="text-center space-y-2">
+          <p class="text-sm font-mono text-slate-600">{{ selectedAnimal.id }}</p>
+          <p class="text-xs text-slate-400">ID: {{ selectedAnimal.identificationNumber }}</p>
+        </div>
+        
+        <div class="flex gap-3 w-full">
+          <button @click="closeQRModal" class="flex-1 px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors">
+            Fermer
+          </button>
+          <button class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-500 transition-colors">
+            Imprimer
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>

@@ -1,24 +1,39 @@
 <script setup>
 import DepartementForm from '@/views/Form/DepartementForm.vue'
-import departementService from '@/services/departement.js';
+import departementService from '@/services/departement.js'
 import { onMounted, ref } from 'vue'
-import { Plus, LayoutGrid, Target, ChevronRight, PlusCircle } from 'lucide-vue-next'
+import { Plus, LayoutGrid, Target, ChevronRight, PlusCircle, ChevronDown } from 'lucide-vue-next'
 import { useRouter, useRoute } from 'vue-router'
 import CampaignForm from '@/views/Campaigns/CampaignForm.vue'
+import { useLoginStore } from '@/stores/login.store'
+const loginStore = useLoginStore()
+const currentUser = loginStore.getDecodedToken
 const departement = ref()
 const showCampaignForm = ref()
 
 const props = defineProps({
   departementName: {
     type: String,
-    default: 'Général'
-  }
+    default: 'Général',
+  },
 })
 
 const campaigns = ref([
   { _id: '1', name: 'Campagne Poulets 2026' },
   { _id: '2', name: 'Campagne Pondeuses' },
 ])
+
+let menuOptions = []
+if (currentUser.role === 'admin') {
+  menuOptions = [
+    { name: 'Suivie', pathName: 'animals-admin' },
+    { name: 'Santé', pathName: 'health-admin' },
+    { name: 'Vente', pathName: 'sale-admin' },
+    { name: 'Aliments', pathName: 'food-admin' },
+    { name: 'Stock Général', pathName: 'stock-admin' },
+  ]
+}
+
 const showForm = ref(false)
 const router = useRouter()
 const route = useRoute()
@@ -27,14 +42,22 @@ const allCampaigns = async () => {
   const id = route.params.id
 
   departement.value = await departementService.getDepartementById(id)
-  campaigns.value = departement.value.stats.campagnes
+  // campaigns.value = departement.value.stats.campagnes
+
+  campaigns.value = departement.value.stats.campagnes.map((camp) => ({
+    ...camp,
+    menu: menuOptions, // Chaque campagne porte désormais son propre menu
+  }))
 }
 
 // Liste fictive ou récupérée de ton API pour les rubriques
 
-function openForm() { showForm.value = true }
-function closeForm() { showForm.value = false }
-
+function openForm() {
+  showForm.value = true
+}
+function closeForm() {
+  showForm.value = false
+}
 
 const handleCampaignCreated = () => {
   showCampaignForm.value = false
@@ -49,7 +72,7 @@ onMounted(allCampaigns)
 </script>
 
 <template>
-  <main class="flex-1 p-4 lg:p-10 bg-slate-50 min-h-screen lg:ml-16">
+  <main class="flex-1 p-4 lg:p-10 bg-slate-50 lg:ml-16">
     <header class="space-y-6 mb-8">
       <div class="flex justify-between items-center">
         <div>
@@ -59,7 +82,7 @@ onMounted(allCampaigns)
           </h1>
           <p class="text-slate-500 mt-1 ml-5">Vue organisationnelle de l'élevage</p>
         </div>
-        
+
         <button
           @click="openForm"
           class="bg-slate-900 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 text-sm font-bold shadow-sm hover:bg-slate-800 transition-all"
@@ -68,36 +91,78 @@ onMounted(allCampaigns)
         </button>
       </div>
 
-      <nav class="flex items-center gap-2 border-b border-slate-200 pb-1 overflow-x-auto no-scrollbar">
+      <nav class="flex items-center gap-2 border-b border-slate-200 pb-1 no-scrollbar">
         <router-link
-          :to="{ name: 'departments-home' }"
+          :to="{ name: 'home-dept-admin' }"
           class="px-4 py-2 flex items-center gap-2 text-sm font-medium transition-all border-b-2"
-          :class="route.name === 'department-home' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'"
+          :class="
+            route.name === 'home-dept-admin'
+              ? 'border-blue-600 text-blue-600'
+              : 'border-transparent text-slate-500 hover:text-slate-700'
+          "
         >
           <LayoutGrid class="w-4 h-4" /> Vue d'ensemble
         </router-link>
 
         <div class="h-4 w-px bg-slate-300 mx-2"></div>
+        <div v-for="camp in campaigns" :key="camp._id" class="group/camp relative">
+          <div class="flex">
+            <router-link
+              :to="{ name: 'campaign-admin', params: { campaignId: camp._id } }"
+              class="px-4 py-2 flex items-center gap-2 text-sm font-medium transition-all border-b-2 whitespace-nowrap"
+              :class="
+                route.params.campaignId === camp._id
+                  ? 'border-blue-600 text-blue-600 bg-blue-50/50 rounded-t-lg'
+                  : 'border-transparent text-slate-500 hover:text-slate-700'
+              "
+            >
+              <Target class="w-4 h-4" />
+              {{ camp.name }}
+              <ChevronDown class="w-3 h-3 transition-transform group-hover/camp:rotate-180" />
+            </router-link>
+          </div>
 
-        <router-link
-          v-for="camp in campaigns"
-          :key="camp.id"
-          :to="{ name: 'campaign-admin', params: { campaignId: camp._id } }"
-          class="px-4 py-2 flex items-center gap-2 text-sm font-medium transition-all border-b-2 whitespace-nowrap"
-          :class="route.params.id === camp.id ? 'border-blue-600 text-blue-600 bg-blue-50/50 rounded-t-lg' : 'border-transparent text-slate-500 hover:text-slate-700'"
-        >
-          <Target class="w-4 h-4" />
-          {{ camp.name }}
-        </router-link>
+          <div
+            class="absolute z-50 left-0 top-[calc(100%+4px)] w-56 bg-white/95 backdrop-blur-md border border-slate-200/60 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] rounded-2xl invisible opacity-0 -translate-y-2 group-hover/camp:visible group-hover/camp:opacity-100 group-hover/camp:translate-y-0 transition-all duration-300 ease-out p-1.5 space-y-0.5"
+          >
+            <div class="px-3 py-2 mb-1">
+              <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                Actions Campagne
+              </p>
+            </div>
 
+            <router-link
+              v-for="sub in camp.menu"
+              :key="sub.name"
+              :to="{ name: sub.pathName, params: { campaignId: camp._id } }"
+              class="group/sub flex items-center justify-between px-3 py-2.5 rounded-xl transition-all duration-200"
+              :class="
+                route.name === sub.pathName
+                  ? 'bg-blue-50 text-blue-700'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+              "
+            >
+              <div class="flex items-center gap-3">
+                <span
+                  class="w-1.5 h-1.5 rounded-full bg-blue-600 scale-0 group-hover/sub:scale-100 transition-transform duration-200"
+                ></span>
+                <span class="text-sm font-semibold tracking-tight">{{ sub.name }}</span>
+              </div>
+
+              <ChevronRight
+                class="w-3.5 h-3.5 opacity-0 -translate-x-2 group-hover/sub:opacity-100 group-hover/sub:translate-x-0 transition-all duration-200"
+              />
+            </router-link>
+          </div>
+        </div>
         <button
-        @click="showCampaignForm = true"
-        class="ml-4 p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors flex items-center gap-1 group"
-        title="Ajouter une campagne"
-      >
-        <PlusCircle class="w-5 h-5 group-hover:scale-110 transition-transform" />
-        <span class="text-xs font-bold hidden md:inline">Nouvelle Campagne</span>
-      </button>
+          @click="showCampaignForm = true"
+          class="cursor-pointer ml-4 p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors flex items-center gap-1 group"
+          title="Ajouter une campagne"
+        >
+          <PlusCircle class="w-5 h-5 group-hover:scale-110 transition-transform" />
+          <span class="text-xs font-bold hidden md:inline">Nouvelle Campagne</span>
+        </button>
       </nav>
     </header>
 
@@ -106,16 +171,23 @@ onMounted(allCampaigns)
     </div>
 
     <DepartementForm :show="showForm" @close="closeForm" @created="onDepartmentCreated" />
-    <CampaignForm 
-    v-if="showCampaignForm" 
-    :departementId="deptId"
-    @close="showCampaignForm = false" 
-    @created="handleCampaignCreated" 
-  />
+    <CampaignForm
+      v-if="showCampaignForm"
+      :departementId="deptId"
+      :campaignId="false"
+      @close="showCampaignForm = false"
+      @created="handleCampaignCreated"
+    />
   </main>
 </template>
 
+
 <style scoped>
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
 </style>

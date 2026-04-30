@@ -114,7 +114,6 @@ const resetForm = () => {
 }
 
 const handleSubmit = async () => {
-  console.log('-Chef tout cru',newChef)
   try {
     const payload = {
       ...newChef,
@@ -125,15 +124,13 @@ const handleSubmit = async () => {
       await userService.updateUser(toUpdate.value._id, payload)
       toast.success('Chef mis à jour avec succès')
     } else {
-      // console.log('-----Avant ajout',payload)
       await userService.register(payload)
       toast.success('Chef ajouté avec succès')
     }
     await fetchData()
     resetForm()
   } catch (error) {
-    console.log(error.response?.data?.message || error.message)
-    toast.error("Erreur lors de l'enregistrement: " + (error.response?.data?.message || error.message))
+    toast.error("Ce département a déjà un chef assigné ou vérifier les informations de ce chef")
   }
 }
 

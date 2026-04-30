@@ -18,6 +18,25 @@ const AnimalController = {
     }
   },
 
+  async allBreed(req, res) {
+    try {
+      const breed = await AnimalService.getBreed();
+      return res.json(breed);
+    } catch (error) {
+      
+    }
+  },
+
+  async updateStatus(req, res) {
+    try {
+      const data = req.body;
+      const animals = await AnimalService.updateManyAnimals(data.breed, data.quantity);
+      return res.status(201).json(animals);
+    } catch (error) {
+      res.status(404).json({error: error.message})
+    }
+  },
+
   async createAnimal(req, res) {
     try {
       const animal = await AnimalService.createAnimal(req.body);

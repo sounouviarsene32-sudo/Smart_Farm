@@ -232,7 +232,7 @@ onMounted(fetchDepartement)
               <li v-for="dept in departments" :key="dept._id || dept.id">
                 <router-link
                   v-if="dept._id || dept.id"
-                  :to="{ name: 'departments-admin', params: { id: dept._id || dept.id } }"
+                  :to="{ name: 'home-dept-admin', params: { id: dept._id || dept.id } }"
                   class="block px-4 py-2 text-xs font-medium text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors whitespace-nowrap"
                 >
                   • {{ dept.name }}

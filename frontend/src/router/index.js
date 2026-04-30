@@ -39,6 +39,8 @@ import HealthComponent from '@/components/Health/HealthComponent.vue'
 import FoodComponent from '@/components/Food/FoodComponent.vue'
 import SaleComponent from '@/components/Sale/SaleComponent.vue'
 import StockComponent from '@/components/Stock/StockComponent.vue'
+import campaign from '@/services/campaign'
+import DepartmentGeneral from '@/components/Departement/DepartmentGeneral.vue'
 const routes = [
   {
     path: '/:pathMatch(.*)*',
@@ -71,7 +73,7 @@ const routes = [
       { path: 'users', name: 'users', component: UserView },
       { path: 'finances', name: 'finances-admin', component: FinanceAdminView },
       {
-        path: 'departments', 
+        path: 'departments',
         name: 'departments-home',
         component: DepartmentsListView, // Ton composant qui affiche la liste de tous les depts
       },
@@ -88,10 +90,21 @@ const routes = [
         component: DepartementView, // ❗ Doit contenir <router-view />
         children: [
           {
+            path: 'home',
+            name: 'home-dept-admin',
+            component: DepartmentGeneral,
+          },
+          {
             path: 'campaign/:campaignId',
             name: 'campaign-admin',
-            component: CampaignView, // ❗ Doit aussi contenir <router-view />
+            component: CampaignView,
+            redirect: { name: 'animals-admin' }, // ❗ Doit aussi contenir <router-view />
             children: [
+              // {
+              //   path: '', // 👈 Chemin vide = Par défaut
+              //   name: 'campaign-default', // Optionnel
+              //   component: AnimalComponent,
+              // },
               {
                 path: 'animals',
                 name: 'animals-admin',

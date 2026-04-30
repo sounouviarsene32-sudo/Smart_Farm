@@ -30,6 +30,16 @@ async function updateAnimal(id, data) {
   return response.data;
 }
 
+async function breedAnimals(){
+  const response = await api.get('/animals/breed');
+  return response.data;
+}
+
+async function saleAnimals(breed, quantity) {
+  const response = await api.put(`/animals/saleUpdate`, {breed, quantity});
+  return response.data;
+}
+
 async function deleteAnimal(id) {
   const response = await api.delete(`/animals/${id}`);
   return response.data;
@@ -37,11 +47,12 @@ async function deleteAnimal(id) {
 
 export default {
   createManyAnimals,
-  createAnimalsBatch: createManyAnimals, // Alias pour compatibilité
   getAnimals,
   getAnimalsByCampaign,
   getAnimalById,
   createAnimal,
   updateAnimal,
-  deleteAnimal
+  deleteAnimal,
+  breedAnimals,
+  saleAnimals,
 };

@@ -3,6 +3,9 @@ import { ref, computed } from 'vue';
 import { X, Box, Tag, Hash, DollarSign, AlertTriangle, Layers, Truck } from 'lucide-vue-next';
 import api from '@/api/axios.config.js';
 import { useToast } from 'vue-toastification';
+import { useRoute } from 'vue-router';
+const route = useRoute()
+const deptId = route.params.id;
 
 const toast = useToast();
 
@@ -60,7 +63,8 @@ const handleSubmit = async () => {
             unit: form.value.unit.trim(),
             threshold: Number(form.value.threshold),
             unitCost: Number(form.value.unitCost),
-            supplier: form.value.supplier.trim()
+            supplier: form.value.supplier.trim(),
+            dept: deptId,
         };
 
         const res = await api.post('/stock', payload);

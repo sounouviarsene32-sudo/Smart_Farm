@@ -1,7 +1,7 @@
 import api from '../api/axios.config.js';
 
-export const register = async ({ name, email, password, role, dept, num }) => {
-  const response = await api.post('/auth/register', { name, email, password, role, dept, num });
+export const register = async (payload) => {
+  const response = await api.post('/auth/register', payload);
   return response;
 };
 export const getUserById = async (userId) => {
@@ -18,7 +18,14 @@ export const deleteUser = async (userId) => {
 };
 
 export const getUsers = async ({search, role, dept}) => {
-  const response = await api.get(`/auth?page=1&limit=10&search=${search}&role=${role}&${dept}`);
+  const params = new URLSearchParams({
+    page: 1,
+    limit: 10,
+    ...(search && { search }),
+    ...(role && { role }),
+    ...(dept && { dept })
+  });
+  const response = await api.get(`/auth?${params}`);
   return response;
 }
 

@@ -16,7 +16,8 @@ const saleController = {
     // Lister toutes les ventes
     listerVentes: async (req, res) => {
         try {
-            const ventes = await Sale.find().populate('animalIds').populate('campaignId');
+            const ventes = await Sale.find().populate('animalIds').populate('campaignId').populate('dept');
+            console.log(ventes);
             res.json(ventes);
         } catch (erreur) {
             res.status(500).json({ message: erreur.message });
@@ -26,7 +27,7 @@ const saleController = {
     // Obtenir une vente par ID
     getVenteById: async (req, res) => {
         try {
-            const vente = await Sale.findById(req.params.id).populate('animalIds').populate('campaignId');
+            const vente = await Sale.findById(req.params.id).populate('animalIds').populate('campaignId').populate('dept');
             if (!vente) {
                 return res.status(404).json({ message: 'Vente non trouvée' });
             }

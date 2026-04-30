@@ -1,27 +1,26 @@
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
-import campaignService from '@/services/campaign.js';
-import departementService from '@/services/departement.js';
+import { ref, reactive, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import campaignService from '@/services/campaign.js'
+import departementService from '@/services/departement.js'
+const loading = ref(false);
 
 const props = defineProps({
+  campaignId: {
+    type: String,
+    default: false,
+  },
   departementId: {
     type: String,
-    default: null
-  }
-});
+    default: null,
+  },
+})
 
-const emit = defineEmits(['close', 'created']);
+const emit = defineEmits(['close', 'created'])
 
-const router = useRouter();
-const route = useRoute();
-const campaignId = route.params.campaignId || null;
-// console.log(route.params.campaignId)
+const route = useRoute()
 
-const loading = ref(false);
-const submitting = ref(false);
-const error = ref(null);
-const success = ref(null);
+const submitting = ref(false)
 
 const form = reactive({
   departement: '',
@@ -32,25 +31,25 @@ const form = reactive({
   status: 'planifié',
   budget: '',
   manager: null,
-  agents: []
-});
+  agents: [],
+})
 
-const departements = ref([]);
+const departements = ref([])
 
 async function loadDepartements() {
   try {
-    const data = await departementService.getDepartements();
-    departements.value = data;
+    const data = await departementService.getDepartements()
+    departements.value = data
   } catch (err) {
-    console.error('Erreur chargement départements:', err);
+    console.error('Erreur chargement départements:', err)
   }
 }
 
 async function loadCampaign() {
-  if (!campaignId) return;
+  if (!props.campaignId) return;
   loading.value = true;
   try {
-    const data = await campaignService.getCampaignById(campaignId);
+    const data = await campaignService.getCampaignById(props.campaignId);
     form.departement = Array.isArray(data.departement) && data.departement.length > 0
       ? (data.departement[0]._id || data.departement[0].id || data.departement[0])
       : '';
@@ -68,31 +67,29 @@ async function loadCampaign() {
 }
 
 onMounted(async () => {
-  await loadDepartements();
+  await loadDepartements()
   await loadCampaign();
-
   // SI on est en mode création (pas de campaignId) ET qu'on a reçu un departementId
-  if (!campaignId && props.departementId) {
-    form.departement = props.departementId;
+  if (!props.campaignId && props.departementId) {
+    form.departement = props.departementId
   }
-});
+})
 
 const handleSubmit = async () => {
-  submitting.value = true;
-  // ... (ta logique de préparation du payload reste la même) ...
-
+  submitting.value = true
   try {
-    if (campaignId) {
-      await campaignService.updateCampaign(campaignId, payload);
+    if (props.campaignId) {
+      await campaignService.updateCampaign(props.campaignId, form)
+      emit('updated')
     } else {
-      const newCampaign = await campaignService.createCampaign(payload);
-      emit('created', newCampaign); // On émet 'created' comme attendu par le parent
+      const newCampaign = await campaignService.createCampaign(form)
+      emit('created', newCampaign) // On émet 'created' comme attendu par le parent
     }
-    emit('close');
+    emit('close')
   } catch (err) {
     // ... gestion erreur ...
   } finally {
-    submitting.value = false;
+    submitting.value = false
   }
 }
 </script>

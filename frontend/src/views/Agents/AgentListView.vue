@@ -4,6 +4,7 @@ import userService from '@/services/users'
 import departementService from '@/services/departement.js'
 import Swal from 'sweetalert2'
 import { useToast } from 'vue-toastification'
+import campaignService from '@/services/campaign.js'
 import {
   Users,
   CheckCircle2,
@@ -26,7 +27,8 @@ const search = ref('')
 const departments = ref([])
 const stats = ref([])
 const toUpdate = ref(null)
-const toast = useToast()
+const toast = useToast();
+const campaigns = ref([]);
 
 // --- Formulaire Réactif ---
 const newAgent = reactive({
@@ -34,6 +36,7 @@ const newAgent = reactive({
   email: '',
   num: '',
   dept: '',
+  campaigns: [],
   role: 'agent',
   password: ''
 })
@@ -86,9 +89,10 @@ async function fetchAgents() {
 }
 
 const resetForm = () => {
-  Object.assign(newAgent, { name: '', email: '', num: '', dept: '', password: '' })
+  Object.assign(newAgent, { name: '', email: '', num: '', dept: '', campaigns: [], password: '' })
   toUpdate.value = null
   isModalOpen.value = false
+  campaigns.value = []
 }
 
 const handleSubmit = async () => {
@@ -116,7 +120,15 @@ const openEditModal = (agent) => {
   newAgent.email = agent.email
   newAgent.num = agent.num
   newAgent.dept = agent.dept?._id || agent.dept || ''
+  newAgent.campaigns = agent.campaigns || []
   isModalOpen.value = true
+  
+  // Charger les campagnes du département sélectionné
+  if (newAgent.dept) {
+    campaignService.getCampaigns().then(data => {
+      campaigns.value = data.filter((c) => c.departement[0]?._id == newAgent.dept)
+    })
+  }
 }
 
 // Gestion de l'accès (Active/Inactive)
@@ -143,7 +155,22 @@ async function handleDigital(id, toggle) {
 }
 
 watch(search, () => fetchAgents())
-onMounted(fetchAgents)
+
+// Fonction pour gérer le changement de département
+const handleDeptChange = async(event) => {
+  const selectedDeptId = event.target.value
+  
+  // Forcer la mise à jour de la valeur réactive
+  newAgent.dept = selectedDeptId
+  if(selectedDeptId) {
+    const data = await campaignService.getCampaigns()
+    campaigns.value = data.filter((c) => c.departement[0]?._id == selectedDeptId)
+    // console.log('📋 Valeur de campaign après:', campaigns.value)
+  }
+}
+onMounted(() => {
+  fetchAgents()
+})
 </script>
 
 <template>
@@ -247,10 +274,15 @@ onMounted(fetchAgents)
             <input v-model="newAgent.email" type="email" placeholder="Email" required class="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:border-emerald-500" />
             <input v-model="newAgent.num" type="tel" placeholder="Téléphone" class="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:border-emerald-500" />
             
-            <select v-model="newAgent.dept" class="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none">
-              <option value="">Département...</option>
+            <select v-model="newAgent.dept" @change="handleDeptChange" class="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none">
+              <option value="" disabled>Département...</option>
               <option v-for="d in departments" :key="d.id || d._id" :value="d.id || d._id">{{ d.name }}</option>
             </select>
+            <select v-model="newAgent.campaigns" multiple class="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none">
+              <option value="" disabled>Sélectionner des campagnes...</option>
+              <option v-for="c in campaigns" :key="c.id || c._id" :value="c.id || c._id">{{ c.name }}</option>
+            </select>
+            <p class="text-xs text-slate-500 mt-1">Maintenez Ctrl/Cmd pour sélectionner plusieurs campagnes</p>
 
             <div class="flex gap-3 pt-4">
               <button type="button" @click="resetForm" class="flex-1 py-4 font-bold text-slate-400">Annuler</button>

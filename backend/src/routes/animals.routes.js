@@ -7,8 +7,9 @@ const router = express.Router();
 router.post("/batch", AnimalController.createManyAnimals);
 router.get("/", AnimalController.getAnimals);
 router.post("/", AnimalController.createAnimal);
-
 // Routes paramétrées
+router.get("/breed", AnimalController.allBreed);
+router.put("/saleUpdate", AnimalController.updateStatus);
 router.get("/:id", AnimalController.getAnimalById);
 router.put("/:id", AnimalController.updateAnimal);
 router.delete("/:id", AnimalController.deleteAnimal);

@@ -9,7 +9,11 @@ const stockItemSchema = new mongoose.Schema({
     threshold: { type: Number, default: 10 }, // Seuil d'alerte
     unitCost: { type: Number, default: 0 },
     supplier: { type: String, default: 'Non spécifié' }, // <--- Ajouté
-    lastUpdated: { type: Date, default: Date.now }
+    lastUpdated: { type: Date, default: Date.now },
+    dept: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Departement",
+    },
 });
 
 export default mongoose.model('StockItem', stockItemSchema);

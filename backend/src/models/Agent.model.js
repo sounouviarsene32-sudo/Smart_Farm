@@ -20,6 +20,7 @@ agentSchema.post("save", async function (doc) {
     try {
       const User = mongoose.model("User");
       const Campaign = mongoose.model("Campaign");
+      const Departement = mongoose.model("Departement");
 
       const existingUser = await User.findOne({ email: doc.email });
 
@@ -34,7 +35,6 @@ agentSchema.post("save", async function (doc) {
           password: "password123", // À changer par l'user à la première connexion
         });
 
-        console.log("✓ Compte utilisateur créé pour:", doc.email);
       }
 
       if (
@@ -47,10 +47,9 @@ agentSchema.post("save", async function (doc) {
           { _id: { $in: doc.campaigns } }, // Filtre : toutes les campagnes dont l'ID est dans le tableau de l'agent
           { $addToSet: { agents: doc._id } }, // Action : Ajouter l'ID de l'agent sans doublon
         );
-        console.log(
-          `✓ Agent ${doc.name} lié à ${doc.campaigns.length} campagne(s).`,
-        );
       }
+
+      await Departement.findOneAndUpdate({_id: doc.dept}, { $addToSet: { agentsCount: doc._id } });
     } catch (err) {
       console.error("× Erreur création User:", err);
     }
@@ -89,24 +88,6 @@ agentSchema.post("findOneAndUpdate", async function (doc) {
       );
     }
   }
-  if (doc.haveCount == false) {
-    await User.findOneAndUpdate(
-      { email: doc.email },
-      {
-        isActive: false,
-      },
-    );
-  }
-  // else {
-  //   try {
-  //     const user = await User.find({ email: doc.email });
-  //     console.log(user)
-  //     if (user) await User.findOneAndDelete({ email: doc.email });
-  //     // console.log(user)
-  //   } catch (err) {
-  //     console.error("× Erreur lors du nettoyage post-suppression:", err);
-  //   }
-  // }
 });
 
 // MIDDLEWARE POST-DELETE : Nettoyage (User + Todos)
@@ -115,6 +96,10 @@ agentSchema.post("findOneAndDelete", async function (doc) {
     try {
       const User = mongoose.model("User");
       const Todo = mongoose.model("Todo");
+      const Departement = mongoose.model("Departement");
+
+      // On retire l'ID de l'agent du tableau agentsCount du département
+      await Departement.findOneAndUpdate({_id: doc.dept}, { $pull: { agentsCount: doc._id } });
 
       await Promise.all([
         await User.findOneAndUpdate(

@@ -13,11 +13,10 @@ export const getAllChefs = async (req, res) => {
 export const createChef = async (req, res) => {
   try {
     // On s'attend à recevoir : name, email, num, dept, haveCount
-    console.log(req.body)
     const chef = await chefService.addChef(req.body);
     res.status(201).json(chef);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(403).json({ message: "Ce Departement dispose déjà du'un chef ou vérifier les informations de ce chef" });
   }
 };
 
@@ -26,6 +25,7 @@ export const updateChef = async (req, res) => {
     const chef = await chefService.updateChef(req.params.id, req.body);
     res.status(200).json(chef);
   } catch (error) {
+    console.error(error.message);
     res.status(400).json({ message: error.message });
   }
 };

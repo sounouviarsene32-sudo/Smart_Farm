@@ -6,6 +6,7 @@ const router = express.Router();
 router.get('/', stockController.recupererTout);
 router.get('/stats', stockController.stats);
 router.get('/alerts', stockController.alerts);
+router.get('/dept/:id', stockController.getByDept);
 router.post('/', stockController.creerArticle);
 router.put('/:id', stockController.ajusterQuantite);
 router.get('/critiques', stockController.articlesCritiques);

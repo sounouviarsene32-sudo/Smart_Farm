@@ -60,9 +60,6 @@ const rations = [
 </script>
 
 <template>
-  <main
-    class="flex-1 lg:ml-64 lg:p-8 transition-all duration-300 w-full p-8 bg-slate-50 min-h-screen space-y-8"
-  >
   <header>
       <div>
         <h1 class="text-3xl font-black text-slate-900 ">Gestionnaire alimentaire</h1>
@@ -167,5 +164,4 @@ const rations = [
         </table>
       </div>
     </div>
-  </main>
 </template>

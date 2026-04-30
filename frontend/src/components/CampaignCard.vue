@@ -1,8 +1,10 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { CalendarDays, FileText, Settings2 } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 
+const emit = defineEmits(['update']);
+const showCampaignForm = ref(false);
 const router = useRouter()
 const props = defineProps({
   campaign: { type: Object, required: true },
@@ -16,7 +18,7 @@ const formatFCFA = (amount) =>
 
 // Montant restant
 const montantRestant = computed(() => {
-  return (props.campaign.budget || 0) - (props.campaign.budgetDepense || 0)
+  return (props.campaign?.budget || 0) - (props.campaign?.budgetDepense || 0)
 })
 
 // Couleur de progression
@@ -33,6 +35,10 @@ const goToDetails = () => {
     name: 'campaigns-detail',
     params: { id: props.campaign._id },
   })
+}
+
+function updateCampaign(deptId, campaingId) {
+  emit('update', deptId, campaingId)
 }
 </script>
 
@@ -110,13 +116,15 @@ const goToDetails = () => {
       >
         <FileText class="w-3.5 h-3.5" /> Dossier
       </button>
-      <button
+      <button @click="updateCampaign(campaign.departement[0]._id, campaign._id)"
         class="flex-1 px-4 py-4 bg-blue-600 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-xl shadow-lg hover:bg-blue-500 transition-all flex items-center justify-center gap-2 transform active:scale-95"
       >
-        <Settings2 class="w-3.5 h-3.5 text-red-300" /> Gérer
+        <Settings2 class="w-3.5 h-3.5 text-red-300" /> Update
       </button>
     </div>
   </div>
+
+
 </template>
 
 <style scoped>

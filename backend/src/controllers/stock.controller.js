@@ -5,10 +5,21 @@ const stockController = {
     // Récupérer tout le stock
     recupererTout: async (req, res) => {
         try {
-            const articles = await StockItem.find();
+            const articles = await StockItem.find().populate('dept');
             res.json(articles);
         } catch (error) {
             res.status(500).json({ message: error.message });
+        }
+    },
+
+    //récupérer les stocks en fonction d'un dept
+    async getByDept(req, res){
+        try {
+            const deptId = req.params.id;
+            const articles = await StockItem.find({'dept': deptId}).populate('dept');
+            res.json(articles);
+        } catch (error) {
+            res.status(404).json({ message: error.message });
         }
     },
 

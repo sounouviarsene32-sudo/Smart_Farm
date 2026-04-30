@@ -54,12 +54,13 @@ userSchema.post("save", async function (doc) {
         chef: doc._id, // On assigne l'ID du Chef (le document actuel) au champ chef du département
       });
     } else if (doc.role === "agent") {
-      if (doc.role === "agent" && doc.campaigns?.length > 0) {
+      if (doc.campaigns?.length > 0) {
         await Campaign.updateMany(
           { _id: { $in: doc.campaigns } }, // Filtre : toutes les campagnes dont l'ID est dans le tableau de l'agent
           { $addToSet: { agents: doc._id } }, // Action : Ajouter l'ID de l'agent sans doublon
         );
       }
+      await Departement.findOneAndUpdate({_id: doc.dept}, { $inc: { agentsCount: 1 } });
     }
   } catch (err) {
     console.error("Erreur de synchronisation post-save:", err);
@@ -82,6 +83,7 @@ userSchema.post("findOneAndUpdate", async function (doc) {
           { $pull: { agents: doc._id } },
         );
         await Todo.updateMany({ agent: doc._id }, { agent: null });
+        await Departement.findOneAndUpdate({_id: doc.dept}, { $inc: { agentsCount: -1 } });
       }
     }
   } catch (err) {

@@ -3,22 +3,31 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET ?? "farm_123";
-export const register = async ({ name, email, password, role, dept, num }) => {
+export const register = async (payload) => {
   try {
-    console.log('--user cru',{ name, email, password, role, dept, num })
-    if (password?.length < 8)
+    if (payload.role === "chef") {
+      const existingChef = await User.findOne({ role: "chef", dept: payload.dept });
+      if (existingChef) {
+        error.status = 409;
+        throw new Error("Ce département a déjà un chef assigné");
+      }
+    }
+console.log(payload);
+
+    if (payload.role=== 'agent' && payload.campaigns?.length > 0) { 
+      console.log('agent avec campagnes:', payload.campaigns)
+    }
+    if (payload.password?.length < 8)
       throw new Error("Password must be at least 8 characters");
     // if (!/\d/.test(password))
     //   throw new Error("Password must contain at least one number");
 
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email: payload.email });
     if (existingUser) throw new Error("Email déjà utilisé");
-    const user = new User({ name, email, password, role, dept, num });
-    console.log('--user après',user)
+    const user = new User(payload);
     await user.save(); // 🔥 le hash se fait ici automatiquement
     return { user };
   } catch (error) {
-    console.log(error);
     throw error;
   }
 };

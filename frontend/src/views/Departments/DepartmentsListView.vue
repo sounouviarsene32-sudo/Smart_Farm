@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue';
 import { LayoutGrid, Users2, UserSquare, Beef, Plus, Trash2, Edit2 } from 'lucide-vue-next';
 import departementService from '@/services/departement.js';
-import DepartementForm from '../Form/DepartementForm.vue'; // import du formulaire modal
+import DepartementForm from '@/views/Form/DepartementForm.vue'; // import du formulaire modal
 
 // Stats globaux dynamiques
 const globalStats = ref({

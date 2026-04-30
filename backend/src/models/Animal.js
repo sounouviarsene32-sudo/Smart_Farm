@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 const animalSchema = new mongoose.Schema({
     identificationNumber: { type: String, required: true, unique: true },
+    qrCodeUrl: { type: String},
     species: { type: String, required: true },
     breed: { type: String, required: true },
     birthDate: { type: Date, required: true },
